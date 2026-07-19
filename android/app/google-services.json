@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "552968748586",
+    "project_id": "seba-80deb",
+    "storage_bucket": "seba-80deb.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:552968748586:android:db05d946c5974b92310d53",
+        "android_client_info": {
+          "package_name": "com.example.seba"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "552968748586-l0ndrt6sil1juhstl07l8ln339ifd4o6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.seba",
+            "certificate_hash": "2d1350059a2691f82ef8875e1c96e4249e70a755"
+          }
+        },
+        {
+          "client_id": "552968748586-0um2u05jt9fd4udu0plguciipla0deii.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAZoUT3RuzurhR2R2vn6j9CmliqkSDuNDc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "552968748586-0um2u05jt9fd4udu0plguciipla0deii.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "552968748586-6knffq29flvp7j3iv8memta1ncsojeiq.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.seba"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
