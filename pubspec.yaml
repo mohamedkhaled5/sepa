@@ -41,6 +41,7 @@ dependencies:
   google_sign_in: ^7.2.0
   url_launcher: ^6.3.2
   printing: ^5.14.3
+  path_provider: ^2.1.6
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -91,7 +92,8 @@ flutter:
   fonts:
     - family: cairo
       fonts:
-        - asset: fonts/Cairo/Cairo-VariableFont_slnt,wght.ttf
+        - asset: assets/fonts/Cairo/static/Cairo-Regular.ttf
+        - asset: assets/fonts/Cairo/static/Cairo-Bold.ttf
   #       - asset: fonts/Schyler-Italic.ttf
   #         style: italic
   #   - family: Trajan Pro

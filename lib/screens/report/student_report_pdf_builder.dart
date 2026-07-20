@@ -16,9 +16,11 @@ class StudentReportPdfBuilder {
 
   static Future<pw.Document> build(StudentReportData data) async {
     final regularFontData = await rootBundle.load(
-      'assets/fonts/Cairo-Regular.ttf',
+      'assets/fonts/Cairo/static/Cairo-Regular.ttf',
     );
-    final boldFontData = await rootBundle.load('assets/fonts/Cairo-Bold.ttf');
+    final boldFontData = await rootBundle.load(
+      'assets/fonts/Cairo/static/Cairo-Bold.ttf',
+    );
 
     final regularFont = pw.Font.ttf(regularFontData);
     final boldFont = pw.Font.ttf(boldFontData);

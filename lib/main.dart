@@ -6,7 +6,12 @@ import 'package:intl/date_symbol_data_local.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  theme:
+  ThemeData(
+    colorSchemeSeed: Colors.green,
+    useMaterial3: true,
+    fontFamily: 'cairo',
+  );
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await initializeDateFormatting('ar');
   runApp(const SebaApp());
