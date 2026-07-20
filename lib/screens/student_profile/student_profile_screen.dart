@@ -1,8 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:printing/printing.dart';
+import 'package:seba/features/assistant/app_session.dart';
 import 'package:seba/model/Activity_model/activity_model_type.dart';
 import 'package:seba/model/group_model.dart';
 import 'package:seba/model/student_model.dart';
+import 'package:seba/screens/report/report_data_service.dart';
+import 'package:seba/screens/report/student_report_pdf_builder.dart';
 import 'package:seba/screens/student_profile/add_exam.dart/add_exam_screen.dart';
 import 'package:seba/screens/student_profile/add_exam.dart/edit_exam_screen.dart';
 import 'package:seba/screens/student_profile/attendance_operation/add_attendance_state.dart';
@@ -75,6 +79,55 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
     await FirestorePaths.studentActivities(studentId).doc(activityId).delete();
   }
 
+  // ================== إنشاء التقرير الشامل ==================
+  bool _isGeneratingReport = false;
+
+  Widget _buildReportButton() {
+    // متاح فقط لمن عنده صلاحية "reports" (المدرس عنده دايمًا تلقائيًا).
+    if (!AppSession.hasPermission('reports')) return const SizedBox.shrink();
+
+    return IconButton(
+      tooltip: "إنشاء تقرير شامل",
+      icon: _isGeneratingReport
+          ? const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Colors.white,
+              ),
+            )
+          : const Icon(Icons.picture_as_pdf_outlined),
+      onPressed: _isGeneratingReport ? null : _generateReport,
+    );
+  }
+
+  Future<void> _generateReport() async {
+    setState(() => _isGeneratingReport = true);
+
+    try {
+      final data = await ReportDataService().buildReportForStudent(
+        widget.student,
+      );
+      final pdfDoc = await StudentReportPdfBuilder.build(data);
+
+      if (!mounted) return;
+
+      await Printing.layoutPdf(
+        onLayout: (format) => pdfDoc.save(),
+        name: 'تقرير_${widget.student.name ?? 'طالب'}.pdf',
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('تعذر إنشاء التقرير: $e')));
+      }
+    } finally {
+      if (mounted) setState(() => _isGeneratingReport = false);
+    }
+  }
+
   String _groupLabel(String groupId) {
     final group = _groupsById[groupId];
     if (group == null) return groupId;
@@ -126,9 +179,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
                   ),
                   Text(
                     activity.type == "attendance"
-                        ? (activity.attendancePresent == true
-                              ? "حاضر✔"
-                              : "غائب ❌")
+                        ? (activity.attendancePresent == true ? "حاضر" : "غائب")
                         : "${activity.examStatus} | الدرجة: ${activity.currentDegree} من ${activity.maxDegree}",
                   ),
                 ],
@@ -190,7 +241,10 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
 
     if (groupIds.isEmpty) {
       return Scaffold(
-        appBar: AppBar(title: Text('ملف الطالب - ${widget.student.name}')),
+        appBar: AppBar(
+          title: Text('ملف الطالب - ${widget.student.name}'),
+          actions: [_buildReportButton()],
+        ),
         body: const Center(child: Text("الطالب غير مسجل في أي مجموعة حاليًا")),
       );
     }
@@ -198,6 +252,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
     return Scaffold(
       appBar: AppBar(
         title: Text('ملف الطالب - ${widget.student.name}'),
+        actions: [_buildReportButton()],
         bottom: TabBar(
           controller: _tabController,
           isScrollable: true,
