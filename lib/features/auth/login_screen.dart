@@ -159,6 +159,13 @@ class _LoginScreenState extends State<LoginScreen> {
                 icon: const Icon(Icons.g_mobiledata, size: 28),
                 label: const Text("الدخول بواسطة Google"),
               ),
+              const SizedBox(height: 4),
+              const Text(
+                "* الدخول بجوجل متاح للمدرسين فقط. لو أنت مساعد، سجّل "
+                "حساب جديد بالبريد الإلكتروني وكلمة المرور.",
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.black54, fontSize: 11),
+              ),
               const SizedBox(height: 20),
 
               TextButton(

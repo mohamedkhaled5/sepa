@@ -1,45 +1,33 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:seba/features/assistant/app_session.dart';
 
-/// نقطة مركزية واحدة لكل مسارات Firestore الخاصة ببيانات المستخدم الحالي.
+/// نقطة مركزية واحدة لكل مسارات Firestore.
 ///
-/// بدل ما كل شاشة تكتب FirebaseFirestore.instance.collection('groups')
-/// مباشرة (وده بيخلي بيانات كل المستخدمين مشتركة في نفس الـ collection)،
-/// كل الشاشات دلوقتي هتستخدم FirestorePaths.groups مثلاً، واللي
-/// بيرجع تلقائيًا: users/{uid}/groups الخاصة بالمستخدم المسجل دخول حاليًا فقط.
-///
-/// لو مفيش مستخدم مسجل دخول أصلاً، بيرمي خطأ واضح بدل ما يفشل بصمت
-/// أو (الأخطر) يكتب/يقرأ من مكان غلط.
+/// كل المسارات هنا بترجع تلقائيًا تحت users/{effectiveTeacherId}/... —
+/// effectiveTeacherId هو uid المدرس دايمًا (سواء كان المستخدم الحالي هو
+/// المدرس نفسه، أو مساعد تابع له)، وده اللي بيخلي المدرس والمساعد
+/// يشوفوا نفس البيانات بالظبط، بينما بيانات كل مدرس تفضل معزولة عن
+/// مدرس تاني.
 class FirestorePaths {
   FirestorePaths._();
 
-  static String get _uid {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null) {
-      throw StateError(
-        'لا يوجد مستخدم مسجل دخول حاليًا - لا يمكن الوصول لبيانات Firestore',
-      );
-    }
-    return uid;
-  }
-
-  static DocumentReference<Map<String, dynamic>> get _userDoc =>
-      FirebaseFirestore.instance.collection('users').doc(_uid);
+  static DocumentReference<Map<String, dynamic>> get _teacherDoc =>
+      FirebaseFirestore.instance
+          .collection('users')
+          .doc(AppSession.effectiveTeacherId);
 
   static CollectionReference<Map<String, dynamic>> get groups =>
-      _userDoc.collection('groups');
+      _teacherDoc.collection('groups');
 
   static CollectionReference<Map<String, dynamic>> get students =>
-      _userDoc.collection('students');
+      _teacherDoc.collection('students');
 
   static CollectionReference<Map<String, dynamic>> get subjects =>
-      _userDoc.collection('subjects');
+      _teacherDoc.collection('subjects');
 
   static CollectionReference<Map<String, dynamic>> get grades =>
-      _userDoc.collection('grades');
+      _teacherDoc.collection('grades');
 
-  /// سجلات الحضور/الامتحانات الخاصة بطالب معين (subcollection تحت الطالب
-  /// نفسه، وهو أصلًا تحت users/{uid}/students/{studentId}).
   static CollectionReference<Map<String, dynamic>> studentActivities(
     String studentId,
   ) => students.doc(studentId).collection('activities');

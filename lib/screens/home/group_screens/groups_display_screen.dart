@@ -1,11 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:seba/features/auth/firestore_path.dart';
 import 'package:seba/model/group_model.dart';
 import 'package:seba/screens/add_student/add_student_general_screen.dart';
 import 'package:seba/screens/home/group_screens/create_group.dart';
 import 'package:seba/screens/home/group_screens/student_display_screen/student_display_screen.dart';
 import 'package:seba/screens/settings/settings_screen.dart';
+import 'package:seba/features/assistant/app_session.dart';
+import 'package:seba/features/auth/firestore_path.dart';
 
 class GroupsDisplayScreen extends StatefulWidget {
   const GroupsDisplayScreen({super.key});
@@ -165,7 +166,9 @@ class _GroupsDisplayScreenState extends State<GroupsDisplayScreen> {
                 margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 child: Dismissible(
                   key: Key(group.id!),
-                  direction: DismissDirection.startToEnd,
+                  direction: AppSession.hasPermission('editGroup')
+                      ? DismissDirection.startToEnd
+                      : DismissDirection.none,
                   confirmDismiss: (direction) async {
                     await Navigator.push(
                       context,
@@ -209,9 +212,11 @@ class _GroupsDisplayScreenState extends State<GroupsDisplayScreen> {
                         ),
                       );
                     },
-                    onLongPress: () async {
-                      await deleteGroup(group);
-                    },
+                    onLongPress: AppSession.hasPermission('deleteGroup')
+                        ? () async {
+                            await deleteGroup(group);
+                          }
+                        : null,
                   ),
                 ),
               );
@@ -223,30 +228,33 @@ class _GroupsDisplayScreenState extends State<GroupsDisplayScreen> {
       floatingActionButton: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          FloatingActionButton.extended(
-            heroTag: "addStudentGeneral",
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const AddStudentGeneralScreen(),
-                ),
-              );
-            },
-            icon: const Icon(Icons.person_add),
-            label: const Text("طالب"),
-          ),
-          const SizedBox(width: 12),
-          FloatingActionButton(
-            heroTag: "addGroup",
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const CreateGroupScreen()),
-              );
-            },
-            child: const Icon(Icons.add),
-          ),
+          if (AppSession.hasPermission('createStudent')) ...[
+            FloatingActionButton.extended(
+              heroTag: "addStudentGeneral",
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const AddStudentGeneralScreen(),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.person_add),
+              label: const Text("طالب"),
+            ),
+            const SizedBox(width: 12),
+          ],
+          if (AppSession.hasPermission('createGroup'))
+            FloatingActionButton(
+              heroTag: "addGroup",
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const CreateGroupScreen()),
+                );
+              },
+              child: const Icon(Icons.add),
+            ),
         ],
       ),
     );

@@ -4,6 +4,7 @@ import 'package:seba/features/auth/firestore_path.dart';
 import 'package:seba/model/Activity_model/activity_model_type.dart';
 import 'package:seba/model/student_model.dart';
 import 'package:seba/screens/add_student/add_student_data.dart';
+import 'package:seba/features/assistant/app_session.dart';
 import 'package:seba/screens/edit_student/edit_student_screen.dart';
 import 'package:seba/screens/student_profile/student_profile_screen.dart';
 import 'dart:math';
@@ -131,123 +132,133 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
                           if (student.conectWithWhatsApp == true)
                             const Text("🟢 WhatsApp"),
 
+                          // تسجيل الحضور/الغياب متاح دايمًا للمساعد (من أساسيات
+                          // دوره)، أما التعديل والحذف فمقيّدين بالصلاحيات.
                           Wrap(
                             spacing: 4,
                             children: [
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.check_circle,
-                                  color: Colors.green,
+                              if (AppSession.hasPermission('attendance')) ...[
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.check_circle,
+                                    color: Colors.green,
+                                  ),
+                                  onPressed: () {
+                                    addAttendance(student, true);
+                                  },
                                 ),
-                                onPressed: () {
-                                  addAttendance(student, true);
-                                },
-                              ),
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.cancel,
-                                  color: Colors.red,
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.cancel,
+                                    color: Colors.red,
+                                  ),
+                                  onPressed: () {
+                                    addAttendance(student, false);
+                                  },
                                 ),
-                                onPressed: () {
-                                  addAttendance(student, false);
-                                },
-                              ),
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.delete,
-                                  color: Colors.red,
-                                ),
-                                onPressed: () async {
-                                  final randomNumber =
-                                      (Random().nextInt(900) + 100).toString();
+                              ],
+                              if (AppSession.hasPermission('deleteStudent'))
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.delete,
+                                    color: Colors.red,
+                                  ),
+                                  onPressed: () async {
+                                    final randomNumber =
+                                        (Random().nextInt(900) + 100)
+                                            .toString();
 
-                                  final controller = TextEditingController();
-                                  final messenger = ScaffoldMessenger.of(
-                                    context,
-                                  );
-                                  final confirm = await showDialog<bool>(
-                                    context: context,
-                                    barrierDismissible: false,
-                                    builder: (context) {
-                                      return AlertDialog(
-                                        title: const Text("⚠️ تحذير"),
-                                        content: Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            const Text(
-                                              "سيتم حذف الطالب وجميع سجلاته وبياناته نهائياً.\n"
-                                              "اكتب الرقم التالي للتأكيد:",
-                                            ),
-                                            const SizedBox(height: 15),
-                                            Text(
-                                              randomNumber,
-                                              style: const TextStyle(
-                                                fontSize: 28,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.red,
+                                    final controller = TextEditingController();
+                                    final messenger = ScaffoldMessenger.of(
+                                      context,
+                                    );
+                                    final confirm = await showDialog<bool>(
+                                      context: context,
+                                      barrierDismissible: false,
+                                      builder: (context) {
+                                        return AlertDialog(
+                                          title: const Text("⚠️ تحذير"),
+                                          content: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              const Text(
+                                                "سيتم حذف الطالب وجميع سجلاته وبياناته نهائياً.\n"
+                                                "اكتب الرقم التالي للتأكيد:",
                                               ),
-                                            ),
-                                            const SizedBox(height: 15),
-                                            TextField(
-                                              controller: controller,
-                                              keyboardType:
-                                                  TextInputType.number,
-                                              decoration: const InputDecoration(
-                                                border: OutlineInputBorder(),
-                                                hintText: "اكتب الرقم هنا",
+                                              const SizedBox(height: 15),
+                                              Text(
+                                                randomNumber,
+                                                style: const TextStyle(
+                                                  fontSize: 28,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.red,
+                                                ),
                                               ),
+                                              const SizedBox(height: 15),
+                                              TextField(
+                                                controller: controller,
+                                                keyboardType:
+                                                    TextInputType.number,
+                                                decoration:
+                                                    const InputDecoration(
+                                                      border:
+                                                          OutlineInputBorder(),
+                                                      hintText:
+                                                          "اكتب الرقم هنا",
+                                                    ),
+                                              ),
+                                            ],
+                                          ),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () {
+                                                Navigator.pop(context, false);
+                                              },
+                                              child: const Text("إلغاء"),
+                                            ),
+                                            ElevatedButton(
+                                              onPressed: () {
+                                                if (controller.text ==
+                                                    randomNumber) {
+                                                  Navigator.pop(context, true);
+                                                } else {
+                                                  messenger.showSnackBar(
+                                                    const SnackBar(
+                                                      content: Text(
+                                                        "الرقم غير صحيح",
+                                                      ),
+                                                    ),
+                                                  );
+                                                }
+                                              },
+                                              child: const Text("حذف"),
                                             ),
                                           ],
-                                        ),
-                                        actions: [
-                                          TextButton(
-                                            onPressed: () {
-                                              Navigator.pop(context, false);
-                                            },
-                                            child: const Text("إلغاء"),
-                                          ),
-                                          ElevatedButton(
-                                            onPressed: () {
-                                              if (controller.text ==
-                                                  randomNumber) {
-                                                Navigator.pop(context, true);
-                                              } else {
-                                                messenger.showSnackBar(
-                                                  const SnackBar(
-                                                    content: Text(
-                                                      "الرقم غير صحيح",
-                                                    ),
-                                                  ),
-                                                );
-                                              }
-                                            },
-                                            child: const Text("حذف"),
-                                          ),
-                                        ],
-                                      );
-                                    },
-                                  );
+                                        );
+                                      },
+                                    );
 
-                                  if (confirm == true) {
-                                    await deleteStudent(student.id!);
-                                  }
-                                },
-                              ),
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.edit,
-                                  color: Colors.green,
+                                    if (confirm == true) {
+                                      await deleteStudent(student.id!);
+                                    }
+                                  },
                                 ),
-                                onPressed: () async {
-                                  await Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) =>
-                                          EditStudentScreen(student: student),
-                                    ),
-                                  );
-                                },
-                              ),
+                              if (AppSession.hasPermission('editStudent'))
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.edit,
+                                    color: Colors.green,
+                                  ),
+                                  onPressed: () async {
+                                    await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            EditStudentScreen(student: student),
+                                      ),
+                                    );
+                                  },
+                                ),
                             ],
                           ),
                         ],
@@ -271,20 +282,25 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
           },
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.green,
-        foregroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => AddStudentData(groupId: widget.groupId),
-            ),
-          );
-        },
-        child: const Text("+", style: TextStyle(fontSize: 24)),
-      ),
+      // زر إضافة طالب جديد يظهر بس لو عند المستخدم صلاحية إنشاء طالب.
+      floatingActionButton: AppSession.hasPermission('createStudent')
+          ? FloatingActionButton(
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => AddStudentData(groupId: widget.groupId),
+                  ),
+                );
+              },
+              child: const Text("+", style: TextStyle(fontSize: 24)),
+            )
+          : null,
     );
   }
 }

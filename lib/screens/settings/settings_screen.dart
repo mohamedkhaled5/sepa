@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:seba/features/auth/auth_service.dart';
+import 'package:seba/features/assistant/app_session.dart';
+import 'package:seba/features/assistant/manage_assistants_screen.dart';
 import 'package:seba/screens/settings/about_seba_app_screen.dart';
 import 'package:seba/screens/settings/manage_subjects_grades_screen.dart';
 
@@ -16,21 +18,45 @@ class SettingsScreen extends StatelessWidget {
       appBar: AppBar(title: const Text("الإعدادات")),
       body: ListView(
         children: [
-          ListTile(
-            leading: const Icon(Icons.menu_book, color: Colors.green),
-            title: const Text("المواد والصفوف"),
-            subtitle: const Text("إضافة أو حذف المواد الدراسية والصفوف"),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const ManageSubjectsGradesScreen(),
-                ),
-              );
-            },
-          ),
-          const Divider(height: 1),
+          if (AppSession.hasPermission('manageSubjectsGrades')) ...[
+            ListTile(
+              leading: const Icon(Icons.menu_book, color: Colors.green),
+              title: const Text("المواد والصفوف"),
+              subtitle: const Text("إضافة أو حذف المواد الدراسية والصفوف"),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const ManageSubjectsGradesScreen(),
+                  ),
+                );
+              },
+            ),
+            const Divider(height: 1),
+          ],
+
+          // إدارة المساعدين تظهر للمدرس فقط - المساعد مالوش صلاحية
+          // يدير مساعدين تانيين أو يشوف كود الدعوة.
+          if (AppSession.isTeacher) ...[
+            ListTile(
+              leading: const Icon(Icons.groups_2, color: Colors.purple),
+              title: const Text("إدارة المساعدين"),
+              subtitle: const Text("كود الدعوة، طلبات الانضمام، والصلاحيات"),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ManageAssistantsScreen(
+                      teacherId: AppSession.effectiveTeacherId,
+                    ),
+                  ),
+                );
+              },
+            ),
+            const Divider(height: 1),
+          ],
 
           ListTile(
             leading: const Icon(Icons.details, color: Colors.green),
@@ -92,7 +118,6 @@ class SettingsScreen extends StatelessWidget {
                   content: const Text(
                     "--هل أنت متأكد من تسجيل الخروج؟ --\nبعد تسجيل الخروج قم بالرجوع للصفحة الرئيسية \n     لتأكد من تسجيل الخروج",
                   ),
-
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.pop(context, false),
@@ -109,8 +134,15 @@ class SettingsScreen extends StatelessWidget {
               if (confirm == true) {
                 try {
                   await authService.logout();
-                  // AuthWrapper هيلاحظ تغيّر حالة تسجيل الدخول ويرجّعك
-                  // لشاشة Login تلقائيًا بدون أي Navigator يدوي هنا.
+
+                  // نفرّغ الـ Navigator بالكامل عشان AuthWrapper يظهر فورًا
+                  // بدل ما يفضل مخبي تحت الشاشات المفتوحة قبل الخروج.
+                  if (context.mounted) {
+                    Navigator.of(
+                      context,
+                      rootNavigator: true,
+                    ).popUntil((route) => route.isFirst);
+                  }
                 } catch (e) {
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(

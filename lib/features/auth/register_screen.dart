@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:seba/features/auth/auth_service.dart';
 
+enum _AccountRole { teacher, assistant }
+
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
@@ -13,10 +15,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final _authService = AuthService();
 
+  _AccountRole selectedRole = _AccountRole.teacher;
+
   final nameController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
+  final inviteCodeController = TextEditingController();
 
   bool isLoading = false;
   String? errorMessage;
@@ -27,6 +32,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     emailController.dispose();
     passwordController.dispose();
     confirmPasswordController.dispose();
+    inviteCodeController.dispose();
     super.dispose();
   }
 
@@ -39,26 +45,35 @@ class _RegisterScreenState extends State<RegisterScreen> {
     });
 
     try {
-      // AuthService.register() بتعمل كل السلسلة:
-      // Firebase Auth -> uid -> حفظ في Firestore تلقائيًا.
-      await _authService.register(
-        name: nameController.text.trim(),
-        email: emailController.text.trim(),
-        password: passwordController.text,
-      );
-
-      // مفيش داعي لأي Navigator.push للـ Home هنا؛ AuthWrapper بيلاحظ
-      // تغيّر حالة تسجيل الدخول تلقائيًا ويبدّل الشاشة بنفسه.
+      if (selectedRole == _AccountRole.teacher) {
+        await _authService.registerTeacher(
+          name: nameController.text.trim(),
+          email: emailController.text.trim(),
+          password: passwordController.text,
+        );
+        // AuthWrapper هيلاحظ تسجيل الدخول ويوديه للـ Home تلقائيًا.
+      } else {
+        await _authService.registerAssistant(
+          name: nameController.text.trim(),
+          email: emailController.text.trim(),
+          password: passwordController.text,
+          inviteCode: inviteCodeController.text.trim(),
+        );
+        // AuthWrapper هيلاحظ إن الحساب "pending" ويوديه لشاشة انتظار
+        // الموافقة تلقائيًا، مش للـ Home مباشرة.
+      }
     } on FirebaseAuthException catch (e) {
-      setState(() => errorMessage = _mapError(e.code));
+      setState(() => errorMessage = _mapAuthError(e.code));
     } catch (e) {
-      setState(() => errorMessage = "حدث خطأ غير متوقع");
+      setState(
+        () => errorMessage = e.toString().replaceFirst('Exception: ', ''),
+      );
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
   }
 
-  String _mapError(String code) {
+  String _mapAuthError(String code) {
     switch (code) {
       case 'email-already-in-use':
         return "البريد الإلكتروني مستخدم بالفعل";
@@ -82,6 +97,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // ================== اختيار الدور ==================
+              const Text(
+                "نوع الحساب",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              SegmentedButton<_AccountRole>(
+                segments: const [
+                  ButtonSegment(
+                    value: _AccountRole.teacher,
+                    label: Text("مدرس"),
+                    icon: Icon(Icons.school),
+                  ),
+                  ButtonSegment(
+                    value: _AccountRole.assistant,
+                    label: Text("مساعد"),
+                    icon: Icon(Icons.support_agent),
+                  ),
+                ],
+                selected: {selectedRole},
+                onSelectionChanged: (selection) {
+                  setState(() => selectedRole = selection.first);
+                },
+              ),
+              const SizedBox(height: 20),
+
               TextFormField(
                 controller: nameController,
                 decoration: const InputDecoration(
@@ -138,6 +179,34 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   return null;
                 },
               ),
+
+              // ================== كود المدرس (للمساعد فقط) ==================
+              if (selectedRole == _AccountRole.assistant) ...[
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: inviteCodeController,
+                  textCapitalization: TextCapitalization.characters,
+                  decoration: const InputDecoration(
+                    labelText: "كود المدرس",
+                    hintText: "مثال: SBL84K",
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (v) {
+                    if (selectedRole == _AccountRole.assistant &&
+                        (v == null || v.trim().isEmpty)) {
+                      return "ادخل كود المدرس";
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  "احصل على الكود من المدرس اللي هتشتغل معاه. بعد التسجيل "
+                  "هيتبعتلك طلب انضمام لحد ما المدرس يوافق عليك.",
+                  style: TextStyle(color: Colors.black54, fontSize: 12),
+                ),
+              ],
+
               const SizedBox(height: 20),
 
               if (errorMessage != null)
