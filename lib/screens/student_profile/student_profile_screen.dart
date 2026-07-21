@@ -112,11 +112,22 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
       final pdfDoc = await StudentReportPdfBuilder.build(data);
 
       if (!mounted) return;
-
-      await Printing.layoutPdf(
-        onLayout: (format) => pdfDoc.save(),
-        name: 'تقرير_${widget.student.name ?? 'طالب'}.pdf',
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => PdfPreview(
+            build: (format) => pdfDoc.save(),
+            canChangePageFormat: false,
+            canChangeOrientation: false,
+            canDebug: false,
+            pdfFileName: 'تقرير_${widget.student.name ?? 'طالب'}.pdf',
+          ),
+        ),
       );
+      // await Printing.layoutPdf(
+      //   onLayout: (format) => pdfDoc.save(),
+      //   name: 'تقرير_${widget.student.name ?? 'طالب'}.pdf',
+      // );
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(

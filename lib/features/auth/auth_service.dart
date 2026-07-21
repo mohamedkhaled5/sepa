@@ -29,9 +29,18 @@ class AuthService {
       _firestore.collection('users');
 
   // ================== توليد كود دعوة فريد ==================
+  CollectionReference<Map<String, dynamic>> get _inviteCodesCollection =>
+      _firestore.collection('inviteCodes');
+
+  /// بتحاول تكتب مستند inviteCodes/{code} مباشرة. لو الكود مأخوذ بالفعل،
+  /// قواعد Firestore هترفض الكتابة (لأن العملية بتتصنّف "update" على
+  /// مستند موجود، والـ update ممنوع تمامًا لمجموعة inviteCodes) فبنجرب
+  /// كود تاني. الفرادة هنا مضمونة من Firestore نفسه، مش من فحص قبل
+  /// الإنشاء زي الطريقة القديمة (اللي كانت فيها احتمال تضارب نادر).
   Future<String> _generateUniqueInviteCode() async {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // بدون أحرف ملتبسة
     final random = Random();
+    final uid = _auth.currentUser!.uid;
 
     while (true) {
       final code = List.generate(
@@ -39,27 +48,28 @@ class AuthService {
         (_) => chars[random.nextInt(chars.length)],
       ).join();
 
-      final existing = await _usersCollection
-          .where('inviteCode', isEqualTo: code)
-          .limit(1)
-          .get();
-
-      if (existing.docs.isEmpty) return code;
+      try {
+        await _inviteCodesCollection.doc(code).set({'teacherId': uid});
+        return code;
+      } on FirebaseException catch (e) {
+        if (e.code == 'permission-denied') {
+          continue; // الكود مأخوذ بالفعل - جرب كود تاني
+        }
+        rethrow;
+      }
     }
   }
 
   Future<String> _resolveTeacherIdByInviteCode(String inviteCode) async {
-    final teacherQuery = await _usersCollection
-        .where('inviteCode', isEqualTo: inviteCode.trim().toUpperCase())
-        .where('role', isEqualTo: 'teacher')
-        .limit(1)
+    final doc = await _inviteCodesCollection
+        .doc(inviteCode.trim().toUpperCase())
         .get();
 
-    if (teacherQuery.docs.isEmpty) {
+    if (!doc.exists) {
       throw Exception('كود المدرس غير صحيح');
     }
 
-    return teacherQuery.docs.first.id;
+    return doc.data()!['teacherId'] as String;
   }
 
   // ================== تسجيل حساب مدرس (إيميل/باسورد) ==================
@@ -192,14 +202,23 @@ class AuthService {
     return UserModel.fromFirestore(doc);
   }
 
-  /// بترجع كود الدعوة الخاص بمدرس معين، ولو الحساب قديم ومفيهوش كود
-  /// أصلًا (مثلاً اتعمل قبل ما خاصية الأكواد تتضاف)، بتولّد له كود جديد
-  /// وتحفظه في نفس اللحظة بدل ما تسيب الشاشة تظهر فاضية.
+  /// بترجع كود الدعوة الخاص بمدرس معين. بتغطي 3 حالات:
+  /// 1) حساب قديم مفيهوش كود خالص -> تولّد كود جديد كامل.
+  /// 2) حساب عنده كود في users لكن مفيش مستند مطابق في inviteCodes
+  ///    (حسابات اتعملت قبل إضافة مجموعة inviteCodes) -> تكمّل المستند
+  ///    الناقص بدل ما تولّد كود جديد بالغلط (Migration ذاتي).
+  /// 3) حساب متظبط بالكامل -> ترجع الكود زي ما هو.
   Future<String> ensureInviteCode(String teacherUid) async {
     final doc = await _usersCollection.doc(teacherUid).get();
     final existingCode = doc.data()?['inviteCode'] as String?;
 
     if (existingCode != null && existingCode.isNotEmpty) {
+      final codeDoc = await _inviteCodesCollection.doc(existingCode).get();
+      if (!codeDoc.exists) {
+        await _inviteCodesCollection.doc(existingCode).set({
+          'teacherId': teacherUid,
+        });
+      }
       return existingCode;
     }
 
@@ -227,8 +246,15 @@ class AuthService {
         .snapshots();
   }
 
+  /// عند القبول، بنعيد ضبط الصلاحيات للقيم الافتراضية الآمنة صراحة -
+  /// حتى لو المساعد حاول (بتلاعب مباشر في الطلب مش عبر الواجهة) يسجّل
+  /// نفسه بصلاحيات مرفوعة، القبول بيصفّرها تلقائيًا. المدرس بعد كده
+  /// يقدر يرفعها يدويًا من شاشة تعديل الصلاحيات لو حابب.
   Future<void> approveAssistant(String assistantUid) async {
-    await _usersCollection.doc(assistantUid).update({'status': 'approved'});
+    await _usersCollection.doc(assistantUid).update({
+      'status': 'approved',
+      'permissions': kDefaultAssistantPermissions,
+    });
   }
 
   Future<void> rejectAssistant(String assistantUid) async {
