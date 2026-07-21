@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:seba/model/Activity_model/activity_model_type.dart';
+import 'package:seba/model/activity_model_type.dart';
 import 'package:seba/model/student_model.dart';
 import 'package:seba/features/auth/firestore_path.dart';
 

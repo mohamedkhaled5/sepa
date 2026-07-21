@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:seba/model/group_model.dart';
-import 'package:seba/screens/add_student/add_student_general_screen.dart';
+import 'package:seba/screens/student/add_student_general_screen.dart';
 import 'package:seba/screens/home/group_screens/create_group.dart';
 import 'package:seba/screens/home/group_screens/student_display_screen/student_display_screen.dart';
 import 'package:seba/screens/settings/settings_screen.dart';

@@ -1,55 +1,70 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:seba/features/auth/firestore_path.dart';
 import 'package:seba/model/group_model.dart';
 import 'package:seba/model/student_model.dart';
-import 'package:seba/screens/add_student/select_group_tree_widget.dart';
+import 'package:seba/screens/student/select_group_tree_widget.dart';
 
-class AddStudentData extends StatefulWidget {
-  const AddStudentData({super.key, required this.groupId});
+class EditStudentScreen extends StatefulWidget {
+  const EditStudentScreen({super.key, required this.student});
 
-  final String groupId;
+  final StudentModel student;
 
   @override
-  State<AddStudentData> createState() => _AddStudentDataState();
+  State<EditStudentScreen> createState() => _EditStudentScreenState();
 }
 
-class _AddStudentDataState extends State<AddStudentData> {
+class _EditStudentScreenState extends State<EditStudentScreen> {
+  late TextEditingController nameController;
+  late TextEditingController parentController;
+  late TextEditingController phoneController;
+  late TextEditingController parentRelationController;
+
   bool conectWithPhone = false;
   bool conectWithWhatsApp = false;
 
-  final studentNameController = TextEditingController();
-  final studentParentNameController = TextEditingController();
-  final parentRelationController = TextEditingController();
-  final studentPhoneController = TextEditingController();
+  late List<String> currentGroupIds;
 
-  late List<String> selectedGroupIds;
+  Future<void> updateStudent() async {
+    await FirestorePaths.students.doc(widget.student.id).update({
+      "name": nameController.text,
+      "phone": phoneController.text,
+      "parentName": parentController.text,
+      "parentRelation": parentRelationController.text,
+      "conectWithPhone": conectWithPhone,
+      "conectWithWhatsApp": conectWithWhatsApp,
+      "groupIds": currentGroupIds,
+    });
+  }
 
   @override
   void initState() {
     super.initState();
-    selectedGroupIds = [widget.groupId];
-  }
 
-  Future<void> saveStudent() async {
-    final doc = FirestorePaths.students.doc();
-
-    final student = StudentModel(
-      id: doc.id,
-      groupIds: selectedGroupIds,
-      name: studentNameController.text,
-      parentName: studentParentNameController.text,
-      parentRelation: parentRelationController.text,
-      phone: studentPhoneController.text,
-      conectWithPhone: conectWithPhone,
-      conectWithWhatsApp: conectWithWhatsApp,
+    nameController = TextEditingController(text: widget.student.name);
+    phoneController = TextEditingController(text: widget.student.phone);
+    parentController = TextEditingController(text: widget.student.parentName);
+    parentRelationController = TextEditingController(
+      text: widget.student.parentRelation,
     );
 
-    await doc.set(student.toJson());
+    conectWithPhone = widget.student.conectWithPhone ?? false;
+    conectWithWhatsApp = widget.student.conectWithWhatsApp ?? false;
+
+    currentGroupIds = List<String>.from(widget.student.groupIds);
   }
 
-  void _openAddExtraGroupSheet() {
+  @override
+  void dispose() {
+    parentRelationController.dispose();
+    nameController.dispose();
+    phoneController.dispose();
+    parentController.dispose();
+    super.dispose();
+  }
+
+  void _openAddGroupSheet() {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -63,11 +78,11 @@ class _AddStudentDataState extends State<AddStudentData> {
           ),
           child: SingleChildScrollView(
             child: SelectGroupTreeWidget(
-              excludeGroupIds: selectedGroupIds,
+              excludeGroupIds: currentGroupIds,
               onGroupSelected: (GroupModel group) {
                 setState(() {
-                  if (!selectedGroupIds.contains(group.id)) {
-                    selectedGroupIds.add(group.id!);
+                  if (!currentGroupIds.contains(group.id)) {
+                    currentGroupIds.add(group.id!);
                   }
                 });
                 Navigator.pop(context);
@@ -80,49 +95,38 @@ class _AddStudentDataState extends State<AddStudentData> {
   }
 
   Widget _buildGroupChip(String groupId) {
-    final isPrimary = groupId == widget.groupId;
     return FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
       future: FirestorePaths.groups.doc(groupId).get(),
       builder: (context, snapshot) {
         String label = groupId;
         if (snapshot.hasData && snapshot.data!.exists) {
           final group = GroupModel.fromFirestore(snapshot.data!);
-          label = "${group.subject ?? ''} - ${group.grade ?? ''}";
+          label =
+              "${group.subject ?? ''} - ${group.grade ?? ''} (${group.dayone ?? ''})";
         }
         return Chip(
           label: Text(label),
-          onDeleted: isPrimary
-              ? null
-              : () {
-                  setState(() {
-                    selectedGroupIds.remove(groupId);
-                  });
-                },
+          onDeleted: () {
+            setState(() {
+              currentGroupIds.remove(groupId);
+            });
+          },
         );
       },
     );
   }
 
   @override
-  void dispose() {
-    studentNameController.dispose();
-    studentParentNameController.dispose();
-    parentRelationController.dispose();
-    studentPhoneController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Add Student Data')),
+      appBar: AppBar(title: const Text("تعديل")),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             TextField(
-              controller: studentNameController,
+              controller: nameController,
               decoration: const InputDecoration(
                 labelText: ' اسم  الطالب بالكامل',
                 border: OutlineInputBorder(),
@@ -143,7 +147,7 @@ class _AddStudentDataState extends State<AddStudentData> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: TextField(
-                    controller: studentParentNameController,
+                    controller: parentController,
                     decoration: const InputDecoration(
                       labelText: ' اسم  ولي الأمر',
                       border: OutlineInputBorder(),
@@ -177,7 +181,7 @@ class _AddStudentDataState extends State<AddStudentData> {
             TextField(
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              controller: studentPhoneController,
+              controller: phoneController,
               decoration: const InputDecoration(
                 labelText: ' رقم  ولي الأمر',
                 border: OutlineInputBorder(),
@@ -190,18 +194,23 @@ class _AddStudentDataState extends State<AddStudentData> {
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             const SizedBox(height: 10),
+
+            if (currentGroupIds.isEmpty)
+              const Text("الطالب غير مسجل في أي مجموعة بعد"),
+
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: selectedGroupIds
+              children: currentGroupIds
                   .map((gid) => _buildGroupChip(gid))
                   .toList(),
             ),
+
             const SizedBox(height: 12),
             OutlinedButton.icon(
-              onPressed: _openAddExtraGroupSheet,
+              onPressed: _openAddGroupSheet,
               icon: const Icon(Icons.add),
-              label: const Text("إضافة لمجموعة أخرى (مثلاً مادة ثانية)"),
+              label: const Text("إضافة / نقل لمجموعة"),
             ),
 
             const SizedBox(height: 30),
@@ -209,44 +218,28 @@ class _AddStudentDataState extends State<AddStudentData> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () async {
-                  if (studentNameController.text.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("ادخل اسم الطالب")),
-                    );
-                    return;
-                  }
-                  if (studentPhoneController.text.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("ادخل رقم الطالب")),
-                    );
-                    return;
-                  }
-                  if (studentParentNameController.text.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("ادخل اسم ولي الأمر")),
-                    );
-                    return;
-                  }
-                  if (parentRelationController.text.isEmpty) {
+                  if (currentGroupIds.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text("ادخل صلة ولي الأمر بالطالب  "),
+                        content: Text(
+                          "يجب إضافة الطالب لمجموعة واحدة على الأقل",
+                        ),
                       ),
                     );
                     return;
                   }
 
-                  await saveStudent();
+                  await updateStudent();
 
                   if (!mounted) return;
 
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("تم حفظ الطالب بنجاح")),
+                    const SnackBar(content: Text("تم تحديث الطالب بنجاح")),
                   );
 
                   Navigator.pop(context);
                 },
-                child: const Text("حفظ"),
+                child: const Text("تحديث"),
               ),
             ),
           ],

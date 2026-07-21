@@ -1,12 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:seba/features/auth/firestore_path.dart';
-import 'package:seba/model/Activity_model/activity_model_type.dart';
+import 'package:seba/model/activity_model_type.dart';
 import 'package:seba/model/student_model.dart';
-import 'package:seba/screens/add_student/add_student_data.dart';
+import 'package:seba/screens/student/add_student_data.dart';
 import 'package:seba/features/assistant/app_session.dart';
-import 'package:seba/screens/edit_student/edit_student_screen.dart';
-import 'package:seba/screens/student_profile/student_profile_screen.dart';
+import 'package:seba/screens/student/edit_student/edit_student_screen.dart';
+import 'package:seba/screens/student/student_profile/student_profile_screen.dart';
 import 'dart:math';
 
 class StudentDisplayScreen extends StatefulWidget {

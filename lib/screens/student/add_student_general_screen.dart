@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:seba/features/auth/firestore_path.dart';
 import 'package:seba/model/group_model.dart';
 import 'package:seba/model/student_model.dart';
-import 'package:seba/screens/add_student/select_group_tree_widget.dart';
+import 'package:seba/screens/student/select_group_tree_widget.dart';
 
 /// شاشة إضافة طالب مستقلة تُفتح من الصفحة الرئيسية.
 class AddStudentGeneralScreen extends StatefulWidget {
