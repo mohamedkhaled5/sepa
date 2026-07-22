@@ -76,6 +76,8 @@ flutter:
   assets:
     - assets/icon/sapeel.png
     - assets/icon/seba.png
+    - assets/icon/sepa_without_ground.png
+
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
