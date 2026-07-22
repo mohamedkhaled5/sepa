@@ -4,6 +4,15 @@ import 'package:seba/features/auth/auth_service.dart';
 import 'package:seba/features/auth/register_screen.dart';
 import 'package:seba/features/auth/forgot_password_screen.dart';
 
+const _kNavy = Color(0xFF16213E);
+const _kNavyLight = Color(0xFF24365C);
+const _kPageBg = Color(0xFFF6F8FB);
+const _kCardBorder = Color(0xFFEBEEF3);
+const _kIconBg = Color(0xFFEAF8EF);
+const _kHint = Color(0xFF9AA3B2);
+const _kDanger = Color(0xFFD1483F);
+const _kDangerBg = Color(0xFFFBE9E7);
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -83,101 +92,211 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("تسجيل الدخول")),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              TextFormField(
-                controller: emailController,
-                keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(
-                  labelText: "البريد الإلكتروني",
-                  border: OutlineInputBorder(),
-                ),
-                validator: (v) => (v == null || v.trim().isEmpty)
-                    ? "ادخل البريد الإلكتروني"
-                    : null,
-              ),
-              const SizedBox(height: 16),
+      backgroundColor: _kPageBg,
+      appBar: AppBar(
+        backgroundColor: _kPageBg,
+        elevation: 0,
+        centerTitle: true,
+        foregroundColor: _kNavy,
+        title: const Text(
+          "تسجيل الدخول",
+          style: TextStyle(fontWeight: FontWeight.bold, color: _kNavy),
+        ),
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                const SizedBox(height: 15),
 
-              TextFormField(
-                controller: passwordController,
-                obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: "كلمة المرور",
-                  border: OutlineInputBorder(),
-                ),
-                validator: (v) =>
-                    (v == null || v.isEmpty) ? "ادخل كلمة المرور" : null,
-              ),
-              const SizedBox(height: 8),
-
-              Align(
-                alignment: Alignment.centerLeft,
-                child: TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const ForgotPasswordScreen(),
-                      ),
-                    );
-                  },
-                  child: const Text("نسيت كلمة المرور؟"),
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              if (errorMessage != null)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: Text(
-                    errorMessage!,
-                    style: const TextStyle(color: Colors.red),
-                    textAlign: TextAlign.center,
+                //=================== Logo ===================
+                Container(
+                  width: 90,
+                  height: 90,
+                  decoration: const BoxDecoration(
+                    color: _kIconBg,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: SizedBox(
+                      width: 110,
+                      height: 110,
+                      child: Image.asset("assets/icon/seba.png"),
+                    ),
                   ),
                 ),
 
-              ElevatedButton(
-                onPressed: isLoading ? null : _login,
-                child: isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text("تسجيل الدخول"),
-              ),
-              const SizedBox(height: 12),
+                const SizedBox(height: 18),
 
-              OutlinedButton.icon(
-                onPressed: isLoading ? null : _loginWithGoogle,
-                icon: const Icon(Icons.g_mobiledata, size: 28),
-                label: const Text("الدخول بواسطة Google"),
-              ),
-              const SizedBox(height: 4),
-              const Text(
-                "* الدخول بجوجل متاح للمدرسين فقط. لو أنت مساعد، سجّل "
-                "حساب جديد بالبريد الإلكتروني وكلمة المرور.",
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.black54, fontSize: 11),
-              ),
-              const SizedBox(height: 20),
+                const Text(
+                  "مرحبًا بك",
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: _kNavy,
+                  ),
+                ),
 
-              TextButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const RegisterScreen()),
-                  );
-                },
-                child: const Text("ليس لديك حساب؟ إنشاء حساب جديد"),
-              ),
-            ],
+                const SizedBox(height: 6),
+
+                const Text(
+                  "سجل الدخول للوصول إلى حسابك",
+                  style: TextStyle(color: _kHint),
+                ),
+
+                const SizedBox(height: 24),
+
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(22),
+                    border: Border.all(color: _kCardBorder),
+                  ),
+                  child: Column(
+                    children: [
+                      TextFormField(
+                        controller: emailController,
+                        keyboardType: TextInputType.emailAddress,
+                        decoration: InputDecoration(
+                          labelText: "البريد الإلكتروني",
+                          prefixIcon: const Icon(Icons.email_outlined),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        validator: (v) => (v == null || v.trim().isEmpty)
+                            ? "ادخل البريد الإلكتروني"
+                            : null,
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      TextFormField(
+                        controller: passwordController,
+                        obscureText: true,
+                        decoration: InputDecoration(
+                          labelText: "كلمة المرور",
+                          prefixIcon: const Icon(Icons.lock_outline),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        validator: (v) => (v == null || v.isEmpty)
+                            ? "ادخل كلمة المرور"
+                            : null,
+                      ),
+
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const ForgotPasswordScreen(),
+                              ),
+                            );
+                          },
+                          child: const Text("نسيت كلمة المرور؟"),
+                        ),
+                      ),
+
+                      if (errorMessage != null) ...[
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: _kDangerBg,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: _kDanger),
+                          ),
+                          child: Text(
+                            errorMessage!,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: _kDanger,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _kNavy,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          onPressed: isLoading ? null : _login,
+                          child: isLoading
+                              ? const SizedBox(
+                                  width: 22,
+                                  height: 22,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const Text(
+                                  "تسجيل الدخول",
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 14),
+
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: _kCardBorder),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          onPressed: isLoading ? null : _loginWithGoogle,
+                          icon: const Icon(Icons.g_mobiledata, size: 32),
+                          label: const Text("الدخول بواسطة Google"),
+                        ),
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      const Text(
+                        "الدخول بواسطة Google متاح للمدرسين فقط.\nإذا كنت مساعدًا فاستخدم البريد الإلكتروني.",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: _kHint, fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 18),
+
+                TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                    );
+                  },
+                  child: const Text("ليس لديك حساب؟ إنشاء حساب جديد"),
+                ),
+              ],
+            ),
           ),
         ),
       ),

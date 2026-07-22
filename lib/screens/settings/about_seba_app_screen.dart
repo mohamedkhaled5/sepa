@@ -35,27 +35,91 @@ class AboutSebaAppScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("عن التطبيق والتواصل")),
+      backgroundColor: const Color(0xFFF6F8FB),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFFF6F8FB),
+        elevation: 0,
+        centerTitle: true,
+        title: const Text(
+          "عن التطبيق",
+          style: TextStyle(
+            color: Color(0xFF16213E),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           // ================== عن المطوّر ==================
-          CircleAvatar(radius: 40, child: Image.asset("assets/icon/seba.png")),
-          const SizedBox(height: 12),
           Center(
-            child: Text(
-              _ContactInfoApp.developerName,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            child: Column(
+              children: [
+                SizedBox(
+                  width: 120,
+                  height: 120,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    clipBehavior: Clip.none,
+                    children: [
+                      Container(
+                        width: 82,
+                        height: 82,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE4F5EC),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: .06),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      Image.asset(
+                        "assets/icon/seba.png",
+                        width: 108,
+                        height: 108,
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                const Text(
+                  "SEBA",
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF16213E),
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(color: const Color(0xFFEBEEF3)),
+                  ),
+                  child: const Text(
+                    "تطبيق صبا هو أحد تطبيقات مجموعة سبيل، ويهدف إلى تسهيل إدارة المجموعات الدراسية ومتابعة الطلاب وحضورهم ونتائجهم، مع توفير تجربة استخدام بسيطة وعملية للمدرس.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      height: 1.7,
+                      fontSize: 15,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            _ContactInfoApp.aboutText,
-            textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.black54),
-          ),
-
-          const Divider(height: 40),
 
           // ================== طرق التواصل ==================
           // const Text(
@@ -111,10 +175,20 @@ class AboutSebaAppScreen extends StatelessWidget {
           //   style: TextStyle(color: Colors.black54),
           // ),
           const SizedBox(height: 30),
-          Center(
-            child: Text(
-              "الإصدار 1.0.0",
-              style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFEBEEF3)),
+            ),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.verified_rounded, color: Colors.green),
+                SizedBox(width: 12),
+                Text("الإصدار 1.0.0"),
+              ],
             ),
           ),
         ],

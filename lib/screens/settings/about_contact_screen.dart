@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+const _kNavy = Color(0xFF16213E);
+const _kIconBg = Color(0xFFEAF1FB);
+const _kPageBg = Color(0xFFF6F8FB);
+const _kHint = Color(0xFF9AA3B2);
+const _kCardBorder = Color(0xFFEBEEF3);
+
 /// صفحة "عن التطبيق والتواصل". مقسّمة لجزئين:
 /// 1) معلومات عني وطرق التواصل (واتساب، إيميل، فيسبوك...).
 /// 2) قسم فاضي جاهز لأي إعدادات مستقبلية تحب تضيفها هنا بدل ما تتوه
@@ -13,7 +19,7 @@ class _ContactInfo {
 
   static const String whatsappNumber = "+201010834302"; // بصيغة دولية
   static const String phoneNumber = "+201010834302";
-  static const String email = "mk2020mohamed@email.com";
+  static const String email = "mk2020mohamed@gmail.com";
   // static const String facebookUrl = "https://facebook.com/yourpage";
 }
 
@@ -29,90 +35,205 @@ class AboutContactScreen extends StatelessWidget {
     }
   }
 
+  Widget _contactTile({
+    required IconData icon,
+    required Color color,
+    required String title,
+    required String subtitle,
+    VoidCallback? onTap,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: _kCardBorder),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x0A16213E),
+            blurRadius: 10,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ListTile(
+        onTap: onTap,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
+        leading: Container(
+          width: 46,
+          height: 46,
+          decoration: const BoxDecoration(
+            color: _kIconBg,
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: color),
+        ),
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontFamily: "cairo",
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        subtitle: Text(
+          subtitle,
+          style: const TextStyle(fontFamily: "cairo", color: _kHint),
+        ),
+        trailing: onTap != null
+            ? const Icon(Icons.open_in_new_rounded, size: 18)
+            : null,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("عن المطوّر")),
+      backgroundColor: _kPageBg,
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: _kPageBg,
+        foregroundColor: _kNavy,
+        title: const Text(
+          "عن المطور",
+          style: TextStyle(fontFamily: "cairo", fontWeight: FontWeight.bold),
+        ),
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // ================== عن المطوّر ==================
-          CircleAvatar(
-            radius: 40,
-            child: Image.asset("assets/icon/sapeel.png"),
-          ),
-          const SizedBox(height: 12),
+          // ================== عن المطور ==================
           Center(
-            child: Text(
-              _ContactInfo.developerName,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            child: Column(
+              children: [
+                Center(
+                  child: SizedBox(
+                    width: 120,
+                    height: 120,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      clipBehavior: Clip.none,
+                      children: [
+                        Center(
+                          child: SizedBox(
+                            width: 120,
+                            height: 120,
+                            child: Stack(
+                              alignment: Alignment.center,
+                              clipBehavior: Clip.none,
+                              children: [
+                                Container(
+                                  width: 82,
+                                  height: 82,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFE4F5EC),
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(
+                                          alpha: 0.08,
+                                        ),
+                                        blurRadius: 12,
+                                        offset: const Offset(0, 5),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+
+                                Positioned(
+                                  child: Image.asset(
+                                    "assets/icon/sapeel.png",
+                                    width: 108,
+                                    height: 108,
+                                    fit: BoxFit.contain,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 18),
+                const Text(
+                  _ContactInfo.developerName,
+                  style: TextStyle(
+                    fontFamily: "cairo",
+                    fontWeight: FontWeight.bold,
+                    fontSize: 22,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  child: Text(
+                    _ContactInfo.aboutText,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontFamily: "cairo",
+                      color: _kHint,
+                      height: 1.6,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            _ContactInfo.aboutText,
-            textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.black54),
           ),
 
           const Divider(height: 40),
 
           // ================== طرق التواصل ==================
-          const Text(
-            "تواصل معي",
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-          ),
-          const SizedBox(height: 10),
-
-          ListTile(
-            leading: const Icon(Icons.chat, color: Colors.green),
-            title: const Text("واتساب"),
-            subtitle: const Text(_ContactInfo.whatsappNumber),
-            // onTap: () => _launch(
-            //   context,
-            //   Uri.parse(
-            //     "https://wa.me/${_ContactInfo.whatsappNumber.replaceAll('+', '')}",
-            //   ),
-            // ),
-          ),
-          // ListTile(
-          //   leading: const Icon(Icons.phone, color: Colors.blue),
-          //   title: const Text("اتصال هاتفي"),
-          //   subtitle: const Text(_ContactInfo.phoneNumber),
-          //   // onTap: () =>
-          //   //     _launch(context, Uri.parse("tel:${_ContactInfo.phoneNumber}")),
-          // ),
-          ListTile(
-            leading: const Icon(Icons.email, color: Colors.orange),
-            title: const Text("البريد الإلكتروني"),
-            subtitle: const Text(_ContactInfo.email),
-            // onTap: () =>
-            //     _launch(context, Uri.parse("mailto:${_ContactInfo.email}")),
-          ),
-
-          // ListTile(
-          //   leading: const Icon(Icons.facebook, color: Colors.indigo),
-          //   title: const Text("فيسبوك"),
-          //   onTap: () => _launch(context, Uri.parse(_ContactInfo.facebookUrl)),
-          // ),
-          const Divider(height: 40),
-
-          // ================== إعدادات مستقبلية ==================
-          // const Text(
-          //   "إعدادات أخرى",
-          //   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-          // ),
-          // const SizedBox(height: 10),
-          // const Text(
-          //   "هذا المكان جاهز لأي إعدادات تضيفها لاحقًا "
-          //   "(مثل: الوضع الليلي، النسخ الاحتياطي، إشعارات...).",
-          //   style: TextStyle(color: Colors.black54),
-          // ),
           const SizedBox(height: 30),
-          Center(
-            child: Text(
-              "الإصدار 1.0.0",
-              style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+
+          const Text(
+            "وسائل التواصل",
+            style: TextStyle(
+              fontFamily: "cairo",
+              fontWeight: FontWeight.bold,
+              fontSize: 17,
+            ),
+          ),
+
+          const SizedBox(height: 14),
+          _contactTile(
+            icon: Icons.chat_rounded,
+            color: Colors.green,
+            title: "واتساب",
+            subtitle: _ContactInfo.whatsappNumber,
+            onTap: () => _launch(
+              context,
+              Uri.parse(
+                "https://wa.me/${_ContactInfo.whatsappNumber.replaceAll("+", "")}",
+              ),
+            ),
+          ),
+
+          _contactTile(
+            icon: Icons.email_rounded,
+            color: Colors.orange,
+            title: "البريد الإلكتروني",
+            subtitle: _ContactInfo.email,
+            onTap: () =>
+                _launch(context, Uri.parse("mailto:${_ContactInfo.email}")),
+          ),
+          const SizedBox(height: 35),
+
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFEBEEF3)),
+            ),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.verified_rounded, color: Colors.green),
+                SizedBox(width: 12),
+                Text("الإصدار 1.0.0"),
+              ],
             ),
           ),
         ],
