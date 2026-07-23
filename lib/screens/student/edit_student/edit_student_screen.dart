@@ -188,7 +188,7 @@ class _EditStudentScreenState extends State<EditStudentScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             child: Row(
               children: [
-                if (trailing != null) trailing,
+                ?trailing,
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),

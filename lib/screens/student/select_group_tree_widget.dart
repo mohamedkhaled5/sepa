@@ -3,6 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:seba/features/auth/firestore_path.dart';
 import 'package:seba/model/group_model.dart';
 
+const _kNavy = Color(0xFF16213E);
+const _kIconBg = Color(0xFFEAF1FB);
+const _kCardBorder = Color(0xFFEBEEF3);
+const _kPageBg = Color(0xFFF6F8FB);
+
 /// ويدجت قابل لإعادة الاستخدام لاختيار مجموعة عبر شجرة:
 /// مادة -> صف دراسي (متاح فعليًا لهذه المادة) -> معاد (مجموعة فعلية).
 /// كل البيانات هنا خاصة بالمستخدم الحالي فقط عبر FirestorePaths.
@@ -81,16 +86,63 @@ class _SelectGroupTreeWidgetState extends State<SelectGroupTreeWidget> {
           runSpacing: 10,
           children: docs.map((doc) {
             final name = doc.data()['name'] as String? ?? '';
-            return ChoiceChip(
-              label: Text(name),
-              selected: selectedSubject == name,
-              onSelected: (_) {
+            final selected = selectedSubject == name;
+
+            return InkWell(
+              borderRadius: BorderRadius.circular(14),
+              onTap: () {
                 setState(() {
                   selectedSubject = name;
                   selectedGrade = null;
                   selectedGroupId = null;
                 });
               },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: selected ? _kNavy : Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: selected ? _kNavy : _kCardBorder),
+                  boxShadow: selected
+                      ? [
+                          BoxShadow(
+                            color: _kNavy.withValues(alpha: .20),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ]
+                      : [
+                          const BoxShadow(
+                            color: Color(0x0A16213E),
+                            blurRadius: 8,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.menu_book_rounded,
+                      size: 18,
+                      color: selected ? Colors.white : _kNavy,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      name,
+                      style: TextStyle(
+                        fontFamily: "cairo",
+                        fontWeight: FontWeight.bold,
+                        color: selected ? Colors.white : _kNavy,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             );
           }).toList(),
         );
@@ -129,15 +181,35 @@ class _SelectGroupTreeWidgetState extends State<SelectGroupTreeWidget> {
           spacing: 10,
           runSpacing: 10,
           children: grades.map((grade) {
-            return ChoiceChip(
-              label: Text(grade),
-              selected: selectedGrade == grade,
-              onSelected: (_) {
+            final selected = selectedGrade == grade;
+            return InkWell(
+              borderRadius: BorderRadius.circular(14),
+              onTap: () {
                 setState(() {
                   selectedGrade = grade;
                   selectedGroupId = null;
                 });
               },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: selected ? _kNavy : Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: selected ? _kNavy : _kCardBorder),
+                ),
+                child: Text(
+                  grade,
+                  style: TextStyle(
+                    fontFamily: "cairo",
+                    fontWeight: FontWeight.bold,
+                    color: selected ? Colors.white : _kNavy,
+                  ),
+                ),
+              ),
             );
           }).toList(),
         );
@@ -174,16 +246,74 @@ class _SelectGroupTreeWidgetState extends State<SelectGroupTreeWidget> {
                 "${group.dayone ?? ''} و ${group.daytwo ?? ''} - ${group.startTime ?? ''}"
                 "${(group.name?.isNotEmpty ?? false) ? ' (${group.name})' : ''}";
 
-            return RadioListTile<String>(
-              title: Text(label),
-              value: group.id ?? '',
-              groupValue: selectedGroupId,
-              onChanged: (_) {
+            return InkWell(
+              borderRadius: BorderRadius.circular(16),
+              onTap: () {
                 setState(() {
                   selectedGroupId = group.id;
                 });
+
                 widget.onGroupSelected(group);
               },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: selectedGroupId == group.id
+                      ? _kNavy.withValues(alpha: .05)
+                      : Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: selectedGroupId == group.id ? _kNavy : _kCardBorder,
+                    width: selectedGroupId == group.id ? 2 : 1,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      selectedGroupId == group.id
+                          ? Icons.check_circle
+                          : Icons.radio_button_off,
+                      color: _kNavy,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            group.name?.isNotEmpty == true
+                                ? group.name!
+                                : "المجموعة",
+                            style: const TextStyle(
+                              fontFamily: "cairo",
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            "${group.dayone} • ${group.daytwo}",
+                            style: const TextStyle(
+                              fontFamily: "cairo",
+                              color: Colors.grey,
+                              fontSize: 12,
+                            ),
+                          ),
+                          Text(
+                            group.startTime ?? "",
+                            style: const TextStyle(
+                              fontFamily: "cairo",
+                              color: Colors.grey,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             );
           }).toList(),
         );

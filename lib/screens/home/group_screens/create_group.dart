@@ -224,7 +224,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                       : ListView.separated(
                           shrinkWrap: true,
                           itemCount: options.length,
-                          separatorBuilder: (_, __) =>
+                          separatorBuilder: (_, _) =>
                               const Divider(height: 1, color: _kCardBorder),
                           itemBuilder: (context, index) {
                             final option = options[index];
@@ -296,7 +296,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             child: Row(
               children: [
-                if (trailing != null) trailing,
+                ?trailing,
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),

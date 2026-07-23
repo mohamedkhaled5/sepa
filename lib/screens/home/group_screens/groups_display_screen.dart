@@ -84,8 +84,9 @@ class _GroupsDisplayScreenState extends State<GroupsDisplayScreen> {
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: _kDanger),
               onPressed: () {
-                if (controller.text == randomNumber)
+                if (controller.text == randomNumber) {
                   Navigator.pop(context, true);
+                }
               },
               child: const Text(
                 "حذف",

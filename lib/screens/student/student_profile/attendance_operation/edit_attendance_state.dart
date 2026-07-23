@@ -143,7 +143,7 @@ class _EditAttendanceStateState extends State<EditAttendanceState> {
                 children: [
                   Switch(
                     value: editDate,
-                    activeColor: _kNavy,
+                    activeThumbColor: _kNavy,
                     onChanged: (value) => setState(() => editDate = value),
                   ),
                   Expanded(

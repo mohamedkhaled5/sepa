@@ -283,7 +283,7 @@ class _AddExamScreenState extends State<AddExamScreen> {
                 children: [
                   Switch(
                     value: useCustomDate,
-                    activeColor: _kNavy,
+                    activeThumbColor: _kNavy,
                     onChanged: (value) async {
                       setState(() => useCustomDate = value);
                       if (value) {
@@ -458,8 +458,10 @@ class _AddExamScreenState extends State<AddExamScreen> {
                     return;
                   }
                   if (maxDegreeController.text.isEmpty) return;
-                  if (isPresent == true && currentDegreeController.text.isEmpty)
+                  if (isPresent == true &&
+                      currentDegreeController.text.isEmpty) {
                     return;
+                  }
 
                   await addExam();
                   if (!mounted) return;

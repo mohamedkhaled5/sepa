@@ -148,7 +148,7 @@ class _AddAttendanceStateState extends State<AddAttendanceState> {
                 children: [
                   Switch(
                     value: useCustomDate,
-                    activeColor: _kNavy,
+                    activeThumbColor: _kNavy,
                     onChanged: (value) async {
                       setState(() => useCustomDate = value);
                       if (value) {

@@ -256,7 +256,7 @@ class _EditExamScreenState extends State<EditExamScreen> {
                 children: [
                   Switch(
                     value: useCustomDate,
-                    activeColor: _kNavy,
+                    activeThumbColor: _kNavy,
                     onChanged: (value) async {
                       setState(() => useCustomDate = value);
                       if (value) {
@@ -364,8 +364,10 @@ class _EditExamScreenState extends State<EditExamScreen> {
                     return;
                   }
                   if (maxDegreeController.text.isEmpty) return;
-                  if (isPresent == true && currentDegreeController.text.isEmpty)
+                  if (isPresent == true &&
+                      currentDegreeController.text.isEmpty) {
                     return;
+                  }
 
                   await updateExam(widget.activity.id ?? '');
                   if (!mounted) return;

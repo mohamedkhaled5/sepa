@@ -748,7 +748,7 @@ class _PermissionsEditorSheetState extends State<_PermissionsEditorSheet> {
                 child: ListView.separated(
                   shrinkWrap: true,
                   itemCount: _labels.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 10),
+                  separatorBuilder: (_, _) => const SizedBox(height: 10),
                   itemBuilder: (context, index) {
                     final entry = _labels.entries.elementAt(index);
 
@@ -759,7 +759,7 @@ class _PermissionsEditorSheetState extends State<_PermissionsEditorSheet> {
                         border: Border.all(color: _kCardBorder),
                       ),
                       child: SwitchListTile(
-                        activeColor: _kSuccess,
+                        activeThumbColor: _kSuccess,
                         inactiveThumbColor: Colors.grey,
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 14,
