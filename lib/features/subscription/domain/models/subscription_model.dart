@@ -13,6 +13,7 @@ class SubscriptionModel {
     required this.startDate,
     required this.endDate,
   });
+  bool get isValid => active && DateTime.now().isBefore(endDate);
 
   /// التحقق المباشر من انتهاء الاشتراك زمنياً
   bool get isExpired => DateTime.now().isAfter(endDate);

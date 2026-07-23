@@ -1,3 +1,4 @@
+// lib/features/auth/auth_wrapper.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -5,6 +6,7 @@ import 'package:seba/features/assistant/app_session.dart';
 import 'package:seba/features/assistant/assistant_status_screen.dart';
 import 'package:seba/features/auth/auth_service.dart';
 import 'package:seba/features/auth/login_screen.dart';
+import 'package:seba/features/subscription/presentation/guards/subscription_guard.dart'; //  استيراد حارس الاشتراكات
 import 'package:seba/model/user_model.dart';
 import 'package:seba/screens/home/home_page_screen.dart';
 
@@ -66,15 +68,18 @@ class AuthWrapper extends StatelessWidget {
 
             final userModel = UserModel.fromFirestore(docSnapshot.data!);
 
+            // ================== Teacher ==================
             if (userModel.role == 'teacher') {
               AppSession.setSession(
                 effectiveTeacherId: user.uid,
                 role: 'teacher',
               );
-              return const HomePageScreen();
+
+              // 👈 حماية شاشة المدرس بـ SubscriptionGuard
+              return const SubscriptionGuard(child: HomePageScreen());
             }
 
-            // ================== assistant ==================
+            // ================== Assistant ==================
             switch (userModel.status) {
               case 'approved':
                 AppSession.setSession(
@@ -82,6 +87,8 @@ class AuthWrapper extends StatelessWidget {
                   role: 'assistant',
                   permissions: userModel.permissions,
                 );
+
+                // المساعد المقبول يدخل الشاشة الرئيسية دون الحاجة لكود اشتراك خاص به
                 return const HomePageScreen();
 
               case 'pending':
@@ -96,8 +103,6 @@ class AuthWrapper extends StatelessWidget {
 
               default:
                 // status == null أو 'removed': مفيش ارتباط فعّال بمدرس
-                // حاليًا (المدرس شاله من عنده، أو حالة غير معروفة).
-                // بنسمحله يدخل كود جديد ويبعت طلب من الأول.
                 return const AssistantStatusScreen(
                   kind: AssistantStatusKind.removed,
                 );

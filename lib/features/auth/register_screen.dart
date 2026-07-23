@@ -1,6 +1,8 @@
-import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:seba/features/auth/auth_service.dart';
+import 'package:seba/features/subscription/data/repositories/subscription_repository.dart';
+import 'package:seba/features/subscription/domain/services/subscription_service.dart';
 
 enum _AccountRole { teacher, assistant }
 
@@ -14,19 +16,24 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final _authService = AuthService();
+  final _subscriptionRepository = SubscriptionRepository();
 
   _AccountRole selectedRole = _AccountRole.teacher;
 
+  // Controllers
   final nameController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
-  final inviteCodeController = TextEditingController();
+  final inviteCodeController = TextEditingController(); // كود المدرس للمساعد
+  final subscriptionCodeController =
+      TextEditingController(); // كود الاشتراك للمدرس
 
   bool isLoading = false;
   String? errorMessage;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+
   @override
   void dispose() {
     nameController.dispose();
@@ -34,9 +41,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
     passwordController.dispose();
     confirmPasswordController.dispose();
     inviteCodeController.dispose();
+    subscriptionCodeController.dispose();
     super.dispose();
   }
 
+  /// إظهار الرسائل السريعة (SnackBar)
+  void _showSnackBar(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message, textAlign: TextAlign.center),
+        backgroundColor: isError ? Colors.red : Colors.green,
+      ),
+    );
+  }
+
+  /// دالة التنفيذ الرئيسية للتسجيل
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -47,21 +66,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     try {
       if (selectedRole == _AccountRole.teacher) {
-        await _authService.registerTeacher(
-          name: nameController.text.trim(),
-          email: emailController.text.trim(),
-          password: passwordController.text,
-        );
-        // AuthWrapper هيلاحظ تسجيل الدخول ويوديه للـ Home تلقائيًا.
+        await _registerTeacher();
       } else {
-        await _authService.registerAssistant(
-          name: nameController.text.trim(),
-          email: emailController.text.trim(),
-          password: passwordController.text,
-          inviteCode: inviteCodeController.text.trim(),
-        );
-        // AuthWrapper هيلاحظ إن الحساب "pending" ويوديه لشاشة انتظار
-        // الموافقة تلقائيًا، مش للـ Home مباشرة.
+        await _registerAssistant();
       }
     } on FirebaseAuthException catch (e) {
       setState(() => errorMessage = _mapAuthError(e.code));
@@ -72,6 +79,52 @@ class _RegisterScreenState extends State<RegisterScreen> {
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
+  }
+
+  /// 1. تسجيل المدرس ومقاطعة العملية للتأكد من كود الاشتراك
+  Future<void> _registerTeacher() async {
+    final name = nameController.text.trim();
+    final email = emailController.text.trim();
+    final password = passwordController.text;
+    final inputCode = subscriptionCodeController.text.trim();
+
+    // أ. التثبت أولاً من صحة كود الاشتراك في Firestore
+    final codeModel = await _subscriptionRepository.getSubscriptionCode(
+      inputCode,
+    );
+
+    if (codeModel == null || codeModel.used) {
+      throw Exception('كود الاشتراك غير صحيح أو تم استخدامه من قبل');
+    }
+
+    // ب. إنشاء المستخدم في Firebase Auth
+    final userCredential = await FirebaseAuth.instance
+        .createUserWithEmailAndPassword(email: email, password: password);
+
+    final uid = userCredential.user!.uid;
+
+    // جـ. تفعيل الكود وإنشاء وثيقة المستخدم مع بيانات الاشتراك
+    await _subscriptionRepository.registerWithSubscriptionCode(
+      uid: uid,
+      name: name,
+      email: email,
+      codeModel: codeModel,
+    );
+
+    if (!mounted) return;
+    _showSnackBar('تم إنشاء الحساب وتفعيل الاشتراك بنجاح!');
+    // ملاحظة: AuthWrapper سيرصد تغيير حالة الدخول وينقله للـ Home تلقائياً.
+  }
+
+  /// 2. تسجيل المساعد
+  Future<void> _registerAssistant() async {
+    await _authService.registerAssistant(
+      name: nameController.text.trim(),
+      email: emailController.text.trim(),
+      password: passwordController.text,
+      inviteCode: inviteCodeController.text.trim(),
+    );
+    // AuthWrapper سيرصد أن حالة الحساب "pending" وينقله لشاشة الانتظار تلقائياً.
   }
 
   String _mapAuthError(String code) {
@@ -135,7 +188,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
-
         child: Form(
           key: _formKey,
           child: Column(
@@ -143,7 +195,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             children: [
               const SizedBox(height: 12),
 
-              //================== Logo ==================
+              // ================== Logo ==================
               Center(
                 child: Stack(
                   alignment: Alignment.center,
@@ -187,6 +239,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
 
               const SizedBox(height: 28),
+
               // ================== اختيار الدور ==================
               const Text(
                 "نوع الحساب",
@@ -241,6 +294,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               const SizedBox(height: 20),
 
+              // الاسم
               TextFormField(
                 controller: nameController,
                 decoration: _inputDecoration(
@@ -252,6 +306,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               const SizedBox(height: 16),
 
+              // البريد الإلكتروني
               TextFormField(
                 controller: emailController,
                 keyboardType: TextInputType.emailAddress,
@@ -263,16 +318,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   if (v == null || v.trim().isEmpty) {
                     return "ادخل البريد الإلكتروني";
                   }
-
                   if (!v.contains("@")) {
                     return "بريد إلكتروني غير صحيح";
                   }
-
                   return null;
                 },
               ),
               const SizedBox(height: 16),
 
+              // كلمة المرور
               TextFormField(
                 controller: passwordController,
                 obscureText: _obscurePassword,
@@ -298,16 +352,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   if (v == null || v.isEmpty) {
                     return "ادخل كلمة المرور";
                   }
-
                   if (v.length < 6) {
                     return "كلمة المرور يجب أن تكون 6 أحرف على الأقل";
                   }
-
                   return null;
                 },
               ),
               const SizedBox(height: 16),
 
+              // تأكيد كلمة المرور
               TextFormField(
                 controller: confirmPasswordController,
                 obscureText: _obscureConfirmPassword,
@@ -336,6 +389,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   return null;
                 },
               ),
+
+              // ================== كود الاشتراك (للمدرس فقط) ==================
+              if (selectedRole == _AccountRole.teacher) ...[
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: subscriptionCodeController,
+                  textCapitalization: TextCapitalization.characters,
+                  decoration: _inputDecoration(
+                    label: "كود تفعيل الاشتراك",
+                    hint: "مثال: SUB-2026-X8",
+                    icon: Icons.card_membership_outlined,
+                  ),
+                  validator: (v) {
+                    if (selectedRole == _AccountRole.teacher &&
+                        (v == null || v.trim().isEmpty)) {
+                      return "ادخل كود تفعيل الاشتراك الخاص بك";
+                    }
+                    return null;
+                  },
+                ),
+              ],
 
               // ================== كود المدرس (للمساعد فقط) ==================
               if (selectedRole == _AccountRole.assistant) ...[
@@ -418,9 +492,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             color: Colors.white,
                           ),
                         )
-                      : Row(
+                      : const Row(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
+                          children: [
                             Icon(Icons.person_add_alt_1_rounded, size: 22),
                             SizedBox(width: 10),
                             Text(

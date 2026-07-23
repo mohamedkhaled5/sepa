@@ -6,12 +6,7 @@ import 'package:intl/date_symbol_data_local.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  theme:
-  ThemeData(
-    colorSchemeSeed: Colors.green,
-    useMaterial3: true,
-    fontFamily: 'cairo',
-  );
+
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await initializeDateFormatting('ar');
   runApp(const SebaApp());
@@ -25,10 +20,12 @@ class SebaApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Seba',
-      theme: ThemeData(colorSchemeSeed: Colors.green, useMaterial3: true),
-
-      // AuthWrapper هي المسؤولة عن تحديد أول شاشة يشوفها المستخدم:
-      // Login لو مش مسجل دخول، أو Home لو مسجل بالفعل.
+      theme: ThemeData(
+        colorSchemeSeed: Colors.green,
+        useMaterial3: true,
+        fontFamily: 'cairo',
+      ),
+      // AuthWrapper هي من تقرر وجهة المستخدم (Login أم Home)
       home: const AuthWrapper(),
     );
   }

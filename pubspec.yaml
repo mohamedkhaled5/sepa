@@ -45,6 +45,8 @@ dependencies:
   screenshot: ^3.0.0
   share_plus: ^11.0.0
   widgets_to_image: ^2.0.1
+  # purchases_flutter: ^10.4.3
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

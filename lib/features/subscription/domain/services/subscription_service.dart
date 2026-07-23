@@ -1,60 +1,48 @@
 // lib/features/subscription/domain/services/subscription_service.dart
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:seba/features/subscription/domain/models/subscription_model.dart';
 import 'package:seba/features/subscription/data/repositories/subscription_repository.dart';
+import 'package:seba/features/subscription/domain/models/subscription_model.dart';
 
 class SubscriptionService {
   final SubscriptionRepository _repository;
-  final FirebaseAuth _auth;
 
-  SubscriptionService({SubscriptionRepository? repository, FirebaseAuth? auth})
-    : _repository = repository ?? SubscriptionRepository(),
-      _auth = auth ?? FirebaseAuth.instance;
+  SubscriptionService({SubscriptionRepository? repository})
+    : _repository = repository ?? SubscriptionRepository();
 
-  /// تسجيل حساب جديد والتحقق الكامل من كود الاشتراك
-  Future<void> registerUserWithCode({
-    required String name,
-    required String email,
-    required String password,
-    required String code,
+  /// فحص وتفعيل كود لمدرس مسجل حالياً داخل التطبيق
+  Future<void> redeemCode({
+    required String uid,
+    required String inputCode,
   }) async {
-    // 1. التحقق من وجود وصلاحية الكود
-    final codeModel = await _repository.getSubscriptionCode(code);
+    final cleanCode = inputCode.trim();
+    if (cleanCode.isEmpty) {
+      throw Exception('يرجى إدخال كود التفعيل.');
+    }
+
+    // 1. البحث عن الكود في قاعدة البيانات
+    final codeModel = await _repository.getSubscriptionCode(cleanCode);
 
     if (codeModel == null) {
-      throw Exception('كود الاشتراك غير صحيح');
+      throw Exception(
+        'كود التفعيل غير صحيح، يرجى التأكد من الكود وإعادة المحاولة.',
+      );
     }
+
     if (codeModel.used) {
-      throw Exception('هذا الكود مستخدم من قبل');
-    }
-    if (!codeModel.isValid) {
-      throw Exception('منتهي الصلاحية أو غير صالح للاستخدام');
+      throw Exception('عذراً، هذا الكود تم استخدامه من قبل.');
     }
 
-    // 2. إنشاء المستخدم في Firebase Auth
-    final userCredential = await _auth.createUserWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
-
-    final uid = userCredential.user?.uid;
-    if (uid == null) {
-      throw Exception('فشل في إنشاء الحساب، يرجى المحاولة لاحقاً');
-    }
-
-    // 3. ربط الاشتراك بالحساب وتحديد الكود كمستخدم
-    await _repository.registerWithSubscriptionCode(
-      uid: uid,
-      name: name,
-      email: email,
-      codeModel: codeModel,
-    );
+    // 2. تطبيق الكود وتمديد/تفعيل الاشتراك
+    await _repository.redeemCodeForExistingUser(uid: uid, codeModel: codeModel);
   }
 
-  /// الاستماع لحالة اشتراك المستخدم الحالي
-  Stream<SubscriptionModel?> get currentUserSubscriptionStream {
-    final uid = _auth.currentUser?.uid;
-    if (uid == null) return Stream.value(null);
+  /// متابعة حالة اشتراك المستخدم
+  Stream<SubscriptionModel?> watchSubscription(String uid) {
     return _repository.streamUserSubscription(uid);
+  }
+
+  /// التحقق السريع من صلاحية الاشتراك
+  bool isSubscriptionValid(SubscriptionModel? subscription) {
+    if (subscription == null) return false;
+    return subscription.active && subscription.endDate.isAfter(DateTime.now());
   }
 }
