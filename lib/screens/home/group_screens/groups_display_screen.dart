@@ -7,6 +7,7 @@ import 'package:seba/screens/home/group_screens/create_group.dart';
 import 'package:seba/screens/home/group_screens/student_display_screen/student_display_screen.dart';
 import 'package:seba/screens/settings/settings_screen.dart';
 import 'package:seba/screens/student/add_student_general_screen.dart';
+import 'package:seba/screens/timetable/timetable_screen.dart';
 
 // ================== نظام الألوان الموحّد للشاشة ==================
 const _kNavy = Color(0xFF16213E);
@@ -346,6 +347,14 @@ class _GroupsDisplayScreenState extends State<GroupsDisplayScreen> {
                   size: 20,
                 ),
               ),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.calendar_view_week_rounded),
+            tooltip: "الجدول الزمني",
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const TimetableScreen()),
             ),
           ),
         ],
