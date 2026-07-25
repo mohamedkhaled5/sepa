@@ -6,7 +6,7 @@ import 'package:seba/features/assistant/app_session.dart';
 import 'package:seba/features/assistant/assistant_status_screen.dart';
 import 'package:seba/features/auth/auth_service.dart';
 import 'package:seba/features/auth/login_screen.dart';
-import 'package:seba/features/subscription/presentation/guards/subscription_guard.dart'; //  استيراد حارس الاشتراكات
+import 'package:seba/features/subscription/presentation/guards/subscription_guard.dart';
 import 'package:seba/model/user_model.dart';
 import 'package:seba/screens/home/home_page_screen.dart';
 
@@ -68,6 +68,17 @@ class AuthWrapper extends StatelessWidget {
 
             final userModel = UserModel.fromFirestore(docSnapshot.data!);
 
+            // ================== Admin ==================
+            if (userModel.role == 'admin') {
+              AppSession.setSession(
+                effectiveTeacherId: user.uid,
+                role: 'admin',
+              );
+
+              // الأدمن يتجاوز فحص الاشتراك ويدخل مباشرة
+              return const HomePageScreen();
+            }
+
             // ================== Teacher ==================
             if (userModel.role == 'teacher') {
               AppSession.setSession(
@@ -82,14 +93,44 @@ class AuthWrapper extends StatelessWidget {
             // ================== Assistant ==================
             switch (userModel.status) {
               case 'approved':
-                AppSession.setSession(
-                  effectiveTeacherId: userModel.teacherId!,
-                  role: 'assistant',
-                  permissions: userModel.permissions,
-                );
+                if (userModel.teacherId == null) {
+                  return const AssistantStatusScreen(
+                    kind: AssistantStatusKind.removed,
+                  );
+                }
 
-                // المساعد المقبول يدخل الشاشة الرئيسية دون الحاجة لكود اشتراك خاص به
-                return const HomePageScreen();
+                // 👈 مراقبة مستند المدرس لجلب سقف الصلاحيات (allowedAssistantPermissions)
+                return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                  stream: FirebaseFirestore.instance
+                      .collection('users')
+                      .doc(userModel.teacherId)
+                      .snapshots(),
+                  builder: (context, teacherDocSnapshot) {
+                    if (teacherDocSnapshot.connectionState ==
+                        ConnectionState.waiting) {
+                      return const Scaffold(
+                        body: Center(child: CircularProgressIndicator()),
+                      );
+                    }
+
+                    Map<String, bool>? teacherAllowedPermissions;
+                    if (teacherDocSnapshot.hasData &&
+                        teacherDocSnapshot.data!.exists) {
+                      final teacherModel = UserModel.fromFirestore(
+                        teacherDocSnapshot.data!,
+                      );
+                    }
+
+                    AppSession.setSession(
+                      effectiveTeacherId: userModel.teacherId!,
+                      role: 'assistant',
+                      permissions: userModel.permissions,
+                    );
+
+                    // المساعد المقبول يدخل الشاشة الرئيسية مباشرة
+                    return const HomePageScreen();
+                  },
+                );
 
               case 'pending':
                 return const AssistantStatusScreen(

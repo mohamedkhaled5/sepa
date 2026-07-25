@@ -2,7 +2,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:seba/features/auth/auth_service.dart';
 import 'package:seba/features/subscription/data/repositories/subscription_repository.dart';
-import 'package:seba/features/subscription/domain/services/subscription_service.dart';
 
 enum _AccountRole { teacher, assistant }
 
@@ -113,18 +112,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     if (!mounted) return;
     _showSnackBar('تم إنشاء الحساب وتفعيل الاشتراك بنجاح!');
-    // ملاحظة: AuthWrapper سيرصد تغيير حالة الدخول وينقله للـ Home تلقائياً.
   }
 
-  /// 2. تسجيل المساعد
+  /// 2. تسجيل المساعد عبر AuthService
   Future<void> _registerAssistant() async {
+    final name = nameController.text.trim();
+    final email = emailController.text.trim();
+    final password = passwordController.text;
+    final inviteCode = inviteCodeController.text.trim();
+
+    // استدعاء دالة التسجيل الخاصة بالمساعد من AuthService مباشرة
     await _authService.registerAssistant(
-      name: nameController.text.trim(),
-      email: emailController.text.trim(),
-      password: passwordController.text,
-      inviteCode: inviteCodeController.text.trim(),
+      name: name,
+      email: email,
+      password: password,
+      inviteCode: inviteCode,
     );
-    // AuthWrapper سيرصد أن حالة الحساب "pending" وينقله لشاشة الانتظار تلقائياً.
+
+    if (!mounted) return;
+    _showSnackBar('تم إرسال طلب الانضمام للمدرس بنجاح!');
   }
 
   String _mapAuthError(String code) {

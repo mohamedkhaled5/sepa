@@ -45,6 +45,7 @@ class UserModel {
     required this.email,
     this.createdAt,
     this.role = "teacher",
+    // ================== خاص بالمدرس فقط ==================
     this.inviteCode,
     this.teacherId,
     this.status,
@@ -56,8 +57,11 @@ class UserModel {
       "uid": uid,
       "name": name,
       "email": email,
-      "createdAt": FieldValue.serverTimestamp(),
+      "createdAt": createdAt != null
+          ? Timestamp.fromDate(createdAt!)
+          : FieldValue.serverTimestamp(),
       "role": role,
+
       if (inviteCode != null) "inviteCode": inviteCode,
       if (teacherId != null) "teacherId": teacherId,
       if (status != null) "status": status,
@@ -66,13 +70,14 @@ class UserModel {
   }
 
   factory UserModel.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
+    final data = doc.data() as Map<String, dynamic>? ?? {};
     return UserModel(
       uid: doc.id,
       name: data["name"] ?? "",
       email: data["email"] ?? "",
       createdAt: (data["createdAt"] as Timestamp?)?.toDate(),
       role: data["role"] ?? "teacher",
+
       inviteCode: data["inviteCode"],
       teacherId: data["teacherId"],
       status: data["status"],

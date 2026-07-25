@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // 👈 أضفنا استيراد الفايربيز أوث
 import 'package:flutter/material.dart';
 import 'package:seba/features/assistant/app_session.dart';
 import 'package:seba/features/auth/firestore_path.dart';
+import 'package:seba/features/subscription/presentation/screens/admin_create_code_screen.dart';
 import 'package:seba/model/group_model.dart';
 import 'package:seba/screens/home/group_screens/create_group.dart';
 import 'package:seba/screens/home/group_screens/student_display_screen/student_display_screen.dart';
@@ -324,8 +326,53 @@ class _GroupsDisplayScreenState extends State<GroupsDisplayScreen> {
         ),
         centerTitle: false,
         actions: [
+          // 🟢 1. زر لوحة تحكم الأدمن (يظهر فقط إذا كان الحساب Admin)
+          StreamBuilder<DocumentSnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('users')
+                .doc(FirebaseAuth.instance.currentUser?.uid)
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) return const SizedBox.shrink();
+
+              final userData = snapshot.data?.data() as Map<String, dynamic>?;
+              final isAdmin = userData?['role'] == 'admin';
+
+              if (!isAdmin) return const SizedBox.shrink();
+
+              return Padding(
+                padding: const EdgeInsets.only(left: 8),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(21),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const AdminCreateCodeScreen(),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    width: 42,
+                    height: 42,
+                    decoration: const BoxDecoration(
+                      color: _kIconBg,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.admin_panel_settings_rounded,
+                      color: _kNavy,
+                      size: 22,
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+
+          // 2. زر الإعدادات
           Padding(
-            padding: const EdgeInsets.only(left: 16),
+            padding: const EdgeInsets.only(left: 8),
             child: InkWell(
               borderRadius: BorderRadius.circular(21),
               onTap: () {
@@ -349,6 +396,8 @@ class _GroupsDisplayScreenState extends State<GroupsDisplayScreen> {
               ),
             ),
           ),
+
+          // 3. زر الجدول الزمني
           IconButton(
             icon: const Icon(Icons.calendar_view_week_rounded),
             tooltip: "الجدول الزمني",

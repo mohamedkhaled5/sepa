@@ -7,7 +7,7 @@ import 'package:seba/features/subscription/presentation/screens/redeem_code_scre
 class SubscriptionGuard extends StatelessWidget {
   final Widget child;
 
-  const SubscriptionGuard({Key? key, required this.child}) : super(key: key);
+  const SubscriptionGuard({super.key, required this.child});
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +44,7 @@ class SubscriptionGuard extends StatelessWidget {
 
 /// شاشة تظهر للمعلم عند انتهاء اشتراكه
 class ExpiredSubscriptionScreen extends StatelessWidget {
-  const ExpiredSubscriptionScreen({Key? key}) : super(key: key);
+  const ExpiredSubscriptionScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -298,6 +298,7 @@ class _ManageAssistantsScreenState extends State<ManageAssistantsScreen> {
                                     borderRadius: BorderRadius.circular(12),
                                     onTap: () => _authService.approveAssistant(
                                       assistant.uid,
+                                      widget.teacherId,
                                     ),
                                     child: Container(
                                       width: 38,

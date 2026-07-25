@@ -250,7 +250,28 @@ class AuthService {
   /// حتى لو المساعد حاول (بتلاعب مباشر في الطلب مش عبر الواجهة) يسجّل
   /// نفسه بصلاحيات مرفوعة، القبول بيصفّرها تلقائيًا. المدرس بعد كده
   /// يقدر يرفعها يدويًا من شاشة تعديل الصلاحيات لو حابب.
-  Future<void> approveAssistant(String assistantUid) async {
+  // في auth_service.dart عند موافقة المدرس على طلب المساعد
+  Future<void> approveAssistant(String assistantUid, String teacherUid) async {
+    // 1. إذا كان المستخدم الحالي Admin، نتجاوز فحص الحد الأقصى للمساعدين فوراً
+    if (!AppSession.isAdmin) {
+      // جلب الحد الأقصى للمدرس
+      final teacherDoc = await _usersCollection.doc(teacherUid).get();
+      final maxAssistants = teacherDoc.data()?['maxAssistants'] ?? 2;
+
+      // حساب عدد المساعدين النشطين للمدرس
+      final approvedSnap = await _usersCollection
+          .where('teacherId', isEqualTo: teacherUid)
+          .where('status', isEqualTo: 'approved')
+          .get();
+
+      if (approvedSnap.docs.length >= maxAssistants) {
+        throw Exception(
+          'وصلت للحد الأقصى المسموح به من المساعدين ($maxAssistants). يُرجى ترقية اشتراكك.',
+        );
+      }
+    }
+
+    // 2. قبول المساعد وتعيين الصلاحيات الافتراضية
     await _usersCollection.doc(assistantUid).update({
       'status': 'approved',
       'permissions': kDefaultAssistantPermissions,

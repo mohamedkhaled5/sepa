@@ -116,7 +116,7 @@ class SettingsScreen extends StatelessWidget {
 
           // إدارة المساعدين تظهر للمدرس فقط - المساعد مالوش صلاحية
           // يدير مساعدين تانيين أو يشوف كود الدعوة.
-          if (AppSession.isTeacher) ...[
+          if (AppSession.isTeacher || AppSession.isAdmin) ...[
             _settingsTile(
               icon: Icons.groups_2_rounded,
               iconColor: Colors.deepPurple,

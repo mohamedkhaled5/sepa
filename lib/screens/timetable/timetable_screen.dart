@@ -333,7 +333,9 @@ class _TimetableScreenState extends State<TimetableScreen> {
         // من غير ما يكون صارخ أو يكسر هدوء باقي التصميم.
         color: isToday ? _kIconBg : Colors.transparent,
         borderRadius: BorderRadius.circular(14),
-        border: isToday ? Border.all(color: _kNavy.withOpacity(0.25)) : null,
+        border: isToday
+            ? Border.all(color: _kNavy.withValues(alpha: 0.25))
+            : null,
       ),
       alignment: Alignment.center,
       child: Column(
@@ -495,7 +497,7 @@ class _TimetableScreenState extends State<TimetableScreen> {
               border: Border.all(
                 color: occ.hasConflict
                     ? _kWarning
-                    : Colors.black.withOpacity(0.05),
+                    : Colors.black.withValues(alpha: 0.05),
                 width: occ.hasConflict ? 1.4 : 1,
               ),
             ),

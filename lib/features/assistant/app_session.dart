@@ -1,18 +1,14 @@
+// lib/features/assistant/app_session.dart
+
 /// حالة الجلسة الحالية في الذاكرة (مش في Firestore). بيتحمّل مرة واحدة
-/// بعد تسجيل الدخول عبر AuthWrapper، وكل الشاشات بعد كده بتقرأ منه:
-///
-/// - effectiveTeacherId: الـ uid اللي كل بيانات Firestore (مجموعات/طلاب/
-///   مواد/صفوف) بتتخزن تحته. لو المستخدم مدرس -> نفس الـ uid بتاعه.
-///   لو المستخدم مساعد -> uid بتاع المدرس اللي هو تابع له.
-/// - role: "teacher" أو "assistant".
-/// - permissions: خريطة الصلاحيات، بتتجاهل تمامًا لو role == teacher
-///   (المدرس عنده كل الصلاحيات دايمًا).
+/// بعد تسجيل الدخول عبر AuthWrapper، وكل الشاشات بعد كده بتقرأ منه.
 class AppSession {
   AppSession._();
 
   static String? _effectiveTeacherId;
   static String? _role;
-  static Map<String, bool> _permissions = {};
+  static Map<String, bool> _permissions =
+      {}; // الصلاحيات الممنوحة للمساعد من المدرس
 
   static String get effectiveTeacherId {
     final id = _effectiveTeacherId;
@@ -27,15 +23,27 @@ class AppSession {
   static bool get isSessionLoaded => _effectiveTeacherId != null;
 
   static String? get role => _role;
+  static bool get isAdmin => _role == 'admin';
   static bool get isTeacher => _role == 'teacher';
   static bool get isAssistant => _role == 'assistant';
 
-  /// المدرس عنده كل الصلاحيات دايمًا بدون استثناء. المساعد بس بيتقيّد
-  /// بالخريطة اللي المدرس حددها له.
+  /// الأدمن والمدرس عندهم كل الصلاحيات دايمًا بدون استثناء.
+  /// المساعد بيتقيّد بالتقاطع بين (ما منحه المدرس) و (ما تسمح به باقة المدرس).
   static bool hasPermission(String key) {
-    if (isTeacher) return true;
-    return _permissions[key] ?? false;
+    if (isAdmin || isTeacher) {
+      return true;
+    }
+
+    if (isAssistant) {
+      final grantedByTeacher = _permissions[key] ?? false;
+      // إذا لم تُحدد باقة المدرس سقفًا صريحًا لمفتاح معين، نعتبره مسموحًا افتراضيًا (true)
+    }
+
+    return false;
   }
+
+  /// هل يحق للمدرس تفعيل هذه الصلاحية لمساعده في شاشة الإعدادات؟
+  /// (تُستخدم لإظهار أو تعطيل مفاتيح التشغيل Switches للمدرس)
 
   static void setSession({
     required String effectiveTeacherId,

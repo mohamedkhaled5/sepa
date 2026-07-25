@@ -43,7 +43,7 @@ dependencies:
   printing: ^5.15.0
   path_provider: ^2.1.6
   screenshot: ^3.0.0
-  share_plus: ^11.0.0
+  share_plus: ^13.2.1
   widgets_to_image: ^2.0.1
   # purchases_flutter: ^10.4.3
 

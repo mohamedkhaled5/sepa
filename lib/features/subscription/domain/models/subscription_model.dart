@@ -6,12 +6,13 @@ class SubscriptionModel {
   final String plan;
   final DateTime startDate;
   final DateTime endDate;
-
+  final int maxAssistants; //  عدد المساعدين المسموح بيهم (افتراضي 2 مثلاً)
   SubscriptionModel({
     required this.active,
     required this.plan,
     required this.startDate,
     required this.endDate,
+    this.maxAssistants = 2,
   });
   bool get isValid => active && DateTime.now().isBefore(endDate);
 
@@ -27,6 +28,7 @@ class SubscriptionModel {
       plan: map['plan'] ?? 'free',
       startDate: (map['startDate'] as Timestamp?)?.toDate() ?? DateTime.now(),
       endDate: (map['endDate'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      maxAssistants: map['maxAssistants'] ?? 2,
     );
   }
 
@@ -36,6 +38,7 @@ class SubscriptionModel {
       'plan': plan,
       'startDate': Timestamp.fromDate(startDate),
       'endDate': Timestamp.fromDate(endDate),
+      'maxAssistants': maxAssistants,
     };
   }
 }

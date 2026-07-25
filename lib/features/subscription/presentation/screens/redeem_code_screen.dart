@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:seba/features/subscription/domain/services/subscription_service.dart';
 
 class RedeemCodeScreen extends StatefulWidget {
-  const RedeemCodeScreen({Key? key}) : super(key: key);
+  const RedeemCodeScreen({super.key});
 
   @override
   State<RedeemCodeScreen> createState() => _RedeemCodeScreenState();
