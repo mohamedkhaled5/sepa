@@ -3,7 +3,6 @@ import 'package:seba/features/auth/auth_service.dart';
 import 'package:seba/features/assistant/app_session.dart';
 import 'package:seba/features/assistant/manage_assistants_screen.dart';
 import 'package:seba/screens/settings/about_contact_screen.dart';
-import 'package:seba/screens/settings/about_seba_app_screen.dart';
 import 'package:seba/screens/settings/manage_subjects_grades_screen.dart';
 import 'package:seba/screens/settings/user_profile_screen.dart';
 
