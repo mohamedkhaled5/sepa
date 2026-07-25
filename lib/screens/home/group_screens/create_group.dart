@@ -4,6 +4,7 @@ import 'package:seba/features/auth/firestore_path.dart';
 import 'package:seba/model/group_model.dart';
 import 'package:seba/model/grade_model.dart';
 import 'package:seba/model/subject_model.dart';
+import 'package:seba/screens/settings/manage_subjects_grades_screen.dart';
 
 const List<String> _weekDays = [
   "السبت",
@@ -211,14 +212,41 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                 const SizedBox(height: 8),
                 Flexible(
                   child: options.isEmpty
-                      ? const Padding(
-                          padding: EdgeInsets.all(24),
-                          child: Text(
-                            "لا توجد خيارات مضافة بعد",
-                            style: TextStyle(
-                              fontFamily: 'cairo',
-                              color: _kHint,
-                            ),
+                      ? Padding(
+                          padding: const EdgeInsets.all(24),
+                          child: Column(
+                            children: [
+                              //اضافة زر في انشاء المجموعه للذهب لصفحة اضافة المواد
+                              ElevatedButton.icon(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const ManageSubjectsGradesScreen(),
+                                    ),
+                                  );
+                                },
+                                icon: const Icon(Icons.add),
+                                label: const Text("إضافة مادة أو صفوف جديدة"),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(
+                                    0xFF16213E,
+                                  ), // _kNavy
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                              ),
+                              const Text(
+                                "لا توجد خيارات مضافة بعد",
+                                style: TextStyle(
+                                  fontFamily: 'cairo',
+                                  color: _kHint,
+                                ),
+                              ),
+                            ],
                           ),
                         )
                       : ListView.separated(
@@ -582,6 +610,18 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                 ],
               ),
             ),
+          ),
+          const SizedBox(height: 10),
+
+          // ================== تتنبيه ==================
+          Column(
+            children: [
+              Icon(Icons.warning_rounded, size: 60, color: Colors.red),
+              const SizedBox(height: 10),
+              Text(
+                ' لإضافة المواد والصفوف قم بفتح صفحة الإعدادات من الصفحة الرئيسيه ثم قم بالدخول الي صفحة المواد والصفوف وقم بإضافة او حذف المواد والصففوف التي تريدها',
+              ),
+            ],
           ),
         ],
       ),

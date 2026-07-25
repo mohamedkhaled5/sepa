@@ -19,7 +19,7 @@ class SebaApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Seba',
+      title: 'سبيل',
       theme: ThemeData(
         colorSchemeSeed: Colors.green,
         useMaterial3: true,

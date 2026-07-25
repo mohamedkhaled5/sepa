@@ -10,9 +10,8 @@ import 'package:url_launcher/url_launcher.dart';
 class _ContactInfoApp {
   static const String developerName = "SEBA ";
   static const String aboutText =
-      "تطبيق صبا \n"
-      "تطبيق صبا هو واحد من تطبيقات مجموعة سبيل\n لإدارة المجموعات والطلاب   "
-      "تم تطويره لتسهيل متابعة المدرسين لطلابهم.";
+      "تطبيق سپيل \n"
+      "تم تطويره لتسهيل متابعة المدرسين.";
 
   // static const String whatsappNumber = "+201010834302"; // بصيغة دولية
   // static const String phoneNumber = "+201010834302";
@@ -79,7 +78,7 @@ class AboutSebaAppScreen extends StatelessWidget {
                       ),
 
                       Image.asset(
-                        "assets/icon/seba.png",
+                        "assets/icon/sapeel.png",
                         width: 108,
                         height: 108,
                       ),

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -5,6 +6,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:seba/features/assistant/app_session.dart';
 import 'package:seba/model/user_model.dart';
+import 'dart:io';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'dart:convert';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -17,6 +22,44 @@ class AuthService {
     if (_googleSignInInitialized) return;
     await _googleSignIn.initialize();
     _googleSignInInitialized = true;
+  }
+
+  // uploadProfileImage=====================
+  /// رفع صورة شخصية جديدة للمستخدم وتحديث رابطها في Firestore و FirebaseAuth
+  /// رفع صورة شخصية جديدة للمستخدم وتحديث رابطها في Firestore و FirebaseAuth
+  /// ضغط الصورة وتحويلها إلى Base64 ثم حفظها في Firestore مباشرة
+  /// ضغط الصورة وتحويلها إلى Base64 ثم حفظها في Firestore مباشرة
+  Future<String> updateProfileImage(File imageFile) async {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) throw Exception('المستخدم غير مسجل دخول');
+
+    try {
+      // 1. ضغط الصورة
+      final compressedBytes = await FlutterImageCompress.compressWithFile(
+        imageFile.absolute.path,
+        minWidth: 200,
+        minHeight: 200,
+        quality: 50,
+      );
+
+      if (compressedBytes == null) {
+        throw Exception('فشل في ضغط الصورة');
+      }
+
+      // 2. تحويل الـ Bytes إلى Base64 String
+      final String base64Image =
+          'data:image/jpeg;base64,${base64Encode(compressedBytes)}';
+
+      // 3. التحديث في Firestore فقط (وهو المرجع الأساسي للتطبيق)
+      await _usersCollection.doc(uid).update({'photoUrl': base64Image});
+
+      // ❌ تم إلغاء updatePhotoURL لتجنب تجاوز حد الأحرف في FirebaseAuth
+
+      return base64Image;
+    } catch (e) {
+      print('خطأ في تحويل وحفظ الصورة: $e');
+      rethrow;
+    }
   }
 
   Stream<User?> get authStateChanges => _auth.authStateChanges();
@@ -173,6 +216,7 @@ class AuthService {
         uid: user.uid,
         name: user.displayName ?? '',
         email: user.email ?? '',
+        photoUrl: user.photoURL ?? '', // 👈 التقاط صورة جوجل تلقائياً هنا
         role: 'teacher',
         inviteCode: inviteCode,
       );

@@ -215,7 +215,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     ),
                     Image.asset(
-                      "assets/icon/seba.png",
+                      "assets/icon/sapeel.png",
                       width: 105,
                       height: 105,
                     ),

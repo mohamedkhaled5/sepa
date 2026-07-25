@@ -5,6 +5,7 @@ import 'package:seba/features/assistant/manage_assistants_screen.dart';
 import 'package:seba/screens/settings/about_contact_screen.dart';
 import 'package:seba/screens/settings/about_seba_app_screen.dart';
 import 'package:seba/screens/settings/manage_subjects_grades_screen.dart';
+import 'package:seba/screens/settings/user_profile_screen.dart';
 
 const _kNavy = Color(0xFF16213E);
 const _kNavyLight = Color(0xFF24365C);
@@ -139,12 +140,12 @@ class SettingsScreen extends StatelessWidget {
           _settingsTile(
             icon: Icons.info_rounded,
             iconColor: Colors.teal,
-            title: "عن التطبيق",
-            subtitle: "معلومات عن التطبيق",
+            title: "ملف الشخصي",
+            subtitle: "معلوماتك الشخصيه ",
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const AboutSebaAppScreen()),
+                MaterialPageRoute(builder: (_) => const UserProfileScreen()),
               );
             },
           ),

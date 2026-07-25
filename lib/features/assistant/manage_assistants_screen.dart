@@ -661,15 +661,15 @@ class _PermissionsEditorSheetState extends State<_PermissionsEditorSheet> {
   static const _labels = {
     'attendance': 'تسجيل حضور وغياب',
     'exams': 'تسجيل نتائج الامتحانات',
-    'notes': 'إضافة ملاحظات',
+    // 'notes': 'إضافة ملاحظات',
     'createStudent': 'إنشاء طالب جديد',
     'editStudent': 'تعديل بيانات طالب',
     'deleteStudent': 'حذف طالب',
     'transferStudent': 'نقل طالب بين المجموعات',
-    'createGroup': 'إنشاء مجموعة',
-    'editGroup': 'تعديل مجموعة',
-    'deleteGroup': 'حذف مجموعة',
-    'manageSubjectsGrades': 'إدارة المواد والصفوف',
+    // 'createGroup': 'إنشاء مجموعة',
+    // 'editGroup': 'تعديل مجموعة',
+    // 'deleteGroup': 'حذف مجموعة',
+    // 'manageSubjectsGrades': 'إدارة المواد والصفوف',
     'reports': 'رؤية التقارير',
   };
 

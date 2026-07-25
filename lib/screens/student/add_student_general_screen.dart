@@ -202,7 +202,7 @@ class _AddStudentGeneralScreenState extends State<AddStudentGeneralScreen> {
                 shape: BoxShape.circle,
               ),
               child: Image.asset(
-                "assets/icon/sepa_without_ground.png",
+                "assets/icon/sapeel.png",
                 width: 33,
                 height: 33,
               ),
@@ -352,108 +352,148 @@ class _AddStudentGeneralScreenState extends State<AddStudentGeneralScreen> {
               ),
             ),
             const SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(
-                  child:
-                      // ================== اسم الطالب  وولي الأمر وصلة القرابه (حقل نصي فعلي) ==================
-                      _fieldCard(
-                        icon: Icons.groups_2_rounded,
-                        label: "صلة ولي الأمر بالطالب",
-                        valueText: null,
-                        placeholder: "",
-                        customChild: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            const Text(
-                              "صله ولي الأمر بالطالب",
-                              textAlign: TextAlign.right,
-                              style: TextStyle(
-                                fontFamily: 'cairo',
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            TextField(
-                              controller: parentRelationController,
-                              textAlign: TextAlign.right,
-                              style: const TextStyle(
-                                fontFamily: 'cairo',
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.w600,
-                                color: _kNavyLight,
-                              ),
-                              decoration: const InputDecoration(
-                                isDense: true,
-                                contentPadding: EdgeInsets.zero,
-                                border: InputBorder.none,
-                                hintText: "صله ولي الأمر بالطالب",
-                                hintStyle: TextStyle(
-                                  fontFamily: 'cairo',
-                                  fontSize: 12.5,
-                                  color: _kHint,
-                                  fontWeight: FontWeight.normal,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+            // ================== اسم الطالب  وولي الأمر وصلة القرابه (حقل نصي فعلي) ==================
+            _fieldCard(
+              icon: Icons.groups_2_rounded,
+              label: "اسم  ولي الأمر",
+              valueText: null,
+              placeholder: "",
+              customChild: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  const Text(
+                    "اسم ولي الأمر ",
+                    textAlign: TextAlign.right,
+                    style: TextStyle(
+                      fontFamily: 'cairo',
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  TextField(
+                    controller: studentParentNameController,
+                    textAlign: TextAlign.right,
+                    style: const TextStyle(
+                      fontFamily: 'cairo',
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                      color: _kNavyLight,
+                    ),
+                    decoration: const InputDecoration(
+                      isDense: true,
+                      contentPadding: EdgeInsets.zero,
+                      border: InputBorder.none,
+                      hintText: "اسم ولي الأمر ",
+                      hintStyle: TextStyle(
+                        fontFamily: 'cairo',
+                        fontSize: 12.5,
+                        color: _kHint,
+                        fontWeight: FontWeight.normal,
                       ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child:
-                      // ================== اسم الطالب  وولي الأمر وصلة القرابه (حقل نصي فعلي) ==================
-                      _fieldCard(
-                        icon: Icons.groups_2_rounded,
-                        label: "اسم  ولي الأمر",
-                        valueText: null,
-                        placeholder: "",
-                        customChild: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            const Text(
-                              "اسم ولي الأمر ",
-                              textAlign: TextAlign.right,
-                              style: TextStyle(
-                                fontFamily: 'cairo',
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            TextField(
-                              controller: studentParentNameController,
-                              textAlign: TextAlign.right,
-                              style: const TextStyle(
-                                fontFamily: 'cairo',
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.w600,
-                                color: _kNavyLight,
-                              ),
-                              decoration: const InputDecoration(
-                                isDense: true,
-                                contentPadding: EdgeInsets.zero,
-                                border: InputBorder.none,
-                                hintText: "اسم ولي الأمر ",
-                                hintStyle: TextStyle(
-                                  fontFamily: 'cairo',
-                                  fontSize: 12.5,
-                                  color: _kHint,
-                                  fontWeight: FontWeight.normal,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                ),
-              ],
+                    ),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 20),
+            // ================== اسم الطالب  وولي الأمر وصلة القرابه (حقل نصي فعلي) ==================
+            _fieldCard(
+              icon: Icons.groups_2_rounded,
+              label: "صلة ولي الأمر بالطالب",
+              valueText: null,
+              placeholder: "",
+              customChild: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  const Text(
+                    "صله ولي الأمر بالطالب",
+                    textAlign: TextAlign.right,
+                    style: TextStyle(
+                      fontFamily: 'cairo',
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  TextField(
+                    controller: parentRelationController,
+                    textAlign: TextAlign.right,
+                    style: const TextStyle(
+                      fontFamily: 'cairo',
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                      color: _kNavyLight,
+                    ),
+                    decoration: const InputDecoration(
+                      isDense: true,
+                      contentPadding: EdgeInsets.zero,
+                      border: InputBorder.none,
+                      hintText: "صله ولي الأمر بالطالب",
+                      hintStyle: TextStyle(
+                        fontFamily: 'cairo',
+                        fontSize: 12.5,
+                        color: _kHint,
+                        fontWeight: FontWeight.normal,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(width: 10),
+
+            const SizedBox(height: 20),
+            // ==================  رقم ولي امر الطالب==================
+            _fieldCard(
+              icon: Icons.groups_2_rounded,
+              label: "رقم ولي امر الطالب",
+              valueText: null,
+              placeholder: "",
+              customChild: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  const Text(
+                    "رقم ولي امر الطالب",
+                    textAlign: TextAlign.right,
+                    style: TextStyle(
+                      fontFamily: 'cairo',
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  TextField(
+                    controller: studentPhoneController,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    textAlign: TextAlign.right,
+                    style: const TextStyle(
+                      fontFamily: 'cairo',
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                      color: _kNavyLight,
+                    ),
+                    decoration: const InputDecoration(
+                      isDense: true,
+                      contentPadding: EdgeInsets.zero,
+                      border: InputBorder.none,
+                      hintText: "رقم ولي الأمر",
+                      hintStyle: TextStyle(
+                        fontFamily: 'cairo',
+                        fontSize: 12.5,
+                        color: _kHint,
+                        fontWeight: FontWeight.normal,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
             const Text(
               "اختر وسائل التواصل المناسبه",
               style: TextStyle(
@@ -526,53 +566,6 @@ class _AddStudentGeneralScreenState extends State<AddStudentGeneralScreen> {
               ],
             ),
             const SizedBox(height: 20),
-            // ==================  رقم ولي امر الطالب==================
-            _fieldCard(
-              icon: Icons.groups_2_rounded,
-              label: "رقم ولي امر الطالب",
-              valueText: null,
-              placeholder: "",
-              customChild: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  const Text(
-                    "رقم ولي امر الطالب",
-                    textAlign: TextAlign.right,
-                    style: TextStyle(
-                      fontFamily: 'cairo',
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  TextField(
-                    controller: studentPhoneController,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    textAlign: TextAlign.right,
-                    style: const TextStyle(
-                      fontFamily: 'cairo',
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w600,
-                      color: _kNavyLight,
-                    ),
-                    decoration: const InputDecoration(
-                      isDense: true,
-                      contentPadding: EdgeInsets.zero,
-                      border: InputBorder.none,
-                      hintText: "رقم ولي الأمر",
-                      hintStyle: TextStyle(
-                        fontFamily: 'cairo',
-                        fontSize: 12.5,
-                        color: _kHint,
-                        fontWeight: FontWeight.normal,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
 
             const SizedBox(height: 30),
             // ================== زر الحفظ ==================
@@ -650,6 +643,14 @@ class _AddStudentGeneralScreenState extends State<AddStudentGeneralScreen> {
                   ],
                 ),
               ),
+            ),
+            // ================== تتنبيه ==================
+            Column(
+              children: [
+                Icon(Icons.warning_rounded, size: 60, color: Colors.red),
+                const SizedBox(height: 10),
+                Text(' لا تنسي اضافة المجموعات قبل اضافة الطلاب '),
+              ],
             ),
           ],
         ),

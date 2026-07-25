@@ -35,7 +35,7 @@ class AppSession {
     }
 
     if (isAssistant) {
-      final grantedByTeacher = _permissions[key] ?? false;
+      return _permissions[key] ?? false;
       // إذا لم تُحدد باقة المدرس سقفًا صريحًا لمفتاح معين، نعتبره مسموحًا افتراضيًا (true)
     }
 
@@ -48,11 +48,18 @@ class AppSession {
   static void setSession({
     required String effectiveTeacherId,
     required String role,
-    Map<String, bool> permissions = const {},
+    dynamic permissions = const {}, //change from Map<String, bool> to dynamic
   }) {
     _effectiveTeacherId = effectiveTeacherId;
     _role = role;
-    _permissions = permissions;
+    // ✅ تحويل آمن لمنع مشاكل الـ Types من Firestore
+    if (permissions is Map) {
+      _permissions = permissions.map(
+        (key, value) => MapEntry(key.toString(), value == true),
+      );
+    } else {
+      _permissions = {};
+    }
   }
 
   static void clear() {

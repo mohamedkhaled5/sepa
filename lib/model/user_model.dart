@@ -5,15 +5,15 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 const Map<String, bool> kDefaultAssistantPermissions = {
   'attendance': true, // تسجيل حضور وغياب
   'exams': true, // تسجيل نتائج الامتحانات
-  'notes': true, // إضافة ملاحظات
+  // 'notes': true, // إضافة ملاحظات
   'createStudent': false,
   'editStudent': false,
   'deleteStudent': false,
   'transferStudent': false, // نقل طالب بين المجموعات
-  'createGroup': false,
-  'editGroup': false,
-  'deleteGroup': false,
-  'manageSubjectsGrades': false,
+  // 'createGroup': false,
+  // 'editGroup': false,
+  // 'deleteGroup': false,
+  // 'manageSubjectsGrades': false,
   'reports': false,
 };
 
@@ -45,6 +45,7 @@ class UserModel {
     required this.email,
     this.createdAt,
     this.role = "teacher",
+    final String? photoUrl,
     // ================== خاص بالمدرس فقط ==================
     this.inviteCode,
     this.teacherId,
@@ -77,7 +78,7 @@ class UserModel {
       email: data["email"] ?? "",
       createdAt: (data["createdAt"] as Timestamp?)?.toDate(),
       role: data["role"] ?? "teacher",
-
+      photoUrl: data['photoUrl'] ?? '',
       inviteCode: data["inviteCode"],
       teacherId: data["teacherId"],
       status: data["status"],
