@@ -99,7 +99,6 @@ class AuthWrapper extends StatelessWidget {
                   );
                 }
 
-                // 👈 مراقبة مستند المدرس لجلب سقف الصلاحيات (allowedAssistantPermissions)
                 return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
                   stream: FirebaseFirestore.instance
                       .collection('users')
