@@ -563,22 +563,10 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
                             )
                           else
                             const SizedBox(width: 38),
-                          if (AppSession.hasPermission('attendance')) ...[
-                            _circleAction(
-                              icon: Icons.cancel_rounded,
-                              tooltip: "غائب",
-                              background: _kDangerBg,
-                              foreground: _kDanger,
-                              onPressed: () => addAttendance(student, false),
-                            ),
-                            _circleAction(
-                              icon: Icons.check_circle_rounded,
-                              tooltip: "حاضر",
-                              background: _kSuccessBg,
-                              foreground: _kSuccess,
-                              onPressed: () => addAttendance(student, true),
-                            ),
-                          ],
+                          if (AppSession.hasPermission('attendance'))
+                            _buildTodayAttendanceAction(student)
+                          else
+                            const SizedBox(width: 38),
                         ],
                       ),
                     ],
@@ -588,6 +576,113 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
             ),
           ),
         );
+      },
+    );
+  }
+
+  // 🟢 ودجت متطورة لفحص أنشطة اليوم بدقة
+  Widget _buildTodayAttendanceAction(StudentModel student) {
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: FirestorePaths.studentActivities(
+        student.id!,
+      ).where('groupId', isEqualTo: widget.groupId).snapshots(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const SizedBox(width: 38, height: 38);
+        }
+
+        final now = DateTime.now();
+
+        // فلترة أنشطة اليوم فقط داخل Dart لضمان الدقة
+        final todayDocs = snapshot.data!.docs.where((doc) {
+          final data = doc.data();
+          if (data['date'] == null) return false;
+
+          final activityDate = DateTime.tryParse(data['date'].toString());
+          if (activityDate == null) return false;
+
+          return activityDate.year == now.year &&
+              activityDate.month == now.month &&
+              activityDate.day == now.day;
+        }).toList();
+
+        // إذا لم يجد أي نشاط اليوم -> إظهار أزرار التسجيل السريع
+        if (todayDocs.isEmpty) {
+          return Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _circleAction(
+                icon: Icons.cancel_rounded,
+                tooltip: "غائب",
+                background: _kDangerBg,
+                foreground: _kDanger,
+                onPressed: () => addAttendance(student, false),
+              ),
+              const SizedBox(width: 20),
+              _circleAction(
+                icon: Icons.check_circle_rounded,
+                tooltip: "حاضر",
+                background: _kSuccessBg,
+                foreground: _kSuccess,
+                onPressed: () => addAttendance(student, true),
+              ),
+            ],
+          );
+        }
+
+        // إذا وجد أنشطة اليوم، يبحث عن سجل الحضور والغياب أو الاختبار
+        Map<String, dynamic>? attendanceData;
+
+        for (var doc in todayDocs) {
+          if (doc.data()['type'] == ActivityType.attendance.name) {
+            attendanceData = doc.data();
+            break;
+          }
+        }
+
+        bool isPresent =
+            true; // افتراضيًا يعتبر حاضر إذا كان النشاط اختبار أو امتحان
+
+        if (attendanceData != null) {
+          isPresent = attendanceData['attendancePresent'] ?? false;
+        }
+
+        // إظهار الأيقونة بدلاً من الأزرار
+        if (isPresent) {
+          return Tooltip(
+            message: "تم تسجيل الحضور اليوم",
+            child: Container(
+              width: 38,
+              height: 38,
+              decoration: const BoxDecoration(
+                color: _kSuccessBg,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.check_circle_rounded,
+                color: _kSuccess,
+                size: 24,
+              ),
+            ),
+          );
+        } else {
+          return Tooltip(
+            message: "تم تسجيل الغياب اليوم",
+            child: Container(
+              width: 38,
+              height: 38,
+              decoration: const BoxDecoration(
+                color: _kDangerBg,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.cancel_rounded,
+                color: _kDanger,
+                size: 24,
+              ),
+            ),
+          );
+        }
       },
     );
   }
