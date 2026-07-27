@@ -32,6 +32,196 @@ class StudentDisplayScreen extends StatefulWidget {
 
 class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
   late final Stream<QuerySnapshot<Map<String, dynamic>>> studentsStream;
+  // متغيرات التحديد المتعدد
+  bool _isSelectionMode = false;
+  final Set<String> _selectedStudentIds = {};
+
+  void _toggleSelection(String studentId) {
+    setState(() {
+      if (_selectedStudentIds.contains(studentId)) {
+        _selectedStudentIds.remove(studentId);
+        if (_selectedStudentIds.isEmpty) {
+          _isSelectionMode = false;
+        }
+      } else {
+        _selectedStudentIds.add(studentId);
+      }
+    });
+  }
+
+  // 🟢 دالة الحذف الجماعي للطلاب المحددين مع تأكيد 8 أرقام
+  Future<void> _deleteSelectedStudents() async {
+    final String confirmationCode = (10000000 + Random().nextInt(90000000))
+        .toString();
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        final controller = TextEditingController();
+        bool isButtonEnabled = false;
+
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: const Text(
+                "⚠️ تأكيد الحذف النهائي",
+                style: TextStyle(
+                  fontFamily: 'cairo',
+                  fontWeight: FontWeight.bold,
+                  color: _kDanger,
+                ),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "هل أنت متأكد من حذف (${_selectedStudentIds.length}) من الطلاب المحددين؟\nسيتم حذف كافة البيانات والأنشطة المرتبطة بهم نهائياً.",
+                    style: const TextStyle(fontFamily: 'cairo', fontSize: 13.5),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey.shade300),
+                    ),
+                    child: Column(
+                      children: [
+                        const Text(
+                          "أدخل رمز التأكيد التالي لتأكيد الحذف:",
+                          style: TextStyle(
+                            fontFamily: 'cairo',
+                            fontSize: 12,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        SelectableText(
+                          confirmationCode,
+                          style: const TextStyle(
+                            fontFamily: 'cairo',
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 4,
+                            color: _kNavy,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: controller,
+                    keyboardType: TextInputType.number,
+                    maxLength: 8,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontFamily: 'cairo',
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 2,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: "أدخل 8 أرقام هنا",
+                      hintStyle: const TextStyle(
+                        fontFamily: 'cairo',
+                        fontSize: 13,
+                        letterSpacing: 0,
+                      ),
+                      counterText: "",
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 10,
+                        horizontal: 12,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: _kNavy, width: 2),
+                      ),
+                    ),
+                    onChanged: (val) {
+                      setDialogState(() {
+                        isButtonEnabled = (val.trim() == confirmationCode);
+                      });
+                    },
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: const Text(
+                    "إلغاء",
+                    style: TextStyle(fontFamily: 'cairo'),
+                  ),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _kDanger,
+                    disabledBackgroundColor: Colors.grey.shade300,
+                  ),
+                  onPressed: isButtonEnabled
+                      ? () => Navigator.pop(ctx, true)
+                      : null,
+                  child: const Text(
+                    "حذف الكل",
+                    style: TextStyle(fontFamily: 'cairo', color: Colors.white),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (confirm != true) return;
+
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      final batch = FirebaseFirestore.instance.batch();
+
+      for (String studentId in _selectedStudentIds) {
+        final activities = await FirestorePaths.studentActivities(
+          studentId,
+        ).get();
+        for (var doc in activities.docs) {
+          batch.delete(doc.reference);
+        }
+        batch.delete(FirestorePaths.students.doc(studentId));
+      }
+
+      await batch.commit();
+
+      setState(() {
+        _selectedStudentIds.clear();
+        _isSelectionMode = false;
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("حدث خطأ أثناء الحذف: $e")));
+      }
+    } finally {
+      if (mounted) Navigator.pop(context);
+    }
+  }
 
   @override
   void initState() {
@@ -195,6 +385,8 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
   }
 
   Widget _buildStudentCard(StudentModel student) {
+    final isSelected = _selectedStudentIds.contains(student.id);
+
     return FutureBuilder<bool>(
       future: hasDuplicateSubjectGroups(student),
       builder: (context, dupSnapshot) {
@@ -203,9 +395,12 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
         return Container(
           margin: const EdgeInsets.only(bottom: 14),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isSelected ? const Color(0xFFE8F0FE) : Colors.white,
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: _kCardBorder),
+            border: Border.all(
+              color: isSelected ? _kNavy : _kCardBorder,
+              width: isSelected ? 2 : 1,
+            ),
             boxShadow: const [
               BoxShadow(
                 color: Color(0x0A16213E),
@@ -220,15 +415,28 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
             child: InkWell(
               borderRadius: BorderRadius.circular(18),
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => StudentProfileScreen(
-                      student: student,
-                      initialGroupId: widget.groupId,
+                if (_isSelectionMode) {
+                  _toggleSelection(student.id!);
+                } else {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => StudentProfileScreen(
+                        student: student,
+                        initialGroupId: widget.groupId,
+                      ),
                     ),
-                  ),
-                );
+                  );
+                }
+              },
+              onLongPress: () {
+                if (!AppSession.hasPermission('deleteStudent')) return;
+                if (!_isSelectionMode) {
+                  setState(() {
+                    _isSelectionMode = true;
+                    _selectedStudentIds.add(student.id!);
+                  });
+                }
               },
               child: Padding(
                 padding: const EdgeInsets.symmetric(
@@ -240,6 +448,12 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
                   children: [
                     Row(
                       children: [
+                        if (_isSelectionMode)
+                          Checkbox(
+                            value: isSelected,
+                            activeColor: _kNavy,
+                            onChanged: (_) => _toggleSelection(student.id!),
+                          ),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.end,
@@ -316,56 +530,58 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 12),
-                    const Divider(height: 1, color: _kCardBorder),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        if (AppSession.hasPermission('editStudent'))
-                          _circleAction(
-                            icon: Icons.edit_rounded,
-                            tooltip: "تعديل",
-                            onPressed: () async {
-                              await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) =>
-                                      EditStudentScreen(student: student),
-                                ),
-                              );
-                            },
-                          )
-                        else
-                          const SizedBox(width: 38),
-                        if (AppSession.hasPermission('deleteStudent'))
-                          _circleAction(
-                            icon: Icons.delete_rounded,
-                            tooltip: "حذف",
-                            background: _kDangerBg,
-                            foreground: _kDanger,
-                            onPressed: () => _confirmDeleteStudent(student),
-                          )
-                        else
-                          const SizedBox(width: 38),
-                        if (AppSession.hasPermission('attendance')) ...[
-                          _circleAction(
-                            icon: Icons.cancel_rounded,
-                            tooltip: "غائب",
-                            background: _kDangerBg,
-                            foreground: _kDanger,
-                            onPressed: () => addAttendance(student, false),
-                          ),
-                          _circleAction(
-                            icon: Icons.check_circle_rounded,
-                            tooltip: "حاضر",
-                            background: _kSuccessBg,
-                            foreground: _kSuccess,
-                            onPressed: () => addAttendance(student, true),
-                          ),
+                    if (!_isSelectionMode) ...[
+                      const SizedBox(height: 12),
+                      const Divider(height: 1, color: _kCardBorder),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          if (AppSession.hasPermission('editStudent'))
+                            _circleAction(
+                              icon: Icons.edit_rounded,
+                              tooltip: "تعديل",
+                              onPressed: () async {
+                                await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        EditStudentScreen(student: student),
+                                  ),
+                                );
+                              },
+                            )
+                          else
+                            const SizedBox(width: 38),
+                          if (AppSession.hasPermission('deleteStudent'))
+                            _circleAction(
+                              icon: Icons.delete_rounded,
+                              tooltip: "حذف",
+                              background: _kDangerBg,
+                              foreground: _kDanger,
+                              onPressed: () => _confirmDeleteStudent(student),
+                            )
+                          else
+                            const SizedBox(width: 38),
+                          if (AppSession.hasPermission('attendance')) ...[
+                            _circleAction(
+                              icon: Icons.cancel_rounded,
+                              tooltip: "غائب",
+                              background: _kDangerBg,
+                              foreground: _kDanger,
+                              onPressed: () => addAttendance(student, false),
+                            ),
+                            _circleAction(
+                              icon: Icons.check_circle_rounded,
+                              tooltip: "حاضر",
+                              background: _kSuccessBg,
+                              foreground: _kSuccess,
+                              onPressed: () => addAttendance(student, true),
+                            ),
+                          ],
                         ],
-                      ],
-                    ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -380,20 +596,73 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _kPageBg,
-      appBar: AppBar(
-        backgroundColor: _kPageBg,
-        elevation: 0,
-        foregroundColor: _kNavy,
-        centerTitle: false,
-        title: const Text(
-          "الطلاب",
-          style: TextStyle(
-            fontFamily: 'cairo',
-            fontWeight: FontWeight.bold,
-            color: _kNavy,
-          ),
-        ),
-      ),
+      appBar: _isSelectionMode
+          ? AppBar(
+              backgroundColor: _kNavy,
+              leading: IconButton(
+                icon: const Icon(Icons.close, color: Colors.white),
+                onPressed: () {
+                  setState(() {
+                    _isSelectionMode = false;
+                    _selectedStudentIds.clear();
+                  });
+                },
+              ),
+              title: Text(
+                "تم تحديد ${_selectedStudentIds.length}",
+                style: const TextStyle(
+                  fontFamily: 'cairo',
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              actions: [
+                // تحديد الكل من المجموعة الحالية
+                IconButton(
+                  icon: const Icon(Icons.select_all, color: Colors.white),
+                  tooltip: "تحديد الكل",
+                  onPressed: () async {
+                    final snapshot = await FirestorePaths.students
+                        .where("groupIds", arrayContains: widget.groupId)
+                        .get();
+                    final allIds = snapshot.docs.map((d) => d.id).toList();
+
+                    setState(() {
+                      if (_selectedStudentIds.length == allIds.length) {
+                        _selectedStudentIds.clear();
+                      } else {
+                        _selectedStudentIds.addAll(allIds);
+                      }
+                    });
+                  },
+                ),
+                // زر الحذف النهائي
+                IconButton(
+                  icon: const Icon(
+                    Icons.delete_forever,
+                    color: Colors.redAccent,
+                  ),
+                  tooltip: "حذف المحددين",
+                  onPressed: _selectedStudentIds.isEmpty
+                      ? null
+                      : () => _deleteSelectedStudents(),
+                ),
+              ],
+            )
+          : AppBar(
+              backgroundColor: _kPageBg,
+              elevation: 0,
+              foregroundColor: _kNavy,
+              centerTitle: false,
+              title: const Text(
+                "الطلاب",
+                style: TextStyle(
+                  fontFamily: 'cairo',
+                  fontWeight: FontWeight.bold,
+                  color: _kNavy,
+                ),
+              ),
+            ),
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
         stream: studentsStream,
         builder: (context, snapshot) {

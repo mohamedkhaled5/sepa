@@ -52,6 +52,188 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
   bool _loading = true;
   bool _isGeneratingReport = false;
   bool _isDeleting = false;
+  // متغيرات التحديد المتعدد لسجلات الحضور والغياب
+  bool _isSelectionMode = false;
+  final Set<String> _selectedAttendanceIds = {};
+
+  void _toggleAttendanceSelection(String activityId) {
+    setState(() {
+      if (_selectedAttendanceIds.contains(activityId)) {
+        _selectedAttendanceIds.remove(activityId);
+        if (_selectedAttendanceIds.isEmpty) {
+          _isSelectionMode = false;
+        }
+      } else {
+        _selectedAttendanceIds.add(activityId);
+      }
+    });
+  }
+
+  // 🟢 دالة الحذف الجماعي لسجلات الحضور والغياب المحددة مع ميزة حماية الأرقام
+  Future<void> _deleteSelectedAttendances() async {
+    if (_selectedAttendanceIds.isEmpty) return;
+
+    // توليد رقم حماية عشوائي مكون من 4 أرقام
+    final String securityCode =
+        (10000 + (DateTime.now().microsecondsSinceEpoch % 90000)).toString();
+    final TextEditingController codeController = TextEditingController();
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            final isCodeValid = codeController.text.trim() == securityCode;
+
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: const Text(
+                "⚠️ تأكيد الحذف النهائي",
+                style: TextStyle(
+                  fontFamily: 'cairo',
+                  fontWeight: FontWeight.bold,
+                  color: _kDanger,
+                ),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "هل أنت متأكد من حذف (${_selectedAttendanceIds.length}) من سجلات الحضور والغياب المحددة؟\nلا يمكن التراجع عن هذا الإجراء.",
+                    style: const TextStyle(fontFamily: 'cairo', fontSize: 13.5),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 8,
+                      horizontal: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _kDangerBg,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          "أدخل رمز الحماية:",
+                          style: TextStyle(
+                            fontFamily: 'cairo',
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.bold,
+                            color: _kDanger,
+                          ),
+                        ),
+                        Text(
+                          securityCode,
+                          style: const TextStyle(
+                            fontFamily: 'cairo',
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 2,
+                            color: _kDanger,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: codeController,
+                    keyboardType: TextInputType.number,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontFamily: 'cairo',
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 2,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: "اكتب الرمز هنا",
+                      hintStyle: const TextStyle(
+                        fontFamily: 'cairo',
+                        fontSize: 12,
+                        letterSpacing: 0,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: _kDanger, width: 2),
+                      ),
+                    ),
+                    onChanged: (val) {
+                      setStateDialog(() {});
+                    },
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text(
+                    "إلغاء",
+                    style: TextStyle(fontFamily: 'cairo'),
+                  ),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _kDanger,
+                    disabledBackgroundColor: Colors.grey.shade300,
+                  ),
+                  onPressed: isCodeValid
+                      ? () => Navigator.pop(context, true)
+                      : null,
+                  child: const Text(
+                    "حذف المحدّد",
+                    style: TextStyle(fontFamily: 'cairo', color: Colors.white),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (confirm != true) return;
+
+    setState(() => _isDeleting = true);
+
+    try {
+      final batch = FirebaseFirestore.instance.batch();
+
+      for (String actId in _selectedAttendanceIds) {
+        final docRef = FirestorePaths.studentActivities(
+          widget.student.id!,
+        ).doc(actId);
+        batch.delete(docRef);
+      }
+
+      await batch.commit();
+
+      setState(() {
+        _selectedAttendanceIds.clear();
+        _isSelectionMode = false;
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("حدث خطأ أثناء الحذف: $e")));
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isDeleting = false);
+      }
+    }
+  }
 
   @override
   void initState() {
@@ -260,6 +442,8 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
 
   Widget _buildActivityCard(ActivityModel activity) {
     final isAttendance = activity.type == "attendance";
+    final isSelected = _selectedAttendanceIds.contains(activity.id);
+
     final isPresent = isAttendance
         ? (activity.attendancePresent == true)
         : (activity.examStatus == "حاضر");
@@ -268,13 +452,18 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
     final statusBg = isPresent ? _kSuccessBg : _kDangerBg;
     final percent = _examPercent(activity);
     final progressColor = _examProgressColor(percent);
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: (isAttendance && isSelected)
+            ? const Color(0xFFE8F0FE)
+            : Colors.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: borderColor, width: 1.5),
+        border: Border.all(
+          color: (isAttendance && isSelected) ? _kNavy : borderColor,
+          width: (isAttendance && isSelected) ? 2 : 1.5,
+        ),
         boxShadow: const [
           BoxShadow(
             color: Color(0x0A16213E),
@@ -283,191 +472,232 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
           ),
         ],
       ),
-      child: Row(
-        children: [
-          // إجراءات (تعديل/حذف)
-          Column(
-            children: [
-              _circleAction(
-                icon: Icons.edit_rounded,
-                onPressed: () {
-                  if (activity.type == "attendance") {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => EditAttendanceState(
-                          student: widget.student,
-                          activity: activity,
-                        ),
-                      ),
-                    );
-                  } else if (activity.type == "exam") {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => EditExamScreen(
-                          student: widget.student,
-                          activity: activity,
-                        ),
-                      ),
-                    );
-                  }
-                },
-              ),
-              const SizedBox(height: 8),
-              _circleAction(
-                icon: _isDeleting ? Icons.hourglass_top : Icons.delete_rounded,
-                background: _kDangerBg,
-                foreground: _kDanger,
-                onPressed: _isDeleting
-                    ? () {}
-                    : () => deleteAttendance(
-                        widget.student.id ?? '',
-                        activity.id ?? '',
-                      ),
-              ),
-            ],
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(18),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18),
+          onTap: () {
+            if (_isSelectionMode && isAttendance) {
+              _toggleAttendanceSelection(activity.id!);
+            }
+          },
+          onLongPress: () {
+            // التحديد متاح فقط لسجلات الحضور والغياب
+            if (!isAttendance) return;
+            if (!_isSelectionMode) {
+              setState(() {
+                _isSelectionMode = true;
+                _selectedAttendanceIds.add(activity.id!);
+              });
+            }
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Row(
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    if (!isAttendance) ...[
-                      Container(
-                        width: 24,
-                        height: 24,
-                        decoration: const BoxDecoration(
-                          color: _kIconBg,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.quiz_rounded,
-                          color: _kNavy,
-                          size: 14,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                    ],
-                    Flexible(
-                      child: Text(
-                        isAttendance ? "الحضور" : (activity.examName ?? ""),
-                        textAlign: TextAlign.right,
-                        style: const TextStyle(
-                          fontFamily: 'cairo',
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                          color: Colors.black87,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  DateFormat(
-                    'dd-MMM-yyyy',
-                    'ar',
-                  ).format(DateTime.parse(activity.date ?? '')),
-                  textAlign: TextAlign.right,
-                  style: const TextStyle(
-                    fontFamily: 'cairo',
-                    fontSize: 11.5,
-                    color: _kHint,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                if (isAttendance)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: statusBg,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: statusColor, width: 1.5),
-                    ),
-                    child: Text(
-                      isPresent ? "حاضر" : "غائب",
-                      style: TextStyle(
-                        color: statusColor,
-                        fontWeight: FontWeight.bold,
-                      ),
+                // إظهار Checkbox في وضع التحديد (للحضور فقط)
+                if (_isSelectionMode && isAttendance)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8.0),
+                    child: Checkbox(
+                      value: isSelected,
+                      activeColor: _kNavy,
+                      onChanged: (_) =>
+                          _toggleAttendanceSelection(activity.id!),
                     ),
                   )
-                else
+                else if (!_isSelectionMode) ...[
+                  // إجراءات (تعديل/حذف) الفردية في الوضع العادي
                   Column(
+                    children: [
+                      _circleAction(
+                        icon: Icons.edit_rounded,
+                        onPressed: () {
+                          if (activity.type == "attendance") {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => EditAttendanceState(
+                                  student: widget.student,
+                                  activity: activity,
+                                ),
+                              ),
+                            );
+                          } else if (activity.type == "exam") {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => EditExamScreen(
+                                  student: widget.student,
+                                  activity: activity,
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 8),
+                      _circleAction(
+                        icon: _isDeleting
+                            ? Icons.hourglass_top
+                            : Icons.delete_rounded,
+                        background: _kDangerBg,
+                        foreground: _kDanger,
+                        onPressed: _isDeleting
+                            ? () {}
+                            : () => deleteAttendance(
+                                widget.student.id ?? '',
+                                activity.id ?? '',
+                              ),
+                      ),
+                    ],
+                  ),
+                ],
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Wrap(
-                        spacing: 6,
-                        alignment: WrapAlignment.end,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 4,
+                          if (!isAttendance) ...[
+                            Container(
+                              width: 24,
+                              height: 24,
+                              decoration: const BoxDecoration(
+                                color: _kIconBg,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.quiz_rounded,
+                                color: _kNavy,
+                                size: 14,
+                              ),
                             ),
-                            decoration: BoxDecoration(
-                              color: _kIconBg,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
+                            const SizedBox(width: 8),
+                          ],
+                          Flexible(
                             child: Text(
-                              "${activity.currentDegree} / ${activity.maxDegree}",
+                              isAttendance
+                                  ? "الحضور"
+                                  : (activity.examName ?? ""),
+                              textAlign: TextAlign.right,
                               style: const TextStyle(
                                 fontFamily: 'cairo',
                                 fontWeight: FontWeight.bold,
-                                fontSize: 11.5,
-                                color: _kNavy,
-                              ),
-                            ),
-                          ),
-
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: statusBg,
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: statusColor,
-                                width: 1.4,
-                              ),
-                            ),
-                            child: Text(
-                              activity.examStatus ?? "",
-                              style: TextStyle(
-                                color: statusColor,
-                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                                color: Colors.black87,
                               ),
                             ),
                           ),
                         ],
                       ),
-
-                      const SizedBox(height: 10),
-
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: LinearProgressIndicator(
-                          value: percent,
-                          minHeight: 6,
-                          backgroundColor: Colors.grey.shade200,
-                          valueColor: AlwaysStoppedAnimation(progressColor),
+                      const SizedBox(height: 4),
+                      Text(
+                        DateFormat(
+                          'dd-MMM-yyyy',
+                          'ar',
+                        ).format(DateTime.parse(activity.date ?? '')),
+                        textAlign: TextAlign.right,
+                        style: const TextStyle(
+                          fontFamily: 'cairo',
+                          fontSize: 11.5,
+                          color: _kHint,
                         ),
                       ),
+                      const SizedBox(height: 8),
+                      if (isAttendance)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: statusBg,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: statusColor, width: 1.5),
+                          ),
+                          child: Text(
+                            isPresent ? "حاضر" : "غائب",
+                            style: TextStyle(
+                              color: statusColor,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        )
+                      else
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Wrap(
+                              spacing: 6,
+                              alignment: WrapAlignment.end,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: _kIconBg,
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Text(
+                                    "${activity.currentDegree} / ${activity.maxDegree}",
+                                    style: const TextStyle(
+                                      fontFamily: 'cairo',
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 11.5,
+                                      color: _kNavy,
+                                    ),
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: statusBg,
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(
+                                      color: statusColor,
+                                      width: 1.4,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    activity.examStatus ?? "",
+                                    style: TextStyle(
+                                      color: statusColor,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: LinearProgressIndicator(
+                                value: percent,
+                                minHeight: 6,
+                                backgroundColor: Colors.grey.shade200,
+                                valueColor: AlwaysStoppedAnimation(
+                                  progressColor,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                     ],
                   ),
+                ),
               ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }
@@ -534,24 +764,161 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
           )
         : const SizedBox.shrink();
 
+    // 🟢 تجهيز شريط التطبيق الديناميكي ليتفاعل مع التحديد
+    final PreferredSizeWidget appBarWidget = _isSelectionMode
+        ? AppBar(
+            backgroundColor: _kNavy,
+            leading: IconButton(
+              icon: const Icon(Icons.close, color: Colors.white),
+              onPressed: () {
+                setState(() {
+                  _isSelectionMode = false;
+                  _selectedAttendanceIds.clear();
+                });
+              },
+            ),
+            title: Text(
+              "تم تحديد ${_selectedAttendanceIds.length} سجل",
+              style: const TextStyle(
+                fontFamily: 'cairo',
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 15,
+              ),
+            ),
+            actions: [
+              // تحديد كل سجلات الحضور في المجموعة الحالية
+              IconButton(
+                icon: const Icon(Icons.select_all, color: Colors.white),
+                tooltip: "تحديد كل سجلات الحضور",
+                onPressed: () async {
+                  final currentGid = _currentGroupId;
+                  if (currentGid == null) return;
+
+                  final snap =
+                      await FirestorePaths.studentActivities(widget.student.id!)
+                          .where('groupId', isEqualTo: currentGid)
+                          .where('type', isEqualTo: 'attendance')
+                          .get();
+
+                  final attendanceIds = snap.docs.map((d) => d.id).toList();
+
+                  setState(() {
+                    if (_selectedAttendanceIds.length == attendanceIds.length) {
+                      _selectedAttendanceIds.clear();
+                    } else {
+                      _selectedAttendanceIds.addAll(attendanceIds);
+                    }
+                  });
+                },
+              ),
+              // 🔴 زر الحذف الجماعي
+              IconButton(
+                icon: const Icon(Icons.delete_forever),
+                color: Colors.redAccent,
+                disabledColor: Colors.white38,
+                tooltip: "حذف المحددين",
+                onPressed: (_selectedAttendanceIds.isEmpty || _isDeleting)
+                    ? null
+                    : () => _deleteSelectedAttendances(),
+              ),
+            ],
+            bottom: groupIds.isNotEmpty
+                ? PreferredSize(
+                    preferredSize: const Size.fromHeight(52),
+                    child: Container(
+                      margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: _kCardBorder),
+                      ),
+                      child: TabBar(
+                        controller: _tabController,
+                        isScrollable: true,
+                        indicator: BoxDecoration(
+                          color: _kNavy,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        labelColor: Colors.white,
+                        unselectedLabelColor: _kNavyLight,
+                        labelStyle: const TextStyle(
+                          fontFamily: 'cairo',
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12.5,
+                        ),
+                        unselectedLabelStyle: const TextStyle(
+                          fontFamily: 'cairo',
+                          fontSize: 12.5,
+                        ),
+                        dividerColor: Colors.transparent,
+                        tabs: groupIds
+                            .map((gid) => Tab(text: _groupLabel(gid)))
+                            .toList(),
+                      ),
+                    ),
+                  )
+                : null,
+          )
+        : AppBar(
+            backgroundColor: _kPageBg,
+            elevation: 0,
+            foregroundColor: _kNavy,
+            centerTitle: false,
+            title: Text(
+              widget.student.name ?? '',
+              style: const TextStyle(
+                fontFamily: 'cairo',
+                fontWeight: FontWeight.bold,
+                color: _kNavy,
+              ),
+            ),
+            actions: [reportButton],
+            bottom: groupIds.isNotEmpty
+                ? PreferredSize(
+                    preferredSize: const Size.fromHeight(52),
+                    child: Container(
+                      margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: _kCardBorder),
+                      ),
+                      child: TabBar(
+                        controller: _tabController,
+                        isScrollable: true,
+                        indicator: BoxDecoration(
+                          color: _kNavy,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        labelColor: Colors.white,
+                        unselectedLabelColor: _kNavyLight,
+                        labelStyle: const TextStyle(
+                          fontFamily: 'cairo',
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12.5,
+                        ),
+                        unselectedLabelStyle: const TextStyle(
+                          fontFamily: 'cairo',
+                          fontSize: 12.5,
+                        ),
+                        dividerColor: Colors.transparent,
+                        tabs: groupIds
+                            .map((gid) => Tab(text: _groupLabel(gid)))
+                            .toList(),
+                      ),
+                    ),
+                  )
+                : null,
+          );
+
+    // إذا لم يكن الطالب في أي مجموعة
     if (groupIds.isEmpty) {
       return Scaffold(
         backgroundColor: _kPageBg,
-        appBar: AppBar(
-          backgroundColor: _kPageBg,
-          elevation: 0,
-          foregroundColor: _kNavy,
-          centerTitle: false,
-          title: Text(
-            widget.student.name ?? '',
-            style: const TextStyle(
-              fontFamily: 'cairo',
-              fontWeight: FontWeight.bold,
-              color: _kNavy,
-            ),
-          ),
-          actions: [reportButton],
-        ),
+        appBar: appBarWidget,
         body: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -584,56 +951,10 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
       );
     }
 
+    // الشاشة الرئيسية عند وجود مجموعات
     return Scaffold(
       backgroundColor: _kPageBg,
-      appBar: AppBar(
-        backgroundColor: _kPageBg,
-        elevation: 0,
-        foregroundColor: _kNavy,
-        centerTitle: false,
-        title: Text(
-          widget.student.name ?? '',
-          style: const TextStyle(
-            fontFamily: 'cairo',
-            fontWeight: FontWeight.bold,
-            color: _kNavy,
-          ),
-        ),
-        actions: [reportButton],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(52),
-          child: Container(
-            margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: _kCardBorder),
-            ),
-            child: TabBar(
-              controller: _tabController,
-              isScrollable: true,
-              indicator: BoxDecoration(
-                color: _kNavy,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              labelColor: Colors.white,
-              unselectedLabelColor: _kNavyLight,
-              labelStyle: const TextStyle(
-                fontFamily: 'cairo',
-                fontWeight: FontWeight.bold,
-                fontSize: 12.5,
-              ),
-              unselectedLabelStyle: const TextStyle(
-                fontFamily: 'cairo',
-                fontSize: 12.5,
-              ),
-              dividerColor: Colors.transparent,
-              tabs: groupIds.map((gid) => Tab(text: _groupLabel(gid))).toList(),
-            ),
-          ),
-        ),
-      ),
+      appBar: appBarWidget,
       body: TabBarView(
         controller: _tabController,
         children: groupIds
@@ -704,9 +1025,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => StudentReportScreen(
-                    student: widget.student,
-                  ), // the main code for the report
+                  builder: (_) => StudentReportScreen(student: widget.student),
                 ),
               );
             },
