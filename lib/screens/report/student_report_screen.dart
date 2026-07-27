@@ -151,9 +151,8 @@ class _StudentReportScreenState extends State<StudentReportScreen> {
               """
 السلام عليكم ورحمة الله وبركاته
 
-تقرير الطالب: ${widget.student.name ?? 'طالب'}
+تقرير الطالب/ة: ${widget.student.name ?? 'طالب'}
 
-الأستاذة حسناء
 """,
         ),
       );
@@ -181,42 +180,134 @@ class _StudentReportScreenState extends State<StudentReportScreen> {
             ),
           ),
         ),
-        body: FutureBuilder<StudentReportData>(
-          future: _reportFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (snapshot.hasError) {
-              return Center(child: Text('حدث خطأ: ${snapshot.error}'));
-            }
+        body: Stack(
+          children: [
+            AbsorbPointer(
+              absorbing: true,
+              child: Opacity(
+                opacity: 0.35,
+                child: FutureBuilder<StudentReportData>(
+                  future: _reportFuture,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (snapshot.hasError) {
+                      return Center(child: Text('حدث خطأ: ${snapshot.error}'));
+                    }
 
-            final data = snapshot.data!;
+                    final data = snapshot.data!;
 
-            return Stack(
-              children: [
-                ListView(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 110),
-                  children: [
-                    _buildHeaderCard(data),
-                    const SizedBox(height: 14),
-                    _buildAttendanceCard(data),
-                    const SizedBox(height: 14),
-                    _buildPerformanceCard(data),
-                    const SizedBox(height: 14),
-                    if (data.groupSections.length > 1)
-                      _buildPerGroupBreakdown(data),
+                    return Stack(
+                      children: [
+                        ListView(
+                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 110),
+                          children: [
+                            _buildHeaderCard(data),
+                            const SizedBox(height: 14),
+                            _buildAttendanceCard(data),
+                            const SizedBox(height: 14),
+                            _buildPerformanceCard(data),
+                            const SizedBox(height: 14),
+                            if (data.groupSections.length > 1)
+                              _buildPerGroupBreakdown(data),
+                          ],
+                        ),
+                        Positioned(
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          child: _buildActionBar(data),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ),
+            // 2️⃣ الرسالة التوضيحية في منتصف الشاشة (قريباً)
+            Center(
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 24),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 28,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: _kCardBorder),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x1A16213E),
+                      blurRadius: 20,
+                      offset: Offset(0, 8),
+                    ),
                   ],
                 ),
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  child: _buildActionBar(data),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 70,
+                      height: 70,
+                      decoration: const BoxDecoration(
+                        color: _kIconBg,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.auto_awesome_rounded,
+                        color: _kNavy,
+                        size: 36,
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    const Text(
+                      "ميزة التقارير المباشرة متوفرة قريباً!",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontFamily: 'cairo',
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                        color: _kNavy,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      "نعمل حالياً على تطوير التقرير المباشر التفاعلي ليكون متاحاً بشكل أشمل وأسهل للمشاركة دون اي صعوبه.",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontFamily: 'cairo',
+                        fontSize: 13,
+                        height: 1.6,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _kNavy.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Text(
+                        "قريباً في التحديث القادم 🚀",
+                        style: TextStyle(
+                          fontFamily: 'cairo',
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                          color: _kNavy,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            );
-          },
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -598,6 +689,8 @@ class _StudentReportScreenState extends State<StudentReportScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+          const Spacer(),
+
           if (AppSession.hasPermission('attendance'))
             _actionButton(
               icon: Icons.event_available_rounded,
@@ -616,6 +709,7 @@ class _StudentReportScreenState extends State<StudentReportScreen> {
                 );
               },
             ),
+          const Spacer(),
           if (AppSession.hasPermission('exams'))
             _actionButton(
               icon: Icons.assignment_rounded,
@@ -632,11 +726,15 @@ class _StudentReportScreenState extends State<StudentReportScreen> {
                 );
               },
             ),
+          const Spacer(),
+
           _actionButton(
             icon: Icons.phone_rounded,
             label: "تواصل مع ولي الأمر",
             onTap: _callParent,
           ),
+          const Spacer(),
+
           if (AppSession.hasPermission('reports'))
             _actionButton(
               icon: Icons.picture_as_pdf_rounded,
@@ -645,7 +743,9 @@ class _StudentReportScreenState extends State<StudentReportScreen> {
               isLoading: _isExportingPdf,
               onTap: _isExportingPdf ? null : () => _exportPdf(data),
             ),
+          const Spacer(),
           _actionButton(icon: Icons.share, label: "مشاركة", onTap: shareScreen),
+          const Spacer(),
         ],
       ),
     );

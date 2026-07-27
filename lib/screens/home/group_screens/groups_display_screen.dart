@@ -6,6 +6,7 @@ import 'package:seba/features/auth/firestore_path.dart';
 import 'package:seba/features/subscription/presentation/screens/admin_create_code_screen.dart';
 import 'package:seba/model/group_model.dart';
 import 'package:seba/screens/home/group_screens/create_group.dart';
+import 'package:seba/screens/home/group_screens/student_display_screen/general_student_display_screen.dart';
 import 'package:seba/screens/home/group_screens/student_display_screen/student_display_screen.dart';
 import 'package:seba/screens/settings/settings_screen.dart';
 import 'package:seba/screens/student/add_student_general_screen.dart';
@@ -405,6 +406,19 @@ class _GroupsDisplayScreenState extends State<GroupsDisplayScreen> {
               context,
               MaterialPageRoute(builder: (_) => const TimetableScreen()),
             ),
+          ),
+          // 4. زر جميع الطلاب
+          IconButton(
+            icon: const Icon(Icons.groups_rounded, color: _kNavy),
+            tooltip: "جميع الطلاب",
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => GeneralStudentDisplayScreen(),
+                ),
+              );
+            },
           ),
         ],
       ),

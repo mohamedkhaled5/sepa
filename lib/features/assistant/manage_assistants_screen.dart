@@ -33,6 +33,87 @@ class _ManageAssistantsScreenState extends State<ManageAssistantsScreen> {
     _loadInviteCode();
   }
 
+  /// دالة قبول المساعد وإظهار التنبيه في حال اكتمال العدد
+  /// دالة معالجة موافقة المساعد مع التقاط الاستثناءات
+  Future<void> _handleApproveAssistant(String assistantUid) async {
+    try {
+      await _authService.approveAssistant(assistantUid, widget.teacherId);
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("تمت الموافقة على المساعد بنجاح")),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      // استخراج نص الخطأ
+      final errorMessage = e.toString();
+
+      // 🚨 في حالة الرفض بسبب الوصول للحد الأقصى للمساعدين
+      if (errorMessage.contains('الحد الأقصى')) {
+        _showUpgradeSubscriptionDialog(errorMessage);
+      } else {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("حدث خطأ: $e")));
+      }
+    }
+  }
+
+  /// نافذة تنبيهية تطلب من المدرس ترقية باقة الاشتراك
+  void _showUpgradeSubscriptionDialog(String errorMessage) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: const Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Text(
+              "وصلت للحد الأقصى",
+              style: TextStyle(
+                fontFamily: "cairo",
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(width: 8),
+            Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 28),
+          ],
+        ),
+        content: const Text(
+          "لقد استوفيت العدد المسموح به من المساعدين في باقتك الحالية.\n\nيرجى ترقية باقة الاشتراك لزيادة سعة المساعدين والموافقة على طلبات جديدة.",
+          textAlign: TextAlign.right,
+          style: TextStyle(fontFamily: "cairo", fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              "إلغاء",
+              style: TextStyle(fontFamily: "cairo", color: Colors.grey),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF16213E),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+              // 🚀 يمكنك التوجيه لشاشة الاشتراك هنا لو كانت موجودة لديك
+            },
+            child: const Text(
+              "ترقية الباقة",
+              style: TextStyle(fontFamily: "cairo", color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _loadInviteCode() async {
     // ensureInviteCode بتضمن ظهور كود دايمًا، حتى لو الحساب قديم
     // ومكانش فيه كود أصلًا وقت إنشائه.
@@ -294,12 +375,11 @@ class _ManageAssistantsScreenState extends State<ManageAssistantsScreen> {
                             children: [
                               Column(
                                 children: [
+                                  // ✅ الكود الجديد
                                   InkWell(
                                     borderRadius: BorderRadius.circular(12),
-                                    onTap: () => _authService.approveAssistant(
-                                      assistant.uid,
-                                      widget.teacherId,
-                                    ),
+                                    onTap: () =>
+                                        _handleApproveAssistant(assistant.uid),
                                     child: Container(
                                       width: 38,
                                       height: 38,
