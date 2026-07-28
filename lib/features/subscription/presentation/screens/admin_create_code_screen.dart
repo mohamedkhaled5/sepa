@@ -115,7 +115,7 @@ class _AdminCreateCodeScreenState extends State<AdminCreateCodeScreen> {
     final message =
         '''
 أهلاً بك! 🌸
-كود تفعيل اشتراكك في تطبيق صِبا:
+كود تفعيل اشتراكك في تطبيق سبيل:
 🔑 كود التفعيل: *$code*
 📊 الخطة: $_selectedPlan
 ⏱️ المدة: ${_durationController.text} يوم
