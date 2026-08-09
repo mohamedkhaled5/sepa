@@ -7,7 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:seba/features/auth/auth_service.dart';
 
 class UserProfileScreen extends StatefulWidget {
-  const UserProfileScreen({Key? key}) : super(key: key);
+  const UserProfileScreen({super.key});
 
   @override
   State<UserProfileScreen> createState() => _UserProfileScreenState();
@@ -108,7 +108,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                             width: 120,
                             height: 120,
                             decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.4),
+                              color: Colors.black.withValues(alpha: 0.4),
                               shape: BoxShape.circle,
                             ),
                             child: const Center(

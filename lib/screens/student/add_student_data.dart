@@ -253,7 +253,7 @@ class _AddStudentDataState extends State<AddStudentData> {
                 shape: BoxShape.circle,
               ),
               child: Image.asset(
-                "assets/icon/sepa_without_ground.png",
+                "assets/icon/sapeel.png",
                 width: 33,
                 height: 33,
               ),

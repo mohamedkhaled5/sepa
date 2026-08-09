@@ -290,7 +290,7 @@ class _StudentReportScreenState extends State<StudentReportScreen> {
                         vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: _kNavy.withOpacity(0.08),
+                        color: _kNavy.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: const Text(

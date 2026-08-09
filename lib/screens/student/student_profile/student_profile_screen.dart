@@ -9,7 +9,6 @@ import 'package:seba/model/student_model.dart';
 import 'package:seba/screens/report/report_data_service.dart';
 import 'package:seba/screens/report/student_report_pdf_builder.dart';
 import 'package:seba/screens/report/student_report_screen.dart';
-import 'package:seba/screens/report/student_report_screen_nearly.dart';
 import 'package:seba/screens/student/student_profile/add_exam.dart/add_exam_screen.dart';
 import 'package:seba/screens/student/student_profile/add_exam.dart/edit_exam_screen.dart';
 import 'package:seba/screens/student/student_profile/attendance_operation/add_attendance_state.dart';
@@ -594,6 +593,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
                           ),
                         ],
                       ),
+                      Text(activity.note ?? ''),
                       const SizedBox(height: 4),
                       Text(
                         DateFormat(

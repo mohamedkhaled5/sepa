@@ -35,6 +35,7 @@ class _AddAttendanceStateState extends State<AddAttendanceState> {
     date = DateTime.now();
   }
 
+  TextEditingController noteController = TextEditingController();
   bool useCustomDate = false;
   late DateTime date;
   bool? isPresent = false;
@@ -44,7 +45,7 @@ class _AddAttendanceStateState extends State<AddAttendanceState> {
       context: context,
       initialDate: date,
       firstDate: DateTime(2024),
-      lastDate: DateTime(2035),
+      lastDate: DateTime(2050),
     );
 
     if (picked != null) setState(() => date = picked);
@@ -57,6 +58,8 @@ class _AddAttendanceStateState extends State<AddAttendanceState> {
         date: date.toIso8601String(),
         groupId: widget.groupId,
         attendancePresent: isPresent == true,
+        note: noteController.text,
+        // ...other fields...
       ).toMap(),
     );
   }
@@ -142,6 +145,19 @@ class _AddAttendanceStateState extends State<AddAttendanceState> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // ================== ملاحظات ==================
+            _cardShell(
+              child: TextField(
+                controller: noteController,
+                decoration: InputDecoration(
+                  hintText: "إضافة ملاحظات",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 14),
             // ================== اختيار تاريخ آخر ==================
             _cardShell(
               child: Row(

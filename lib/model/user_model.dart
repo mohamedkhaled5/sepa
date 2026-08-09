@@ -9,7 +9,7 @@ const Map<String, bool> kDefaultAssistantPermissions = {
   'createStudent': false,
   'editStudent': false,
   'deleteStudent': false,
-  'transferStudent': false, // نقل طالب بين المجموعات
+  // 'transferStudent': false, // نقل طالب بين المجموعات
   // 'createGroup': false,
   // 'editGroup': false,
   // 'deleteGroup': false,

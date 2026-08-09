@@ -18,7 +18,7 @@ class SubscriptionRepository {
       length,
       (_) => chars[rand.nextInt(chars.length)],
     ).join();
-    return 'SB-$randomString';
+    return 'SAPEEL-$randomString';
   }
 
   /// إنشاء كود اشتراك جديد في Firestore (خاص بالأدمن)

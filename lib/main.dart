@@ -9,6 +9,8 @@ Future<void> main() async {
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await initializeDateFormatting('ar');
+
+  // await NotificationService.init();
   runApp(const SebaApp());
 }
 

@@ -1,5 +1,7 @@
 // lib/features/assistant/app_session.dart
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 /// حالة الجلسة الحالية في الذاكرة (مش في Firestore). بيتحمّل مرة واحدة
 /// بعد تسجيل الدخول عبر AuthWrapper، وكل الشاشات بعد كده بتقرأ منه.
 class AppSession {
@@ -66,5 +68,39 @@ class AppSession {
     _effectiveTeacherId = null;
     _role = null;
     _permissions = {};
+  }
+
+  /// فحص هل اشتراك المدرس ما زال سارياً
+
+  static bool isTeacherSubscriptionValid(Map<String, dynamic>? teacherData) {
+    if (teacherData == null) return false;
+
+    final subscription = teacherData['subscription'];
+
+    // 💡 إذا كان المدرس ليس لديه حقل subscription في الفايربيس، نعتبره مسموحاً افتراضياً
+    if (subscription == null) {
+      return true;
+    }
+
+    // إذا كان الحقل عبارة عن Map فيه تاريخ انتهاء
+    if (subscription is Map<String, dynamic>) {
+      final expiryDate = subscription['expiryDate'];
+      final status = subscription['status'];
+
+      if (expiryDate != null && expiryDate is Timestamp) {
+        return expiryDate.toDate().isAfter(DateTime.now());
+      }
+
+      if (status != null) {
+        return status == 'active' || status == 'valid';
+      }
+    }
+
+    // إذا كان الحقل String مباشر (مثلاً: "active")
+    if (subscription is String) {
+      return subscription == 'active' || subscription == 'valid';
+    }
+
+    return true;
   }
 }

@@ -5,7 +5,7 @@ class SubscriptionCodeModel {
   final String code;
   final int durationDays;
   final String plan;
-  final int maxAssistants; // 👈 عدد المساعدين المسموح بانشاء
+  final int maxAssistants; //  عدد المساعدين المسموح بانشاء
   final bool used;
   final String? usedBy;
   final DateTime? usedAt;
@@ -42,7 +42,7 @@ class SubscriptionCodeModel {
       'code': code,
       'durationDays': durationDays,
       'plan': plan,
-      'maxAssistants': maxAssistants, // 👈 4. تضمينه عند الحفظ
+      'maxAssistants': maxAssistants, //  4. تضمينه عند الحفظ
       'used': used,
       'usedBy': usedBy,
       'usedAt': usedAt != null ? Timestamp.fromDate(usedAt!) : null,

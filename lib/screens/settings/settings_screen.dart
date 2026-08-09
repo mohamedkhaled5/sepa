@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:seba/features/auth/auth_service.dart';
 import 'package:seba/features/assistant/app_session.dart';
-import 'package:seba/features/assistant/manage_assistants_screen.dart';
+import 'package:seba/features/assistant/manage_assistants/manage_assistants_screen.dart';
 import 'package:seba/screens/settings/about_contact_screen.dart';
 import 'package:seba/screens/settings/manage_subjects_grades_screen.dart';
 import 'package:seba/screens/settings/user_profile_screen.dart';
@@ -42,38 +42,43 @@ class SettingsScreen extends StatelessWidget {
           ),
         ],
       ),
-      child: ListTile(
-        onTap: onTap,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
-        leading: Container(
-          width: 46,
-          height: 46,
-          decoration: const BoxDecoration(
-            color: _kIconBg,
-            shape: BoxShape.circle,
+      child: Material(
+        child: ListTile(
+          onTap: onTap,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 18,
+            vertical: 6,
           ),
-          child: Icon(icon, color: iconColor),
-        ),
-        title: Text(
-          title,
-          style: TextStyle(
-            fontFamily: "cairo",
-            fontWeight: FontWeight.bold,
-            color: danger ? _kDanger : _kNavy,
+          leading: Container(
+            width: 46,
+            height: 46,
+            decoration: const BoxDecoration(
+              color: _kIconBg,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: iconColor),
           ),
-        ),
-        subtitle: Text(
-          subtitle,
-          style: const TextStyle(
-            fontFamily: "cairo",
+          title: Text(
+            title,
+            style: TextStyle(
+              fontFamily: "cairo",
+              fontWeight: FontWeight.bold,
+              color: danger ? _kDanger : _kNavy,
+            ),
+          ),
+          subtitle: Text(
+            subtitle,
+            style: const TextStyle(
+              fontFamily: "cairo",
+              color: _kHint,
+              fontSize: 12,
+            ),
+          ),
+          trailing: const Icon(
+            Icons.arrow_forward_ios_rounded,
+            size: 17,
             color: _kHint,
-            fontSize: 12,
           ),
-        ),
-        trailing: const Icon(
-          Icons.arrow_forward_ios_rounded,
-          size: 17,
-          color: _kHint,
         ),
       ),
     );

@@ -15,7 +15,7 @@ const List<String> _weekDays = [
   "الخميس",
   "الجمعة",
 ];
-
+const List<int> _numberOfWeekDays = [1, 2, 3, 4, 5, 6, 7];
 // ================== نظام الألوان الموحّد للشاشة ==================
 const _kNavy = Color(0xFF16213E);
 const _kNavyLight = Color(0xFF24365C);
@@ -23,6 +23,16 @@ const _kIconBg = Color(0xFFEAF1FB);
 const _kPageBg = Color(0xFFF6F8FB);
 const _kHint = Color(0xFF9AA3B2);
 const _kCardBorder = Color(0xFFEBEEF3);
+
+const List<Color> _dayColors = [
+  Colors.red,
+  Colors.orange,
+  Colors.lightGreenAccent,
+  Colors.deepPurpleAccent,
+  Colors.black,
+  Colors.yellow,
+  Colors.blue,
+];
 
 class CreateGroupScreen extends StatefulWidget {
   final GroupModel? group;
@@ -39,6 +49,10 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
   String? selectedGrade;
   String? selectedDayone;
   String? selectedDaytwo;
+  //اضافة ميزة اضافة أكثر من يومين للمجموعه الواحده أو يوم واحد حتي
+  int selectedNumOfDays = 2;
+  //هذا لمتغير لتخزين الأيام
+  List<String> selectedDaysName = ["السبت", "الأحد"];
 
   TimeOfDay? startTime;
   TimeOfDay? endTime;
@@ -72,8 +86,8 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
       _showSnack("اختر الصف");
       return false;
     }
-    if (selectedDayone == null || selectedDaytwo == null) {
-      _showSnack("اختر اليوم");
+    if (selectedDaysName.isEmpty) {
+      _showSnack("اختر أيام المجموعه");
       return false;
     }
     if (startTime == null || endTime == null) {
@@ -96,8 +110,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
       "name": groupNameController.text.trim(),
       "subject": selectedSubject,
       "grade": selectedGrade,
-      "dayone": selectedDayone,
-      "daytwo": selectedDaytwo,
+      "daysName": selectedDaysName,
       "startTime": startTime!.format(context),
       "endTime": endTime!.format(context),
       "createdAt": DateTime.now().toIso8601String(),
@@ -116,8 +129,9 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
       "name": groupNameController.text.trim(),
       "subject": selectedSubject,
       "grade": selectedGrade,
-      "dayone": selectedDayone,
-      "daytwo": selectedDaytwo,
+      // "dayone": selectedDayone,
+      // "daytwo": selectedDaytwo,
+      "daysName": selectedDaysName,
       "startTime": startTime!.format(context),
       "endTime": endTime!.format(context),
     });
@@ -157,11 +171,18 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
       groupNameController.text = widget.group!.name ?? "";
       selectedSubject = widget.group!.subject;
       selectedGrade = widget.group!.grade;
-      selectedDayone = widget.group!.dayone;
-      selectedDaytwo = widget.group!.daytwo;
+
+      selectedDaysName = List<String>.from(widget.group!.daysName ?? []);
+      selectedNumOfDays = selectedDaysName.length;
 
       startTime = _parseTime(widget.group!.startTime!);
       endTime = _parseTime(widget.group!.endTime!);
+    } else {
+      selectedNumOfDays = 2;
+      selectedDaysName = List.generate(
+        selectedNumOfDays,
+        (index) => _weekDays[index],
+      );
     }
   }
 
@@ -377,6 +398,95 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
     );
   }
 
+  // ================== card for days of week change color for each one  ==================
+  Widget _fieldCardDiffirantCard({
+    required IconData icon,
+    required String label,
+    required String? valueText,
+    required String placeholder,
+    required Color color,
+    Widget? trailing,
+    VoidCallback? onTap,
+    Widget? customChild,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: color),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x0A16213E),
+            blurRadius: 10,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(18),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Row(
+              children: [
+                ?trailing,
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child:
+                        customChild ??
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              label,
+                              textAlign: TextAlign.right,
+                              style: const TextStyle(
+                                fontFamily: 'cairo',
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              valueText ?? placeholder,
+                              textAlign: TextAlign.right,
+                              style: TextStyle(
+                                fontFamily: 'cairo',
+                                fontSize: 12.5,
+                                color: valueText == null ? _kHint : _kNavyLight,
+                                fontWeight: valueText == null
+                                    ? FontWeight.normal
+                                    : FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                  ),
+                ),
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: const BoxDecoration(
+                    color: _kIconBg,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(icon, color: _kNavy, size: 20),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ================== card for days of week change color for each one  ==================
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -405,7 +515,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                 shape: BoxShape.circle,
               ),
               child: Image.asset(
-                "assets/icon/sepa_without_ground.png",
+                "assets/icon/sapeel.png",
                 width: 33,
                 height: 33,
               ),
@@ -515,40 +625,61 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
               );
             },
           ),
-
-          // ================== اليوم الأول ==================
+          // ==================  Number of week days ==================
           _fieldCard(
             icon: Icons.calendar_today_rounded,
-            label: "اليوم الأول",
-            valueText: selectedDayone,
-            placeholder: "اختر اليوم",
+            label: "اختر  عدد أيام المجموعة",
+            valueText: selectedDaysName.length.toString(),
+            placeholder: "",
             trailing: const Icon(
               Icons.keyboard_arrow_down_rounded,
               color: _kHint,
             ),
             onTap: () => _showPicker(
-              title: "اختر اليوم الأول",
-              options: _weekDays,
-              currentValue: selectedDayone,
-              onSelected: (v) => setState(() => selectedDayone = v),
+              title: "اختر عدد أيام المجموعة",
+              options: _numberOfWeekDays.map((e) => e.toString()).toList(),
+              currentValue: selectedNumOfDays.toString(),
+              onSelected: (v) {
+                setState(() {
+                  selectedNumOfDays = int.parse(v);
+
+                  if (selectedDaysName.length < selectedNumOfDays) {
+                    while (selectedDaysName.length < selectedNumOfDays) {
+                      selectedDaysName.add(_weekDays[0]);
+                    }
+                  } else {
+                    selectedDaysName = selectedDaysName.sublist(
+                      0,
+                      selectedNumOfDays,
+                    );
+                  }
+                });
+              },
             ),
           ),
-
-          // ================== اليوم الثاني ==================
-          _fieldCard(
-            icon: Icons.calendar_today_rounded,
-            label: "اليوم الثاني",
-            valueText: selectedDaytwo,
-            placeholder: "اختر اليوم",
-            trailing: const Icon(
-              Icons.keyboard_arrow_down_rounded,
-              color: _kHint,
-            ),
-            onTap: () => _showPicker(
-              title: "اختر اليوم الثاني",
-              options: _weekDays,
-              currentValue: selectedDaytwo,
-              onSelected: (v) => setState(() => selectedDaytwo = v),
+          const SizedBox(height: 6),
+          // ================== أيام الدرس  ==================
+          ListView.builder(
+            shrinkWrap: true,
+            padding: EdgeInsets.zero,
+            scrollDirection: Axis.vertical,
+            itemCount: selectedNumOfDays,
+            itemBuilder: (context, index) => _fieldCardDiffirantCard(
+              color: _kNavy,
+              icon: Icons.calendar_today_rounded,
+              label: 'اليوم ${index + 1}',
+              valueText: selectedDaysName[index],
+              placeholder: "اختر اليوم",
+              trailing: const Icon(
+                Icons.keyboard_arrow_down_rounded,
+                color: _kHint,
+              ),
+              onTap: () => _showPicker(
+                title: "اختر اليوم",
+                options: _weekDays,
+                currentValue: selectedDaysName[index],
+                onSelected: (v) => setState(() => selectedDaysName[index] = v),
+              ),
             ),
           ),
 

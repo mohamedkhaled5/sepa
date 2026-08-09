@@ -58,8 +58,7 @@ class AuthWrapper extends StatelessWidget {
               );
             }
 
-            // المستند لسه ما اتكتبش (سباق مؤقت وقت التسجيل مباشرة) -
-            // نستنى، هيوصل تلقائيًا في اللقطة الجاية بمجرد ما يتكتب.
+            // المستند لسه ما اتكتبش (سباق مؤقت وقت التسجيل مباشرة)
             if (!docSnapshot.hasData || !docSnapshot.data!.exists) {
               return const Scaffold(
                 body: Center(child: CircularProgressIndicator()),
@@ -75,7 +74,6 @@ class AuthWrapper extends StatelessWidget {
                 role: 'admin',
               );
 
-              // الأدمن يتجاوز فحص الاشتراك ويدخل مباشرة
               return const HomePageScreen();
             }
 
@@ -86,7 +84,6 @@ class AuthWrapper extends StatelessWidget {
                 role: 'teacher',
               );
 
-              // 👈 حماية شاشة المدرس بـ SubscriptionGuard
               return const SubscriptionGuard(child: HomePageScreen());
             }
 
@@ -112,21 +109,25 @@ class AuthWrapper extends StatelessWidget {
                       );
                     }
 
-                    Map<String, bool>? teacherAllowedPermissions;
-                    if (teacherDocSnapshot.hasData &&
-                        teacherDocSnapshot.data!.exists) {
-                      final teacherModel = UserModel.fromFirestore(
-                        teacherDocSnapshot.data!,
+                    // 🔴 التحقق من وجود المدرس وصلاحية اشتراكه
+                    if (!teacherDocSnapshot.hasData ||
+                        !teacherDocSnapshot.data!.exists ||
+                        !AppSession.isTeacherSubscriptionValid(
+                          teacherDocSnapshot.data!.data(),
+                        )) {
+                      // إذا كان اشتراك المدرس منتهياً أو حسابه غير موجود يتم تحويله لشاشة الحالة
+                      return const AssistantStatusScreen(
+                        kind: AssistantStatusKind.removed,
                       );
                     }
 
+                    // 🟢 المدرس اشتراكه ساري -> ضبط الجلسة وتوجيه المساعد
                     AppSession.setSession(
                       effectiveTeacherId: userModel.teacherId!,
                       role: 'assistant',
                       permissions: userModel.permissions,
                     );
 
-                    // المساعد المقبول يدخل الشاشة الرئيسية مباشرة
                     return const HomePageScreen();
                   },
                 );
@@ -142,7 +143,7 @@ class AuthWrapper extends StatelessWidget {
                 );
 
               default:
-                // status == null أو 'removed': مفيش ارتباط فعّال بمدرس
+                // status == null أو 'removed'
                 return const AssistantStatusScreen(
                   kind: AssistantStatusKind.removed,
                 );

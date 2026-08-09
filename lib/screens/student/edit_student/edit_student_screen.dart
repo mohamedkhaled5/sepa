@@ -111,7 +111,7 @@ class _EditStudentScreenState extends State<EditStudentScreen> {
         if (snapshot.hasData && snapshot.data!.exists) {
           final group = GroupModel.fromFirestore(snapshot.data!);
           label =
-              "${group.subject ?? ''} - ${group.grade ?? ''} (${group.dayone ?? ''})";
+              "${group.subject ?? ''} - ${group.grade ?? ''} (${group.daysName ?? ''})";
         }
 
         return Container(
@@ -269,7 +269,7 @@ class _EditStudentScreenState extends State<EditStudentScreen> {
                 shape: BoxShape.circle,
               ),
               child: Image.asset(
-                "assets/icon/sepa_without_ground.png",
+                "assets/icon/sapeel.png",
                 width: 33,
                 height: 33,
               ),

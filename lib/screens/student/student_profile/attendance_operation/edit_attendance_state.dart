@@ -32,12 +32,72 @@ class _EditAttendanceStateState extends State<EditAttendanceState> {
   bool? isPresent;
   late DateTime date;
   bool editDate = false;
+  bool isLoading = false; // 💡 حالة التحميل لمنع التكرار
+  late TextEditingController noteController;
 
-  Future<void> updateAttendance(String id) async {
-    await FirestorePaths.studentActivities(widget.student.id!).doc(id).update({
-      "date": date.toIso8601String(),
-      "attendancePresent": isPresent!,
-    });
+  @override
+  void initState() {
+    super.initState();
+    noteController = TextEditingController(text: widget.activity.note ?? '');
+    date = DateTime.parse(widget.activity.date ?? DateTime.now().toString());
+    isPresent =
+        widget.activity.attendancePresent ??
+        true; // 💡 قيمة افتراضية لتفادي الـ Null
+  }
+
+  @override
+  void dispose() {
+    noteController.dispose();
+    super.dispose();
+  }
+
+  Future<void> updateAttendance() async {
+    final activityId = widget.activity.id;
+    final studentId = widget.student.id;
+
+    // 💡 التحقق من وجود المعرفات قبل الاتصال بالفايربيس
+    if (activityId == null ||
+        activityId.isEmpty ||
+        studentId == null ||
+        studentId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('خطأ: تعذر العثور على معرّف النشاط أو الطالب'),
+        ),
+      );
+      return;
+    }
+
+    setState(() => isLoading = true);
+
+    try {
+      await FirestorePaths.studentActivities(studentId).doc(activityId).update({
+        "date": date.toIso8601String(),
+        "attendancePresent": isPresent ?? true,
+        "note": noteController.text.trim(),
+      });
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('تم تحديث البيانات بنجاح'),
+          backgroundColor: _kSuccess,
+        ),
+      );
+
+      Navigator.pop(context, true); // 💡 إرجاع true لتأكيد التحديث
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('حدث خطأ أثناء التحديث: $e'),
+          backgroundColor: _kDanger,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => isLoading = false);
+    }
   }
 
   Future<void> pickDate() async {
@@ -49,13 +109,6 @@ class _EditAttendanceStateState extends State<EditAttendanceState> {
     );
 
     if (picked != null) setState(() => date = picked);
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    isPresent = widget.activity.attendancePresent;
-    date = DateTime.parse(widget.activity.date ?? '');
   }
 
   Widget _cardShell({required Widget child}) {
@@ -138,6 +191,20 @@ class _EditAttendanceStateState extends State<EditAttendanceState> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // ================== ملاحظات ==================
+            _cardShell(
+              child: TextField(
+                controller: noteController,
+                decoration: InputDecoration(
+                  hintText: "إضافة ملاحظات",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                ),
+              ),
+            ),
+
+            // ================== التاريخ ==================
             _cardShell(
               child: Row(
                 children: [
@@ -150,6 +217,7 @@ class _EditAttendanceStateState extends State<EditAttendanceState> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
+                        const SizedBox(height: 14),
                         const Text(
                           "تعديل التاريخ",
                           textAlign: TextAlign.right,
@@ -177,6 +245,7 @@ class _EditAttendanceStateState extends State<EditAttendanceState> {
                       ],
                     ),
                   ),
+                  const SizedBox(width: 12),
                   Container(
                     width: 42,
                     height: 42,
@@ -214,15 +283,13 @@ class _EditAttendanceStateState extends State<EditAttendanceState> {
             ),
 
             const SizedBox(height: 30),
+
+            // ================== زر التحديث ==================
             SizedBox(
               width: double.infinity,
               height: 56,
               child: ElevatedButton(
-                onPressed: () async {
-                  await updateAttendance(widget.activity.id ?? '');
-                  if (!mounted) return;
-                  Navigator.pop(context);
-                },
+                onPressed: isLoading ? null : updateAttendance,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _kNavy,
                   foregroundColor: Colors.white,
@@ -231,21 +298,23 @@ class _EditAttendanceStateState extends State<EditAttendanceState> {
                     borderRadius: BorderRadius.circular(28),
                   ),
                 ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "تحديث الحضور",
-                      style: TextStyle(
-                        fontFamily: 'cairo',
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                child: isLoading
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "تحديث الحضور",
+                            style: TextStyle(
+                              fontFamily: 'cairo',
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          SizedBox(width: 10),
+                          Icon(Icons.save_rounded, size: 20),
+                        ],
                       ),
-                    ),
-                    SizedBox(width: 10),
-                    Icon(Icons.save_rounded, size: 20),
-                  ],
-                ),
               ),
             ),
           ],

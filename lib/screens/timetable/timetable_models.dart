@@ -48,7 +48,7 @@ class TimetableConflictService {
       final endMin = TimeUtils.parseToMinutes(group.endTime);
       if (startMin == null || endMin == null || endMin <= startMin) continue;
 
-      for (final day in {group.dayone, group.daytwo}) {
+      for (final day in group.daysName ?? []) {
         if (day == null || day.isEmpty) continue;
 
         byDay

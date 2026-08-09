@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:seba/features/assistant/app_session.dart';
 import 'package:seba/model/student_model.dart';
 import 'package:seba/screens/student/student_profile/student_profile_screen.dart';
 
@@ -21,6 +22,7 @@ class GeneralStudentDisplayScreen extends StatefulWidget {
 class _GeneralStudentDisplayScreenState
     extends State<GeneralStudentDisplayScreen> {
   final TextEditingController _searchController = TextEditingController();
+
   String _searchQuery = '';
 
   @override
@@ -86,7 +88,9 @@ class _GeneralStudentDisplayScreenState
                 : StreamBuilder<QuerySnapshot>(
                     stream: FirebaseFirestore.instance
                         .collection('users')
-                        .doc(currentUser.uid)
+                        .doc(
+                          AppSession.effectiveTeacherId,
+                        ) //currentUser.uid =>AppSession.effectiveTeacherId
                         .collection('students')
                         .snapshots(),
                     builder: (context, snapshot) {
@@ -150,7 +154,7 @@ class _GeneralStudentDisplayScreenState
                           vertical: 8,
                         ),
                         itemCount: filteredStudents.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 10),
+                        separatorBuilder: (_, _) => const SizedBox(height: 10),
                         itemBuilder: (context, index) {
                           final student = filteredStudents[index];
                           return _buildStudentTile(student);

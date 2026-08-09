@@ -243,7 +243,7 @@ class _SelectGroupTreeWidgetState extends State<SelectGroupTreeWidget> {
         return Column(
           children: allGroups.map((group) {
             final label =
-                "${group.dayone ?? ''} و ${group.daytwo ?? ''} - ${group.startTime ?? ''}"
+                "${group.daysName ?? ''}"
                 "${(group.name?.isNotEmpty ?? false) ? ' (${group.name})' : ''}";
 
             return InkWell(
@@ -293,7 +293,7 @@ class _SelectGroupTreeWidgetState extends State<SelectGroupTreeWidget> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            "${group.dayone} • ${group.daytwo}",
+                            "${group.daysName ?? ''}",
                             style: const TextStyle(
                               fontFamily: "cairo",
                               color: Colors.grey,

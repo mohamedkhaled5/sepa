@@ -7,8 +7,6 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:seba/features/assistant/app_session.dart';
 import 'package:seba/model/user_model.dart';
 import 'dart:io';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'dart:convert';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 
 class AuthService {
