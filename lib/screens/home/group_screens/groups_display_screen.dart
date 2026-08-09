@@ -15,14 +15,16 @@ import 'package:seba/screens/student/add_student_general_screen.dart';
 import 'package:seba/screens/timetable/timetable_screen.dart';
 
 // ================== نظام الألوان الحديث والموحد ==================
-const _kNavy = Color(0xFF0F172A);
-const _kNavyLight = Color(0xFF1E293B);
-const _kPrimaryBlue = Color(0xFF2563EB);
-const _kIconBg = Color(0xFFF1F5F9);
-const _kPageBg = Color(0xFFF8FAFC);
-const _kHint = Color(0xFF64748B);
-const _kCardBorder = Color(0xFFE2E8F0);
-const _kDanger = Color(0xFFEF4444);
+const _kPrimary = Color(0xFF4F46E5); // بنفيجي نيلي عصري مريح للعين
+const _kPrimaryLight = Color(0xFFEEF2FF); // خلفية زاهية خفيفة للأيقونات
+const _kNavy = Color(0xFF0F172A); // نصوص وداكن
+const _kNavyLight = Color(0xFF334155); // نصوص فرعية
+const _kPageBg = Color(0xFFF8FAFC); // خلفية الصفحة
+const _kHint = Color(0xFF64748B); // التلميحات
+const _kCardBorder = Color(0xFFE2E8F0); // الحدود الناعمة
+const _kDanger = Color(0xFFEF4444); // أحمر مرجاني
+const _kDangerBg = Color(0xFFFEF2F2); // خلفية التنبيه الخفيفة
+const _kSuccess = Color(0xFF10B981); // أخضر زمردي
 
 class GroupsDisplayScreen extends StatefulWidget {
   const GroupsDisplayScreen({super.key});
@@ -68,19 +70,30 @@ class _GroupsDisplayScreenState extends State<GroupsDisplayScreen> {
           builder: (context, setDialogState) {
             return AlertDialog(
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(24),
               ),
-              title: const Row(
+              title: Row(
                 children: [
-                  Icon(Icons.warning_amber_rounded, color: _kDanger, size: 28),
-                  SizedBox(width: 8),
-                  Text(
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: const BoxDecoration(
+                      color: _kDangerBg,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.warning_amber_rounded,
+                      color: _kDanger,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  const Text(
                     "تأكيد الحذف النهائي",
                     style: TextStyle(
                       fontFamily: 'cairo',
                       fontWeight: FontWeight.bold,
                       fontSize: 18,
-                      color: _kDanger,
+                      color: _kNavy,
                     ),
                   ),
                 ],
@@ -95,6 +108,7 @@ class _GroupsDisplayScreenState extends State<GroupsDisplayScreen> {
                       fontFamily: 'cairo',
                       fontSize: 13.5,
                       color: _kNavyLight,
+                      height: 1.5,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -102,9 +116,9 @@ class _GroupsDisplayScreenState extends State<GroupsDisplayScreen> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: _kIconBg,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: _kCardBorder),
+                      color: _kPrimaryLight,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: _kPrimary.withOpacity(0.15)),
                     ),
                     child: Column(
                       children: [
@@ -116,7 +130,7 @@ class _GroupsDisplayScreenState extends State<GroupsDisplayScreen> {
                             color: _kHint,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 6),
                         SelectableText(
                           confirmationCode,
                           style: const TextStyle(
@@ -124,7 +138,7 @@ class _GroupsDisplayScreenState extends State<GroupsDisplayScreen> {
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 4,
-                            color: _kNavy,
+                            color: _kPrimary,
                           ),
                         ),
                       ],
@@ -148,6 +162,7 @@ class _GroupsDisplayScreenState extends State<GroupsDisplayScreen> {
                         fontFamily: 'cairo',
                         fontSize: 13,
                         letterSpacing: 0,
+                        color: _kHint,
                       ),
                       counterText: "",
                       contentPadding: const EdgeInsets.symmetric(
@@ -155,12 +170,15 @@ class _GroupsDisplayScreenState extends State<GroupsDisplayScreen> {
                         horizontal: 12,
                       ),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(14),
                         borderSide: const BorderSide(color: _kCardBorder),
                       ),
                       focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: _kNavy, width: 2),
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(
+                          color: _kPrimary,
+                          width: 2,
+                        ),
                       ),
                     ),
                     onChanged: (val) {
@@ -176,15 +194,24 @@ class _GroupsDisplayScreenState extends State<GroupsDisplayScreen> {
                   onPressed: () => Navigator.pop(ctx, false),
                   child: const Text(
                     "إلغاء",
-                    style: TextStyle(fontFamily: 'cairo', color: _kNavyLight),
+                    style: TextStyle(
+                      fontFamily: 'cairo',
+                      color: _kHint,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _kDanger,
+                    elevation: 0,
                     disabledBackgroundColor: Colors.grey.shade300,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 10,
                     ),
                   ),
                   onPressed: isButtonEnabled
@@ -192,7 +219,11 @@ class _GroupsDisplayScreenState extends State<GroupsDisplayScreen> {
                       : null,
                   child: const Text(
                     "حذف الكل",
-                    style: TextStyle(fontFamily: 'cairo', color: Colors.white),
+                    style: TextStyle(
+                      fontFamily: 'cairo',
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ],
@@ -208,7 +239,8 @@ class _GroupsDisplayScreenState extends State<GroupsDisplayScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => const Center(child: CircularProgressIndicator()),
+      builder: (_) =>
+          const Center(child: CircularProgressIndicator(color: _kPrimary)),
     );
 
     try {
@@ -259,10 +291,10 @@ class _GroupsDisplayScreenState extends State<GroupsDisplayScreen> {
 
   Widget _miniTag(IconData icon, String text) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: _kIconBg,
-        borderRadius: BorderRadius.circular(10),
+        color: _kPrimaryLight,
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -271,13 +303,100 @@ class _GroupsDisplayScreenState extends State<GroupsDisplayScreen> {
             text,
             style: const TextStyle(
               fontFamily: 'cairo',
-              fontSize: 11,
+              fontSize: 11.5,
               fontWeight: FontWeight.w600,
-              color: _kNavyLight,
+              color: _kPrimary,
             ),
           ),
           const SizedBox(width: 5),
-          Icon(icon, size: 13, color: _kPrimaryBlue),
+          Icon(icon, size: 13, color: _kPrimary),
+        ],
+      ),
+    );
+  }
+
+  // 🔹 عنصر إحصائيات عدد المجموعات بتصميم عصري جذاب
+  Widget _buildGroupsCountHeader(int count) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF3B82F6), _kPrimary],
+          begin: Alignment.topRight,
+          end: Alignment.bottomLeft,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: _kPrimary.withOpacity(0.25),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // العداد والتمييز
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.white.withOpacity(0.3)),
+            ),
+            child: Text(
+              "$count",
+              style: const TextStyle(
+                fontFamily: 'cairo',
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          // العنوان والأيقونة
+          Row(
+            children: [
+              const Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    "إجمالي المجموعات",
+                    style: TextStyle(
+                      fontFamily: 'cairo',
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  SizedBox(height: 2),
+                  Text(
+                    "عدد المجموعات المتاحة حالياً",
+                    style: TextStyle(
+                      fontFamily: 'cairo',
+                      fontSize: 11.5,
+                      color: Colors.white70,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(width: 14),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.18),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.folder_special_rounded,
+                  color: Colors.white,
+                  size: 26,
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -287,35 +406,32 @@ class _GroupsDisplayScreenState extends State<GroupsDisplayScreen> {
   Widget _buildAnimatedGroupCard(GroupModel group, int index) {
     final isSelected = _selectedGroupIds.contains(group.id);
 
-    // حساب تأخير متدرج خفيف جداً لظهور القائمة بدون بطء
-    final double animationDelay = min(index * 0.05, 0.3);
-
     return TweenAnimationBuilder<double>(
-      duration: const Duration(milliseconds: 300),
+      duration: Duration(milliseconds: 250 + (index * 50).clamp(0, 500)),
       curve: Curves.easeOutCubic,
       tween: Tween<double>(begin: 0.0, end: 1.0),
       builder: (context, value, child) {
         return Transform.translate(
-          offset: Offset(0, (1 - value) * 15),
+          offset: Offset(0, (1 - value) * 20),
           child: Opacity(opacity: value, child: child),
         );
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        margin: const EdgeInsets.only(bottom: 12),
+        margin: const EdgeInsets.only(bottom: 14),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFEFF6FF) : Colors.white,
-          borderRadius: BorderRadius.circular(20),
+          color: isSelected ? _kPrimaryLight : Colors.white,
+          borderRadius: BorderRadius.circular(22),
           border: Border.all(
-            color: isSelected ? _kPrimaryBlue : _kCardBorder,
+            color: isSelected ? _kPrimary : _kCardBorder,
             width: isSelected ? 2 : 1,
           ),
           boxShadow: [
             BoxShadow(
               color: isSelected
-                  ? _kPrimaryBlue.withOpacity(0.08)
-                  : Colors.black.withOpacity(0.03),
-              blurRadius: 12,
+                  ? _kPrimary.withOpacity(0.12)
+                  : Colors.black.withOpacity(0.02),
+              blurRadius: 14,
               offset: const Offset(0, 4),
             ),
           ],
@@ -336,8 +452,8 @@ class _GroupsDisplayScreenState extends State<GroupsDisplayScreen> {
           },
           background: Container(
             decoration: BoxDecoration(
-              color: _kPrimaryBlue,
-              borderRadius: BorderRadius.circular(20),
+              color: _kPrimary,
+              borderRadius: BorderRadius.circular(22),
             ),
             padding: const EdgeInsets.symmetric(horizontal: 24),
             alignment: Alignment.centerLeft,
@@ -358,9 +474,9 @@ class _GroupsDisplayScreenState extends State<GroupsDisplayScreen> {
           ),
           child: Material(
             color: Colors.transparent,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(22),
             child: InkWell(
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(22),
               onTap: () {
                 if (_isSelectionMode) {
                   _toggleSelection(group.id!);
@@ -392,16 +508,23 @@ class _GroupsDisplayScreenState extends State<GroupsDisplayScreen> {
                       child: _isSelectionMode
                           ? Checkbox(
                               value: isSelected,
-                              activeColor: _kPrimaryBlue,
+                              activeColor: _kPrimary,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(5),
+                                borderRadius: BorderRadius.circular(6),
                               ),
                               onChanged: (_) => _toggleSelection(group.id!),
                             )
-                          : const Icon(
-                              Icons.arrow_back_ios_new_rounded,
-                              color: _kHint,
-                              size: 16,
+                          : Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: const BoxDecoration(
+                                color: _kPageBg,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.arrow_back_ios_new_rounded,
+                                color: _kHint,
+                                size: 14,
+                              ),
                             ),
                     ),
                     Expanded(
@@ -416,11 +539,11 @@ class _GroupsDisplayScreenState extends State<GroupsDisplayScreen> {
                               style: const TextStyle(
                                 fontFamily: 'cairo',
                                 fontWeight: FontWeight.bold,
-                                fontSize: 16,
+                                fontSize: 16.5,
                                 color: _kNavy,
                               ),
                             ),
-                            const SizedBox(height: 2),
+                            const SizedBox(height: 3),
                             Text(
                               "${group.subject ?? ''} • ${group.grade ?? ''}",
                               textAlign: TextAlign.right,
@@ -431,9 +554,9 @@ class _GroupsDisplayScreenState extends State<GroupsDisplayScreen> {
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
-                            const SizedBox(height: 10),
+                            const SizedBox(height: 12),
                             Wrap(
-                              spacing: 6,
+                              spacing: 8,
                               runSpacing: 6,
                               alignment: WrapAlignment.end,
                               children: [
@@ -459,18 +582,16 @@ class _GroupsDisplayScreenState extends State<GroupsDisplayScreen> {
 
                     // أيقونة المجموعة اليمنى
                     Container(
-                      width: 48,
-                      height: 48,
+                      width: 50,
+                      height: 50,
                       decoration: BoxDecoration(
-                        color: isSelected
-                            ? _kPrimaryBlue.withOpacity(0.12)
-                            : _kIconBg,
+                        color: isSelected ? _kPrimary : _kPrimaryLight,
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         Icons.groups_2_rounded,
-                        color: isSelected ? _kPrimaryBlue : _kNavy,
-                        size: 24,
+                        color: isSelected ? Colors.white : _kPrimary,
+                        size: 26,
                       ),
                     ),
                   ],
@@ -495,14 +616,16 @@ class _GroupsDisplayScreenState extends State<GroupsDisplayScreen> {
       child: Tooltip(
         message: tooltip ?? '',
         child: Material(
-          color: _kIconBg,
-          shape: const CircleBorder(),
+          color: Colors.white,
+          shape: CircleBorder(
+            side: BorderSide(color: _kCardBorder.withOpacity(0.8)),
+          ),
           clipBehavior: Clip.antiAlias,
           child: InkWell(
             onTap: onTap,
             child: SizedBox(
-              width: 40,
-              height: 40,
+              width: 42,
+              height: 42,
               child: Icon(icon, color: iconColor ?? _kNavy, size: 20),
             ),
           ),
@@ -525,7 +648,7 @@ class _GroupsDisplayScreenState extends State<GroupsDisplayScreen> {
               ? AppBar(
                   key: const ValueKey('selection_appbar'),
                   backgroundColor: _kNavy,
-                  elevation: 2,
+                  elevation: 0,
                   leading: IconButton(
                     icon: const Icon(Icons.close_rounded, color: Colors.white),
                     onPressed: () {
@@ -587,7 +710,7 @@ class _GroupsDisplayScreenState extends State<GroupsDisplayScreen> {
                     style: TextStyle(
                       fontFamily: 'cairo',
                       fontWeight: FontWeight.bold,
-                      fontSize: 22,
+                      fontSize: 24,
                       color: _kNavy,
                     ),
                   ),
@@ -611,6 +734,7 @@ class _GroupsDisplayScreenState extends State<GroupsDisplayScreen> {
                         return _buildActionButton(
                           icon: Icons.admin_panel_settings_rounded,
                           tooltip: "لوحة الأدمن",
+                          iconColor: _kPrimary,
                           onTap: () {
                             Navigator.push(
                               context,
@@ -676,7 +800,7 @@ class _GroupsDisplayScreenState extends State<GroupsDisplayScreen> {
             return const Center(
               child: CircularProgressIndicator(
                 strokeWidth: 3,
-                valueColor: AlwaysStoppedAnimation<Color>(_kNavy),
+                valueColor: AlwaysStoppedAnimation<Color>(_kPrimary),
               ),
             );
           }
@@ -696,16 +820,16 @@ class _GroupsDisplayScreenState extends State<GroupsDisplayScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    width: 72,
-                    height: 72,
+                    width: 80,
+                    height: 80,
                     decoration: const BoxDecoration(
-                      color: _kIconBg,
+                      color: _kPrimaryLight,
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
                       Icons.groups_2_rounded,
-                      color: _kHint,
-                      size: 36,
+                      color: _kPrimary,
+                      size: 40,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -715,7 +839,7 @@ class _GroupsDisplayScreenState extends State<GroupsDisplayScreen> {
                     style: TextStyle(
                       fontFamily: 'cairo',
                       color: _kHint,
-                      fontSize: 14,
+                      fontSize: 14.5,
                       height: 1.5,
                     ),
                   ),
@@ -728,11 +852,18 @@ class _GroupsDisplayScreenState extends State<GroupsDisplayScreen> {
 
           return ListView.builder(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
-            itemCount: groups.length,
+            itemCount:
+                groups.length + 1, // +1 من أجل بطاقة الإحصائيات في البداية
             physics: const BouncingScrollPhysics(),
             itemBuilder: (context, index) {
-              final group = GroupModel.fromFirestore(groups[index]);
-              return _buildAnimatedGroupCard(group, index);
+              // إذا كان العنصر الأول، اظهر حاوي إجمالي المجموعات
+              if (index == 0) {
+                return _buildGroupsCountHeader(groups.length);
+              }
+
+              // باقي العناصر لبطاقات المجموعات
+              final group = GroupModel.fromFirestore(groups[index - 1]);
+              return _buildAnimatedGroupCard(group, index - 1);
             },
           );
         },
@@ -749,7 +880,7 @@ class _GroupsDisplayScreenState extends State<GroupsDisplayScreen> {
               foregroundColor: _kNavy,
               elevation: 2,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(18),
                 side: const BorderSide(color: _kCardBorder),
               ),
               onPressed: () {
@@ -760,24 +891,29 @@ class _GroupsDisplayScreenState extends State<GroupsDisplayScreen> {
                   ),
                 );
               },
-              icon: const Icon(Icons.person_add_alt_1_rounded, size: 20),
+              icon: const Icon(
+                Icons.person_add_alt_1_rounded,
+                color: _kPrimary,
+                size: 20,
+              ),
               label: const Text(
                 "طالب",
                 style: TextStyle(
                   fontFamily: 'cairo',
                   fontWeight: FontWeight.bold,
+                  fontSize: 14,
                 ),
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 12),
           ],
           if (AppSession.hasPermission('createGroup'))
             FloatingActionButton(
               heroTag: "addGroup",
-              backgroundColor: _kNavy,
-              elevation: 3,
+              backgroundColor: _kPrimary,
+              elevation: 4,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(18),
               ),
               onPressed: () {
                 Navigator.push(

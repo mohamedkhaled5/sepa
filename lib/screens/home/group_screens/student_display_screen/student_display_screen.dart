@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:seba/features/assistant/app_session.dart';
@@ -7,7 +9,6 @@ import 'package:seba/model/student_model.dart';
 import 'package:seba/screens/student/add_student_data.dart';
 import 'package:seba/screens/student/edit_student/edit_student_screen.dart';
 import 'package:seba/screens/student/student_profile/student_profile_screen.dart';
-import 'dart:math';
 
 // ================== نظام الألوان الموحّد للشاشة ==================
 const _kNavy = Color(0xFF16213E);
@@ -32,9 +33,27 @@ class StudentDisplayScreen extends StatefulWidget {
 
 class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
   late final Stream<QuerySnapshot<Map<String, dynamic>>> studentsStream;
-  // متغيرات التحديد المتعدد
+
   bool _isSelectionMode = false;
   final Set<String> _selectedStudentIds = {};
+
+  @override
+  void initState() {
+    super.initState();
+    studentsStream = FirestorePaths.students
+        .where("groupIds", arrayContains: widget.groupId)
+        .snapshots();
+  }
+
+  bool _isSameDay(String? dateStr) {
+    if (dateStr == null) return false;
+    final parsed = DateTime.tryParse(dateStr)?.toLocal();
+    if (parsed == null) return false;
+    final now = DateTime.now();
+    return parsed.year == now.year &&
+        parsed.month == now.month &&
+        parsed.day == now.day;
+  }
 
   void _toggleSelection(String studentId) {
     setState(() {
@@ -49,7 +68,6 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
     });
   }
 
-  // 🟢 دالة الحذف الجماعي للطلاب المحددين مع تأكيد 8 أرقام
   Future<void> _deleteSelectedStudents() async {
     final String confirmationCode = (10000000 + Random().nextInt(90000000))
         .toString();
@@ -223,14 +241,6 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
     }
   }
 
-  @override
-  void initState() {
-    super.initState();
-    studentsStream = FirestorePaths.students
-        .where("groupIds", arrayContains: widget.groupId)
-        .snapshots();
-  }
-
   Future<void> deleteStudent(String studentId) async {
     final activities = await FirestorePaths.studentActivities(studentId).get();
     final batch = FirebaseFirestore.instance.batch();
@@ -346,6 +356,151 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
     if (confirm == true) await deleteStudent(student.id!);
   }
 
+  // 🟢 عرض القائمة المنسدلة للطلاب مع إمكانية الانقال لشاشة الطالب عند النقر
+  void _showStudentsListBottomSheet({
+    required String title,
+    required List<StudentModel> studentsList,
+    required Color headerColor,
+  }) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return Container(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: headerColor.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      "${studentsList.length}",
+                      style: TextStyle(
+                        fontFamily: 'cairo',
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: headerColor,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontFamily: 'cairo',
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                      color: _kNavy,
+                    ),
+                  ),
+                ],
+              ),
+              const Divider(height: 24),
+              if (studentsList.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 30),
+                  child: Text(
+                    "لا يوجد طلاب في هذه القائمة لليوم",
+                    style: TextStyle(fontFamily: 'cairo', color: _kHint),
+                  ),
+                )
+              else
+                Flexible(
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    itemCount: studentsList.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 8),
+                    itemBuilder: (context, idx) {
+                      final student = studentsList[idx];
+                      return Material(
+                        color: _kPageBg,
+                        borderRadius: BorderRadius.circular(12),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(12),
+                          onTap: () {
+                            Navigator.pop(ctx); // إغلاق القائمة السفلية
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => StudentProfileScreen(
+                                  student: student,
+                                  initialGroupId: widget.groupId,
+                                ),
+                              ),
+                            );
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 10,
+                            ),
+                            child: Row(
+                              children: [
+                                Text(
+                                  student.phone ?? "",
+                                  style: const TextStyle(
+                                    fontFamily: 'cairo',
+                                    fontSize: 12,
+                                    color: _kNavyLight,
+                                  ),
+                                ),
+                                const Spacer(),
+                                Text(
+                                  student.name ?? "",
+                                  style: const TextStyle(
+                                    fontFamily: 'cairo',
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                    color: _kNavy,
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                CircleAvatar(
+                                  radius: 14,
+                                  backgroundColor: headerColor.withOpacity(0.2),
+                                  child: Icon(
+                                    headerColor == _kSuccess
+                                        ? Icons.check
+                                        : Icons.close,
+                                    size: 16,
+                                    color: headerColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Widget _circleAction({
     required IconData icon,
     required VoidCallback? onPressed,
@@ -380,6 +535,206 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
       child: Text(
         text,
         style: const TextStyle(fontFamily: 'cairo', fontSize: 10.5),
+      ),
+    );
+  }
+
+  Future<Map<String, List<StudentModel>>> _fetchTodayAttendanceStats(
+    List<StudentModel> students,
+  ) async {
+    final List<StudentModel> present = [];
+    final List<StudentModel> absent = [];
+
+    for (var student in students) {
+      if (student.id == null) continue;
+
+      final snap = await FirestorePaths.studentActivities(student.id!)
+          .where('groupId', isEqualTo: widget.groupId)
+          .where('type', isEqualTo: ActivityType.attendance.name)
+          .get();
+
+      for (var doc in snap.docs) {
+        final data = doc.data();
+        if (_isSameDay(data['date']?.toString())) {
+          if (data['attendancePresent'] == true) {
+            present.add(student);
+          } else {
+            absent.add(student);
+          }
+          break;
+        }
+      }
+    }
+
+    return {'present': present, 'absent': absent};
+  }
+
+  Widget _buildStudentsCountHeader(List<StudentModel> students) {
+    return FutureBuilder<Map<String, List<StudentModel>>>(
+      future: _fetchTodayAttendanceStats(students),
+      builder: (context, snapshot) {
+        final presentStudents = snapshot.data?['present'] ?? [];
+        final absentStudents = snapshot.data?['absent'] ?? [];
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [_kNavy, _kNavyLight],
+              begin: Alignment.topRight,
+              end: Alignment.bottomLeft,
+            ),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: _kNavy.withOpacity(0.12),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    "ملخص اليوم",
+                    style: TextStyle(
+                      fontFamily: 'cairo',
+                      fontSize: 12,
+                      color: Colors.white70,
+                    ),
+                  ),
+                  Row(
+                    children: const [
+                      Text(
+                        "إحصائيات الطلاب",
+                        style: TextStyle(
+                          fontFamily: 'cairo',
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      SizedBox(width: 6),
+                      Icon(
+                        Icons.analytics_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildHeaderStatItem(
+                      title: "الإجمالي",
+                      value: "${students.length}",
+                      icon: Icons.people_alt_rounded,
+                      color: Colors.white,
+                      bgColor: Colors.white.withOpacity(0.15),
+                      onTap: null,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _buildHeaderStatItem(
+                      title: "الحضور",
+                      value: snapshot.connectionState == ConnectionState.waiting
+                          ? "..."
+                          : "${presentStudents.length}",
+                      icon: Icons.check_circle_rounded,
+                      color: _kSuccess,
+                      bgColor: _kSuccessBg,
+                      onTap: () => _showStudentsListBottomSheet(
+                        title: "قائمة الحضور اليوم",
+                        studentsList: presentStudents,
+                        headerColor: _kSuccess,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _buildHeaderStatItem(
+                      title: "الغياب",
+                      value: snapshot.connectionState == ConnectionState.waiting
+                          ? "..."
+                          : "${absentStudents.length}",
+                      icon: Icons.cancel_rounded,
+                      color: _kDanger,
+                      bgColor: _kDangerBg,
+                      onTap: () => _showStudentsListBottomSheet(
+                        title: "قائمة الغياب اليوم",
+                        studentsList: absentStudents,
+                        headerColor: _kDanger,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildHeaderStatItem({
+    required String title,
+    required String value,
+    required IconData icon,
+    required Color color,
+    required Color bgColor,
+    VoidCallback? onTap,
+  }) {
+    final isWhite = color == Colors.white;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(icon, size: 14, color: color),
+                  const SizedBox(width: 4),
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontFamily: 'cairo',
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w600,
+                      color: isWhite ? Colors.white70 : color,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                value,
+                style: TextStyle(
+                  fontFamily: 'cairo',
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: isWhite ? Colors.white : color,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -580,7 +935,6 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
     );
   }
 
-  // 🟢 ودجت متطورة لفحص أنشطة اليوم بدقة
   Widget _buildTodayAttendanceAction(StudentModel student) {
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
       stream: FirestorePaths.studentActivities(
@@ -591,22 +945,11 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
           return const SizedBox(width: 38, height: 38);
         }
 
-        final now = DateTime.now();
-
-        // فلترة أنشطة اليوم فقط داخل Dart لضمان الدقة
         final todayDocs = snapshot.data!.docs.where((doc) {
           final data = doc.data();
-          if (data['date'] == null) return false;
-
-          final activityDate = DateTime.tryParse(data['date'].toString());
-          if (activityDate == null) return false;
-
-          return activityDate.year == now.year &&
-              activityDate.month == now.month &&
-              activityDate.day == now.day;
+          return _isSameDay(data['date']?.toString());
         }).toList();
 
-        // إذا لم يجد أي نشاط اليوم -> إظهار أزرار التسجيل السريع
         if (todayDocs.isEmpty) {
           return Row(
             mainAxisSize: MainAxisSize.min,
@@ -630,7 +973,6 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
           );
         }
 
-        // إذا وجد أنشطة اليوم، يبحث عن سجل الحضور والغياب أو الاختبار
         Map<String, dynamic>? attendanceData;
 
         for (var doc in todayDocs) {
@@ -640,14 +982,12 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
           }
         }
 
-        bool isPresent =
-            true; // افتراضيًا يعتبر حاضر إذا كان النشاط اختبار أو امتحان
+        bool isPresent = true;
 
         if (attendanceData != null) {
           isPresent = attendanceData['attendancePresent'] ?? false;
         }
 
-        // إظهار الأيقونة بدلاً من الأزرار
         if (isPresent) {
           return Tooltip(
             message: "تم تسجيل الحضور اليوم",
@@ -712,7 +1052,6 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
                 ),
               ),
               actions: [
-                // تحديد الكل من المجموعة الحالية
                 IconButton(
                   icon: const Icon(Icons.select_all, color: Colors.white),
                   tooltip: "تحديد الكل",
@@ -731,7 +1070,6 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
                     });
                   },
                 ),
-                // زر الحذف النهائي
                 IconButton(
                   icon: const Icon(
                     Icons.delete_forever,
@@ -765,12 +1103,12 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return const Center(child: Text("حدث خطأ"));
+            return const Center(child: Text("حدث خطأ في جلب الطلاب"));
           }
 
-          final students = snapshot.data!.docs;
+          final studentDocs = snapshot.data!.docs;
 
-          if (students.isEmpty) {
+          if (studentDocs.isEmpty) {
             return Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -802,11 +1140,20 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
             );
           }
 
+          final students = studentDocs
+              .map((doc) => StudentModel.fromFirestore(doc))
+              .toList();
+
           return ListView.builder(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
-            itemCount: students.length,
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
+            itemCount: students.length + 1,
+            physics: const BouncingScrollPhysics(),
             itemBuilder: (context, index) {
-              final student = StudentModel.fromFirestore(students[index]);
+              if (index == 0) {
+                return _buildStudentsCountHeader(students);
+              }
+
+              final student = students[index - 1];
               return _buildStudentCard(student);
             },
           );

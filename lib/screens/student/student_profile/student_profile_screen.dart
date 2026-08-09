@@ -1,8 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:printing/printing.dart';
 import 'package:seba/features/assistant/app_session.dart';
-
+import 'package:seba/features/auth/firestore_path.dart';
 import 'package:seba/model/activity_model_type.dart';
 import 'package:seba/model/group_model.dart';
 import 'package:seba/model/student_model.dart';
@@ -13,9 +14,6 @@ import 'package:seba/screens/student/student_profile/add_exam.dart/add_exam_scre
 import 'package:seba/screens/student/student_profile/add_exam.dart/edit_exam_screen.dart';
 import 'package:seba/screens/student/student_profile/attendance_operation/add_attendance_state.dart';
 import 'package:seba/screens/student/student_profile/attendance_operation/edit_attendance_state.dart';
-
-import 'package:seba/features/auth/firestore_path.dart';
-import 'package:intl/intl.dart';
 
 // ================== نظام الألوان الموحّد للشاشة ==================
 const _kNavy = Color(0xFF16213E);
@@ -51,6 +49,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
   bool _loading = true;
   bool _isGeneratingReport = false;
   bool _isDeleting = false;
+
   // متغيرات التحديد المتعدد لسجلات الحضور والغياب
   bool _isSelectionMode = false;
   final Set<String> _selectedAttendanceIds = {};
@@ -72,7 +71,6 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
   Future<void> _deleteSelectedAttendances() async {
     if (_selectedAttendanceIds.isEmpty) return;
 
-    // توليد رقم حماية عشوائي مكون من 4 أرقام
     final String securityCode =
         (10000 + (DateTime.now().microsecondsSinceEpoch % 90000)).toString();
     final TextEditingController codeController = TextEditingController();
@@ -284,19 +282,26 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text("تأكيد الحذف"),
+          title: const Text(
+            "تأكيد الحذف",
+            style: TextStyle(fontFamily: 'cairo'),
+          ),
           content: const Text(
             "هل أنت متأكد من حذف هذا السجل؟ لا يمكن التراجع بعد الحذف.",
+            style: TextStyle(fontFamily: 'cairo'),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text("إلغاء"),
+              child: const Text("إلغاء", style: TextStyle(fontFamily: 'cairo')),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
               onPressed: () => Navigator.pop(context, true),
-              child: const Text("حذف", style: TextStyle(color: Colors.white)),
+              child: const Text(
+                "حذف",
+                style: TextStyle(fontFamily: 'cairo', color: Colors.white),
+              ),
             ),
           ],
         );
@@ -377,11 +382,10 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
   }
 
   Widget _buildActivitiesListForGroup(String groupId) {
-    final activitiesStream =
-        FirestorePaths.studentActivities(widget.student.id!)
-            .where('groupId', isEqualTo: groupId)
-            .orderBy('date', descending: true)
-            .snapshots();
+    // 🟢 تجنب طلب Composite Index بترك الفرز للذاكرة المحلية
+    final activitiesStream = FirestorePaths.studentActivities(
+      widget.student.id!,
+    ).where('groupId', isEqualTo: groupId).snapshots();
 
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
       stream: activitiesStream,
@@ -390,7 +394,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
+          return Center(child: Text('خطأ: ${snapshot.error}'));
         }
 
         final docs = snapshot.data?.docs ?? [];
@@ -427,12 +431,21 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
           );
         }
 
+        // 🟢 فرز العناصر محلياً حسب التاريخ تنازلياً لمنع انهيار الاستعلام
+        final activities = docs
+            .map((doc) => ActivityModel.fromFirestore(doc))
+            .toList();
+        activities.sort((a, b) {
+          final dateA = DateTime.tryParse(a.date ?? '') ?? DateTime(1970);
+          final dateB = DateTime.tryParse(b.date ?? '') ?? DateTime(1970);
+          return dateB.compareTo(dateA); // أحدث تاريخ في الأعلى
+        });
+
         return ListView.builder(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
-          itemCount: docs.length,
+          itemCount: activities.length,
           itemBuilder: (context, index) {
-            final activity = ActivityModel.fromFirestore(docs[index]);
-            return _buildActivityCard(activity);
+            return _buildActivityCard(activities[index]);
           },
         );
       },
@@ -440,7 +453,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
   }
 
   Widget _buildActivityCard(ActivityModel activity) {
-    final isAttendance = activity.type == "attendance";
+    final isAttendance = activity.type == ActivityType.attendance.name;
     final isSelected = _selectedAttendanceIds.contains(activity.id);
 
     final isPresent = isAttendance
@@ -451,6 +464,12 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
     final statusBg = isPresent ? _kSuccessBg : _kDangerBg;
     final percent = _examPercent(activity);
     final progressColor = _examProgressColor(percent);
+
+    // 🟢 معالجة آمنة للتاريخ لتجنب أخطاء Parsing
+    final parsedDate = DateTime.tryParse(activity.date ?? '')?.toLocal();
+    final formattedDate = parsedDate != null
+        ? DateFormat('dd-MMM-yyyy', 'ar').format(parsedDate)
+        : (activity.date ?? '');
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -482,7 +501,6 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
             }
           },
           onLongPress: () {
-            // التحديد متاح فقط لسجلات الحضور والغياب
             if (!isAttendance) return;
             if (!_isSelectionMode) {
               setState(() {
@@ -495,7 +513,6 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             child: Row(
               children: [
-                // إظهار Checkbox في وضع التحديد (للحضور فقط)
                 if (_isSelectionMode && isAttendance)
                   Padding(
                     padding: const EdgeInsets.only(left: 8.0),
@@ -507,13 +524,12 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
                     ),
                   )
                 else if (!_isSelectionMode) ...[
-                  // إجراءات (تعديل/حذف) الفردية في الوضع العادي
                   Column(
                     children: [
                       _circleAction(
                         icon: Icons.edit_rounded,
                         onPressed: () {
-                          if (activity.type == "attendance") {
+                          if (activity.type == ActivityType.attendance.name) {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -523,7 +539,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
                                 ),
                               ),
                             );
-                          } else if (activity.type == "exam") {
+                          } else if (activity.type == ActivityType.exam.name) {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -580,8 +596,8 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
                           Flexible(
                             child: Text(
                               isAttendance
-                                  ? "الحضور"
-                                  : (activity.examName ?? ""),
+                                  ? "الحضور والغياب"
+                                  : (activity.examName ?? "اختبار"),
                               textAlign: TextAlign.right,
                               style: const TextStyle(
                                 fontFamily: 'cairo',
@@ -593,13 +609,22 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
                           ),
                         ],
                       ),
-                      Text(activity.note ?? ''),
+                      if (activity.note != null &&
+                          activity.note!.trim().isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          activity.note!,
+                          textAlign: TextAlign.right,
+                          style: const TextStyle(
+                            fontFamily: 'cairo',
+                            fontSize: 12,
+                            color: Colors.black54,
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 4),
                       Text(
-                        DateFormat(
-                          'dd-MMM-yyyy',
-                          'ar',
-                        ).format(DateTime.parse(activity.date ?? '')),
+                        formattedDate,
                         textAlign: TextAlign.right,
                         style: const TextStyle(
                           fontFamily: 'cairo',
@@ -622,8 +647,10 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
                           child: Text(
                             isPresent ? "حاضر" : "غائب",
                             style: TextStyle(
+                              fontFamily: 'cairo',
                               color: statusColor,
                               fontWeight: FontWeight.bold,
+                              fontSize: 12,
                             ),
                           ),
                         )
@@ -670,8 +697,10 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
                                   child: Text(
                                     activity.examStatus ?? "",
                                     style: TextStyle(
+                                      fontFamily: 'cairo',
                                       color: statusColor,
                                       fontWeight: FontWeight.bold,
+                                      fontSize: 12,
                                     ),
                                   ),
                                 ),
@@ -764,7 +793,6 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
           )
         : const SizedBox.shrink();
 
-    // 🟢 تجهيز شريط التطبيق الديناميكي ليتفاعل مع التحديد
     final PreferredSizeWidget appBarWidget = _isSelectionMode
         ? AppBar(
             backgroundColor: _kNavy,
@@ -787,7 +815,6 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
               ),
             ),
             actions: [
-              // تحديد كل سجلات الحضور في المجموعة الحالية
               IconButton(
                 icon: const Icon(Icons.select_all, color: Colors.white),
                 tooltip: "تحديد كل سجلات الحضور",
@@ -798,7 +825,10 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
                   final snap =
                       await FirestorePaths.studentActivities(widget.student.id!)
                           .where('groupId', isEqualTo: currentGid)
-                          .where('type', isEqualTo: 'attendance')
+                          .where(
+                            'type',
+                            isEqualTo: ActivityType.attendance.name,
+                          )
                           .get();
 
                   final attendanceIds = snap.docs.map((d) => d.id).toList();
@@ -812,7 +842,6 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
                   });
                 },
               ),
-              // 🔴 زر الحذف الجماعي
               IconButton(
                 icon: const Icon(Icons.delete_forever),
                 color: Colors.redAccent,
@@ -914,7 +943,6 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
                 : null,
           );
 
-    // إذا لم يكن الطالب في أي مجموعة
     if (groupIds.isEmpty) {
       return Scaffold(
         backgroundColor: _kPageBg,
@@ -951,7 +979,6 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
       );
     }
 
-    // الشاشة الرئيسية عند وجود مجموعات
     return Scaffold(
       backgroundColor: _kPageBg,
       appBar: appBarWidget,
@@ -1016,7 +1043,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
           const SizedBox(width: 12),
           FloatingActionButton(
             heroTag: "viewReport",
-            tooltip: " عرض شاشة التقرير",
+            tooltip: "عرض شاشة التقرير",
             backgroundColor: _kNavy,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(18),
