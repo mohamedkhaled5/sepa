@@ -6,14 +6,15 @@ import 'package:seba/screens/home/group_screens/student_display_screen/student_d
 import 'package:seba/screens/timetable/timetable_models.dart';
 
 // ================== نظام الألوان الموحّد للشاشة ==================
-const _kNavy = Color(0xFF16213E);
-const _kNavyLight = Color(0xFF24365C);
-const _kIconBg = Color(0xFFEAF1FB);
-const _kPageBg = Color(0xFFF6F8FB);
-const _kHint = Color(0xFF9AA3B2);
-const _kCardBorder = Color(0xFFEBEEF3);
-const _kWarning = Color(0xFFC98A2C);
-const _kWarningBg = Color(0xFFFCF1E1);
+const _kPrimary = Color(0xFF4F46E5); // بنفسجي نيلي عصري
+const _kPrimaryLight = Color(0xFFEEF2FF); // خلفية زاهية خفيفة للأيقونات
+const _kNavy = Color(0xFF0F172A); // نصوص وداكن
+const _kNavyLight = Color(0xFF334155); // نصوص فرعية
+const _kPageBg = Color(0xFFF8FAFC); // خلفية الصفحة
+const _kHint = Color(0xFF64748B); // التلميحات
+const _kCardBorder = Color(0xFFE2E8F0); // الحدود الناعمة
+const _kWarning = Color(0xFFF59E0B); // برتقالي تحذيري للتعارضات
+const _kWarningBg = Color(0xFFFEF3C7); // خلفية التعارض الخفيفة
 
 // ================== ثوابت الشبكة ==================
 const List<String> _kWeekDays = [
@@ -30,22 +31,22 @@ const int _kStartHour = 1; // 8 صباحًا
 const int _kEndHour = 24; // 11 مساءً
 const double _kHourHeight = 76;
 const double _kDayColWidth = 168;
-const double _kTimeColWidth = 52;
+const double _kTimeColWidth = 56;
 
-/// لوحة ألوان ثابتة للمواد - نفس المادة بتاخد نفس اللون دايمًا (مبني
+/// لوحة ألوان ثابتة هادئة للمواد - نفس المادة بتاخد نفس اللون دايمًا (مبني
 /// على hash اسم المادة)، عشان تسهيل التمييز البصري بين المواد المختلفة
 /// جوه الجدول من غير أي إعداد يدوي من المستخدم.
 const List<Color> _kSubjectPalette = [
-  Color(0xFFDCEBFF), // أزرق فاتح
-  Color(0xFFE3F5E1), // أخضر فاتح
-  Color(0xFFFCEBD8), // برتقالي فاتح
-  Color(0xFFF3E1F7), // بنفسجي فاتح
-  Color(0xFFE1F5F1), // تركواز فاتح
-  Color(0xFFFCE4E4), // وردي فاتح
+  Color(0xFFEEF2FF), // نيلي فاتح
+  Color(0xFFECFDF5), // أخضر زمردي فاتح
+  Color(0xFFFFF7ED), // برتقالي دافئ فاتح
+  Color(0xFFF3E8FF), // بنفسجي فاتح
+  Color(0xFFF0FDFA), // تركواز فاتح
+  Color(0xFFFEF2F2), // وردي فاتح
 ];
 
 Color _colorForSubject(String? subject) {
-  if (subject == null || subject.isEmpty) return _kIconBg;
+  if (subject == null || subject.isEmpty) return _kPrimaryLight;
   final index = subject.hashCode.abs() % _kSubjectPalette.length;
   return _kSubjectPalette[index];
 }
@@ -141,6 +142,7 @@ class _TimetableScreenState extends State<TimetableScreen> {
       appBar: AppBar(
         backgroundColor: _kPageBg,
         elevation: 0,
+        scrolledUnderElevation: 0,
         foregroundColor: _kNavy,
         centerTitle: false,
         title: const Text(
@@ -148,6 +150,7 @@ class _TimetableScreenState extends State<TimetableScreen> {
           style: TextStyle(
             fontFamily: 'cairo',
             fontWeight: FontWeight.bold,
+            fontSize: 22,
             color: _kNavy,
           ),
         ),
@@ -156,10 +159,17 @@ class _TimetableScreenState extends State<TimetableScreen> {
         stream: FirestorePaths.groups.snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+              child: CircularProgressIndicator(color: _kPrimary),
+            );
           }
           if (snapshot.hasError) {
-            return Center(child: Text('حدث خطأ: ${snapshot.error}'));
+            return Center(
+              child: Text(
+                'حدث خطأ: ${snapshot.error}',
+                style: const TextStyle(fontFamily: 'cairo', color: _kNavy),
+              ),
+            );
           }
 
           var groups = (snapshot.data?.docs ?? [])
@@ -191,11 +201,13 @@ class _TimetableScreenState extends State<TimetableScreen> {
 
   // ================== شريط فلترة المواد ==================
   Widget _buildSubjectFilterBar(List<String> subjects) {
-    return SizedBox(
-      height: 44,
+    return Container(
+      height: 48,
+      margin: const EdgeInsets.only(bottom: 8),
       child: ListView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        physics: const BouncingScrollPhysics(),
         children: [
           _filterChip(
             label: "الكل",
@@ -228,19 +240,38 @@ class _TimetableScreenState extends State<TimetableScreen> {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: selected ? _kNavy : Colors.white,
+          color: selected ? _kPrimary : Colors.white,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: selected ? _kNavy : _kCardBorder),
+          border: Border.all(
+            color: selected ? _kPrimary : _kCardBorder,
+            width: selected ? 1.5 : 1.0,
+          ),
+          boxShadow: selected
+              ? [
+                  BoxShadow(
+                    color: _kPrimary.withOpacity(0.25),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ]
+              : [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.02),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
         ),
         child: Text(
           label,
           style: TextStyle(
             fontFamily: 'cairo',
-            fontSize: 12.5,
-            fontWeight: FontWeight.w600,
+            fontSize: 13,
+            fontWeight: selected ? FontWeight.bold : FontWeight.w600,
             color: selected ? Colors.white : _kNavyLight,
           ),
         ),
@@ -257,35 +288,39 @@ class _TimetableScreenState extends State<TimetableScreen> {
       children: [
         // رأس الأيام - مش قابل للسحب مباشرة (physics معطّلة)، بس بيتبع
         // موضع جسم الجدول أوتوماتيكيًا عبر الـ listener فوق.
-        Row(
-          children: [
-            SizedBox(width: _kTimeColWidth),
-            Expanded(
-              child: SingleChildScrollView(
-                controller: _headerHController,
-                scrollDirection: Axis.horizontal,
-                physics: const NeverScrollableScrollPhysics(),
-                child: Row(
-                  children: _kWeekDays
-                      .map(
-                        (day) => _dayHeaderCell(
-                          day,
-                          schedule[day]?.length ?? 0,
-                          isToday: day == _todayName,
-                        ),
-                      )
-                      .toList(),
+        Container(
+          color: Colors.white,
+          child: Row(
+            children: [
+              const SizedBox(width: _kTimeColWidth),
+              Expanded(
+                child: SingleChildScrollView(
+                  controller: _headerHController,
+                  scrollDirection: Axis.horizontal,
+                  physics: const NeverScrollableScrollPhysics(),
+                  child: Row(
+                    children: _kWeekDays
+                        .map(
+                          (day) => _dayHeaderCell(
+                            day,
+                            schedule[day]?.length ?? 0,
+                            isToday: day == _todayName,
+                          ),
+                        )
+                        .toList(),
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-        const Divider(height: 1, color: _kCardBorder),
+        const Divider(height: 1, thickness: 1, color: _kCardBorder),
 
         // الجسم: عمود الساعات + شبكة الأيام، بتمرير رأسي وأفقي متزامنين
         Expanded(
           child: SingleChildScrollView(
             controller: _vController,
+            physics: const BouncingScrollPhysics(),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -298,6 +333,7 @@ class _TimetableScreenState extends State<TimetableScreen> {
                   child: SingleChildScrollView(
                     controller: _bodyHController,
                     scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
                     child: SizedBox(
                       height: gridHeight,
                       child: Row(
@@ -326,15 +362,15 @@ class _TimetableScreenState extends State<TimetableScreen> {
   Widget _dayHeaderCell(String day, int count, {required bool isToday}) {
     return Container(
       width: _kDayColWidth,
-      margin: const EdgeInsets.symmetric(horizontal: 3, vertical: 6),
+      margin: const EdgeInsets.symmetric(horizontal: 3, vertical: 8),
       padding: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
-        // اليوم الحالي ياخد خلفية فاتحة مميزة عشان يلفت النظر فورًا،
-        // من غير ما يكون صارخ أو يكسر هدوء باقي التصميم.
-        color: isToday ? _kIconBg : Colors.transparent,
-        borderRadius: BorderRadius.circular(14),
+        // اليوم الحالي ياخد خلفية مميزة مع ألوان الهوية البصرية،
+        // لتسهيل التمييز الفوري.
+        color: isToday ? _kPrimaryLight : Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
         border: isToday
-            ? Border.all(color: _kNavy.withValues(alpha: 0.25))
+            ? Border.all(color: _kPrimary.withOpacity(0.3), width: 1.2)
             : null,
       ),
       alignment: Alignment.center,
@@ -346,22 +382,22 @@ class _TimetableScreenState extends State<TimetableScreen> {
             children: [
               if (isToday) ...[
                 Container(
-                  width: 6,
-                  height: 6,
+                  width: 7,
+                  height: 7,
                   decoration: const BoxDecoration(
-                    color: _kNavy,
+                    color: _kPrimary,
                     shape: BoxShape.circle,
                   ),
                 ),
-                const SizedBox(width: 5),
+                const SizedBox(width: 6),
               ],
               Text(
                 day,
                 style: TextStyle(
                   fontFamily: 'cairo',
                   fontWeight: FontWeight.bold,
-                  fontSize: 13,
-                  color: _kNavy,
+                  fontSize: 13.5,
+                  color: isToday ? _kPrimary : _kNavy,
                 ),
               ),
             ],
@@ -370,10 +406,11 @@ class _TimetableScreenState extends State<TimetableScreen> {
             const SizedBox(height: 2),
             Text(
               "$count مجموعة",
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'cairo',
-                fontSize: 10,
-                color: _kHint,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: isToday ? _kPrimary : _kHint,
               ),
             ),
           ],
@@ -401,12 +438,13 @@ class _TimetableScreenState extends State<TimetableScreen> {
           child: Align(
             alignment: Alignment.topCenter,
             child: Padding(
-              padding: const EdgeInsets.only(top: 4),
+              padding: const EdgeInsets.only(top: 6),
               child: Text(
                 label,
                 style: const TextStyle(
                   fontFamily: 'cairo',
-                  fontSize: 11,
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w600,
                   color: _kHint,
                 ),
               ),
@@ -429,7 +467,9 @@ class _TimetableScreenState extends State<TimetableScreen> {
       width: _kDayColWidth,
       height: gridHeight,
       decoration: BoxDecoration(
-        color: isToday ? const Color(0xFFF8FBFF) : Colors.white,
+        color: isToday
+            ? const Color(0xFFF1F5F9).withOpacity(0.5)
+            : Colors.white,
         border: const Border(left: BorderSide(color: _kCardBorder)),
       ),
       child: Stack(
@@ -480,7 +520,7 @@ class _TimetableScreenState extends State<TimetableScreen> {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(12),
           onTap: () {
             Navigator.push(
               context,
@@ -490,16 +530,23 @@ class _TimetableScreenState extends State<TimetableScreen> {
             );
           },
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
             decoration: BoxDecoration(
               color: bg,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: occ.hasConflict
                     ? _kWarning
-                    : Colors.black.withValues(alpha: 0.05),
-                width: occ.hasConflict ? 1.4 : 1,
+                    : Colors.black.withOpacity(0.06),
+                width: occ.hasConflict ? 1.5 : 1,
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.02),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -509,10 +556,10 @@ class _TimetableScreenState extends State<TimetableScreen> {
                     if (occ.hasConflict) ...[
                       const Icon(
                         Icons.warning_amber_rounded,
-                        size: 12,
+                        size: 13,
                         color: _kWarning,
                       ),
-                      const SizedBox(width: 2),
+                      const SizedBox(width: 3),
                     ],
                     Expanded(
                       child: Text(
@@ -524,7 +571,7 @@ class _TimetableScreenState extends State<TimetableScreen> {
                         style: TextStyle(
                           fontFamily: 'cairo',
                           fontWeight: FontWeight.bold,
-                          fontSize: 10.5,
+                          fontSize: 11,
                           color: occ.hasConflict ? _kWarning : _kNavy,
                         ),
                       ),
@@ -538,19 +585,22 @@ class _TimetableScreenState extends State<TimetableScreen> {
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontFamily: 'cairo',
-                      fontSize: 9,
+                      fontSize: 9.5,
+                      fontWeight: FontWeight.w600,
                       color: _kNavyLight,
                     ),
                   ),
                 ],
                 if (height > 56) ...[
+                  const Spacer(),
                   Text(
-                    "${_formatShortTime(occ.startMinutes)}-${_formatShortTime(occ.endMinutes)}",
+                    "${_formatShortTime(occ.startMinutes)} - ${_formatShortTime(occ.endMinutes)}",
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontFamily: 'cairo',
-                      fontSize: 8.5,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w500,
                       color: _kHint,
                     ),
                   ),

@@ -6,13 +6,14 @@ import 'package:seba/model/group_model.dart';
 import 'package:seba/model/student_model.dart';
 import 'package:seba/screens/student/select_group_tree_widget.dart';
 
-// ================== نظام الألوان الموحّد للشاشة ==================
-const _kNavy = Color(0xFF16213E);
-const _kNavyLight = Color(0xFF24365C);
-const _kIconBg = Color(0xFFEAF1FB);
-const _kPageBg = Color(0xFFF6F8FB);
-const _kHint = Color(0xFF9AA3B2);
-const _kCardBorder = Color(0xFFEBEEF3);
+// ================== نظام الألوان الحديث والموحد ==================
+const _kPrimary = Color(0xFF4F46E5); // بنفسجي نيلي عصري
+const _kPrimaryLight = Color(0xFFEEF2FF); // خلفية زاهية خفيفة
+const _kNavy = Color(0xFF0F172A); // نصوص وداكن
+const _kNavyLight = Color(0xFF334155); // نصوص فرعية
+const _kPageBg = Color(0xFFF8FAFC); // خلفية الصفحة
+const _kHint = Color(0xFF64748B); // التلميحات
+const _kCardBorder = Color(0xFFE2E8F0); // الحدود الناعمة
 
 class AddStudentData extends StatefulWidget {
   const AddStudentData({super.key, required this.groupId});
@@ -46,10 +47,10 @@ class _AddStudentDataState extends State<AddStudentData> {
     final student = StudentModel(
       id: doc.id,
       groupIds: selectedGroupIds,
-      name: studentNameController.text,
-      parentName: studentParentNameController.text,
-      parentRelation: parentRelationController.text,
-      phone: studentPhoneController.text,
+      name: studentNameController.text.trim(),
+      parentName: studentParentNameController.text.trim(),
+      parentRelation: parentRelationController.text.trim(),
+      phone: studentPhoneController.text.trim(),
       conectWithPhone: conectWithPhone,
       conectWithWhatsApp: conectWithWhatsApp,
     );
@@ -61,6 +62,10 @@ class _AddStudentDataState extends State<AddStudentData> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
       builder: (context) {
         return Padding(
           padding: EdgeInsets.only(
@@ -74,7 +79,8 @@ class _AddStudentDataState extends State<AddStudentData> {
               excludeGroupIds: selectedGroupIds,
               onGroupSelected: (GroupModel group) {
                 setState(() {
-                  if (!selectedGroupIds.contains(group.id)) {
+                  if (group.id != null &&
+                      !selectedGroupIds.contains(group.id)) {
                     selectedGroupIds.add(group.id!);
                   }
                 });
@@ -95,28 +101,31 @@ class _AddStudentDataState extends State<AddStudentData> {
       builder: (context, snapshot) {
         String label = groupId;
 
-        if (snapshot.hasData && snapshot.data!.exists) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          label = "جاري التحميل...";
+        } else if (snapshot.hasData && snapshot.data!.exists) {
           final group = GroupModel.fromFirestore(snapshot.data!);
           label = "${group.subject ?? ''} • ${group.grade ?? ''}";
         }
 
         return Chip(
-          backgroundColor: _kIconBg,
-          side: const BorderSide(color: _kCardBorder),
+          backgroundColor: _kPrimaryLight,
+          side: BorderSide.none,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(12),
           ),
           label: Text(
             label,
             style: const TextStyle(
               fontFamily: "cairo",
               fontWeight: FontWeight.w600,
-              color: _kNavy,
+              fontSize: 12.5,
+              color: _kPrimary,
             ),
           ),
           deleteIcon: isPrimary
               ? null
-              : const Icon(Icons.close_rounded, size: 18, color: _kNavy),
+              : const Icon(Icons.close_rounded, size: 18, color: _kPrimary),
           onDeleted: isPrimary
               ? null
               : () {
@@ -149,33 +158,33 @@ class _AddStudentDataState extends State<AddStudentData> {
     Widget? customChild,
   }) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 14),
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: _kCardBorder),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
-            color: Color(0x0A16213E),
+            color: Colors.black.withOpacity(0.02),
             blurRadius: 10,
-            offset: Offset(0, 4),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(20),
+        clipBehavior: Clip.antiAlias,
         child: InkWell(
-          borderRadius: BorderRadius.circular(18),
           onTap: onTap,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             child: Row(
               children: [
-                ?trailing,
+                if (trailing != null) trailing,
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
                     child:
                         customChild ??
                         Column(
@@ -188,7 +197,7 @@ class _AddStudentDataState extends State<AddStudentData> {
                                 fontFamily: 'cairo',
                                 fontWeight: FontWeight.bold,
                                 fontSize: 14,
-                                color: Colors.black87,
+                                color: _kNavy,
                               ),
                             ),
                             const SizedBox(height: 2),
@@ -209,13 +218,13 @@ class _AddStudentDataState extends State<AddStudentData> {
                   ),
                 ),
                 Container(
-                  width: 42,
-                  height: 42,
+                  width: 40,
+                  height: 40,
                   decoration: const BoxDecoration(
-                    color: _kIconBg,
+                    color: _kPrimaryLight,
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(icon, color: _kNavy, size: 20),
+                  child: Icon(icon, color: _kPrimary, size: 20),
                 ),
               ],
             ),
@@ -232,12 +241,14 @@ class _AddStudentDataState extends State<AddStudentData> {
       appBar: AppBar(
         backgroundColor: _kPageBg,
         elevation: 0,
+        scrolledUnderElevation: 0,
         foregroundColor: _kNavy,
-        title: Text(
+        title: const Text(
           "إنشاء طالب جديد",
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'cairo',
             fontWeight: FontWeight.bold,
+            fontSize: 20,
             color: _kNavy,
           ),
         ),
@@ -246,16 +257,18 @@ class _AddStudentDataState extends State<AddStudentData> {
           Padding(
             padding: const EdgeInsets.only(left: 16),
             child: Container(
-              width: 42,
-              height: 42,
+              width: 40,
+              height: 40,
               decoration: const BoxDecoration(
-                color: _kIconBg,
+                color: _kPrimaryLight,
                 shape: BoxShape.circle,
               ),
-              child: Image.asset(
-                "assets/icon/sapeel.png",
-                width: 33,
-                height: 33,
+              child: Center(
+                child: Image.asset(
+                  "assets/icon/sapeel.png",
+                  width: 28,
+                  height: 28,
+                ),
               ),
             ),
           ),
@@ -266,9 +279,9 @@ class _AddStudentDataState extends State<AddStudentData> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ================== اسم الطالب  وولي الأمر وصلة القرابه (حقل نصي فعلي) ==================
+            // ================== اسم الطالب بالكامل ==================
             _fieldCard(
-              icon: Icons.groups_2_rounded,
+              icon: Icons.person_rounded,
               label: "اسم الطالب بالكامل",
               valueText: null,
               placeholder: "",
@@ -282,7 +295,7 @@ class _AddStudentDataState extends State<AddStudentData> {
                       fontFamily: 'cairo',
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
-                      color: Colors.black87,
+                      color: _kNavy,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -291,15 +304,15 @@ class _AddStudentDataState extends State<AddStudentData> {
                     textAlign: TextAlign.right,
                     style: const TextStyle(
                       fontFamily: 'cairo',
-                      fontSize: 12.5,
+                      fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: _kNavyLight,
+                      color: _kNavy,
                     ),
                     decoration: const InputDecoration(
                       isDense: true,
                       contentPadding: EdgeInsets.zero,
                       border: InputBorder.none,
-                      hintText: " اسم الطالب بالكامل",
+                      hintText: "اسم الطالب بالكامل",
                       hintStyle: TextStyle(
                         fontFamily: 'cairo',
                         fontSize: 12.5,
@@ -311,119 +324,172 @@ class _AddStudentDataState extends State<AddStudentData> {
                 ],
               ),
             ),
-            const SizedBox(height: 20),
+
+            const SizedBox(height: 4),
+
             Row(
               children: [
+                // ================== صلة ولي الأمر ==================
                 Expanded(
-                  child:
-                      // ================== اسم الطالب  وولي الأمر وصلة القرابه (حقل نصي فعلي) ==================
-                      _fieldCard(
-                        icon: Icons.groups_2_rounded,
-                        label: "صلة ولي الأمر بالطالب",
-                        valueText: null,
-                        placeholder: "",
-                        customChild: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            const Text(
-                              "صله ولي الأمر بالطالب",
-                              textAlign: TextAlign.right,
-                              style: TextStyle(
-                                fontFamily: 'cairo',
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            TextField(
-                              controller: parentRelationController,
-                              textAlign: TextAlign.right,
-                              style: const TextStyle(
-                                fontFamily: 'cairo',
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.w600,
-                                color: _kNavyLight,
-                              ),
-                              decoration: const InputDecoration(
-                                isDense: true,
-                                contentPadding: EdgeInsets.zero,
-                                border: InputBorder.none,
-                                hintText: "صله ولي الأمر بالطالب",
-                                hintStyle: TextStyle(
-                                  fontFamily: 'cairo',
-                                  fontSize: 12.5,
-                                  color: _kHint,
-                                  fontWeight: FontWeight.normal,
-                                ),
-                              ),
-                            ),
-                          ],
+                  child: _fieldCard(
+                    icon: Icons.people_alt_rounded,
+                    label: "صلة القرابة",
+                    valueText: null,
+                    placeholder: "",
+                    customChild: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        const Text(
+                          "صلة ولي الأمر",
+                          textAlign: TextAlign.right,
+                          style: TextStyle(
+                            fontFamily: 'cairo',
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13.5,
+                            color: _kNavy,
+                          ),
                         ),
-                      ),
+                        const SizedBox(height: 2),
+                        TextField(
+                          controller: parentRelationController,
+                          textAlign: TextAlign.right,
+                          style: const TextStyle(
+                            fontFamily: 'cairo',
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w600,
+                            color: _kNavy,
+                          ),
+                          decoration: const InputDecoration(
+                            isDense: true,
+                            contentPadding: EdgeInsets.zero,
+                            border: InputBorder.none,
+                            hintText: "أب، أم...",
+                            hintStyle: TextStyle(
+                              fontFamily: 'cairo',
+                              fontSize: 12,
+                              color: _kHint,
+                              fontWeight: FontWeight.normal,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 8),
+                // ================== اسم ولي الأمر ==================
                 Expanded(
-                  child:
-                      // ================== اسم الطالب  وولي الأمر وصلة القرابه (حقل نصي فعلي) ==================
-                      _fieldCard(
-                        icon: Icons.groups_2_rounded,
-                        label: "اسم  ولي الأمر",
-                        valueText: null,
-                        placeholder: "",
-                        customChild: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            const Text(
-                              "اسم ولي الأمر ",
-                              textAlign: TextAlign.right,
-                              style: TextStyle(
-                                fontFamily: 'cairo',
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            TextField(
-                              controller: studentParentNameController,
-                              textAlign: TextAlign.right,
-                              style: const TextStyle(
-                                fontFamily: 'cairo',
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.w600,
-                                color: _kNavyLight,
-                              ),
-                              decoration: const InputDecoration(
-                                isDense: true,
-                                contentPadding: EdgeInsets.zero,
-                                border: InputBorder.none,
-                                hintText: "اسم ولي الأمر ",
-                                hintStyle: TextStyle(
-                                  fontFamily: 'cairo',
-                                  fontSize: 12.5,
-                                  color: _kHint,
-                                  fontWeight: FontWeight.normal,
-                                ),
-                              ),
-                            ),
-                          ],
+                  child: _fieldCard(
+                    icon: Icons.family_restroom_rounded,
+                    label: "اسم ولي الأمر",
+                    valueText: null,
+                    placeholder: "",
+                    customChild: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        const Text(
+                          "اسم ولي الأمر",
+                          textAlign: TextAlign.right,
+                          style: TextStyle(
+                            fontFamily: 'cairo',
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13.5,
+                            color: _kNavy,
+                          ),
                         ),
-                      ),
+                        const SizedBox(height: 2),
+                        TextField(
+                          controller: studentParentNameController,
+                          textAlign: TextAlign.right,
+                          style: const TextStyle(
+                            fontFamily: 'cairo',
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w600,
+                            color: _kNavy,
+                          ),
+                          decoration: const InputDecoration(
+                            isDense: true,
+                            contentPadding: EdgeInsets.zero,
+                            border: InputBorder.none,
+                            hintText: "اسم ولي الأمر",
+                            hintStyle: TextStyle(
+                              fontFamily: 'cairo',
+                              fontSize: 12,
+                              color: _kHint,
+                              fontWeight: FontWeight.normal,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+
+            const SizedBox(height: 4),
+
+            // ================== رقم هاتف ولي الأمر ==================
+            _fieldCard(
+              icon: Icons.phone_iphone_rounded,
+              label: "رقم ولي أمر الطالب",
+              valueText: null,
+              placeholder: "",
+              customChild: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  const Text(
+                    "رقم ولي أمر الطالب",
+                    textAlign: TextAlign.right,
+                    style: TextStyle(
+                      fontFamily: 'cairo',
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: _kNavy,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  TextField(
+                    controller: studentPhoneController,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    textAlign: TextAlign.right,
+                    style: const TextStyle(
+                      fontFamily: 'cairo',
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: _kNavy,
+                    ),
+                    decoration: const InputDecoration(
+                      isDense: true,
+                      contentPadding: EdgeInsets.zero,
+                      border: InputBorder.none,
+                      hintText: "أدخل رقم الهاتف",
+                      hintStyle: TextStyle(
+                        fontFamily: 'cairo',
+                        fontSize: 12.5,
+                        color: _kHint,
+                        fontWeight: FontWeight.normal,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
             const Text(
-              "اختر وسائل التواصل المناسبه",
+              "اختر وسائل التواصل المناسبة",
               style: TextStyle(
                 fontFamily: "cairo",
                 fontWeight: FontWeight.bold,
                 fontSize: 14,
-                color: Colors.black87,
+                color: _kNavy,
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 12),
+
             Wrap(
               spacing: 12,
               runSpacing: 12,
@@ -436,7 +502,11 @@ class _AddStudentDataState extends State<AddStudentData> {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  avatar: const Icon(Icons.phone_rounded, size: 18),
+                  avatar: Icon(
+                    Icons.phone_rounded,
+                    size: 18,
+                    color: conectWithPhone ? _kPrimary : _kHint,
+                  ),
                   selected: conectWithPhone,
                   onSelected: (value) {
                     setState(() => conectWithPhone = value);
@@ -446,13 +516,13 @@ class _AddStudentDataState extends State<AddStudentData> {
                   pressElevation: 0,
                   shadowColor: Colors.transparent,
                   backgroundColor: Colors.white,
-                  selectedColor: _kIconBg,
+                  selectedColor: _kPrimaryLight,
                   side: BorderSide(
-                    color: conectWithPhone ? _kNavy : _kCardBorder,
+                    color: conectWithPhone ? _kPrimary : _kCardBorder,
                     width: 1.2,
                   ),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(14),
                   ),
                 ),
 
@@ -464,7 +534,11 @@ class _AddStudentDataState extends State<AddStudentData> {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  avatar: const Icon(Icons.chat_rounded, size: 18),
+                  avatar: Icon(
+                    Icons.chat_rounded,
+                    size: 18,
+                    color: conectWithWhatsApp ? _kPrimary : _kHint,
+                  ),
                   selected: conectWithWhatsApp,
                   onSelected: (value) {
                     setState(() => conectWithWhatsApp = value);
@@ -474,89 +548,51 @@ class _AddStudentDataState extends State<AddStudentData> {
                   pressElevation: 0,
                   shadowColor: Colors.transparent,
                   backgroundColor: Colors.white,
-                  selectedColor: _kIconBg,
+                  selectedColor: _kPrimaryLight,
                   side: BorderSide(
-                    color: conectWithWhatsApp ? _kNavy : _kCardBorder,
+                    color: conectWithWhatsApp ? _kPrimary : _kCardBorder,
                     width: 1.2,
                   ),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(14),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 20),
-            // ==================  رقم ولي امر الطالب==================
-            _fieldCard(
-              icon: Icons.groups_2_rounded,
-              label: "رقم ولي امر الطالب",
-              valueText: null,
-              placeholder: "",
-              customChild: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  const Text(
-                    "رقم ولي امر الطالب",
-                    textAlign: TextAlign.right,
-                    style: TextStyle(
-                      fontFamily: 'cairo',
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  TextField(
-                    controller: studentPhoneController,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    textAlign: TextAlign.right,
-                    style: const TextStyle(
-                      fontFamily: 'cairo',
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w600,
-                      color: _kNavyLight,
-                    ),
-                    decoration: const InputDecoration(
-                      isDense: true,
-                      contentPadding: EdgeInsets.zero,
-                      border: InputBorder.none,
-                      hintText: "رقم ولي الأمر",
-                      hintStyle: TextStyle(
-                        fontFamily: 'cairo',
-                        fontSize: 12.5,
-                        color: _kHint,
-                        fontWeight: FontWeight.normal,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 20),
+              child: Divider(height: 1, color: _kCardBorder),
             ),
-            const SizedBox(height: 30),
 
             const Text(
               "مجموعات الطالب",
               style: TextStyle(
                 fontFamily: 'cairo',
                 fontWeight: FontWeight.bold,
-                fontSize: 16,
+                fontSize: 15,
+                color: _kNavy,
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
+
             if (selectedGroupIds.isEmpty)
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 18),
+                padding: const EdgeInsets.symmetric(vertical: 20),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(18),
+                  borderRadius: BorderRadius.circular(20),
                   border: Border.all(color: _kCardBorder),
                 ),
                 child: const Center(
                   child: Text(
-                    "لم يتم اختيار أي مجموعة",
-                    style: TextStyle(fontFamily: "cairo", color: _kHint),
+                    "لم يتم اختيار أي مجموعة حتى الآن",
+                    style: TextStyle(
+                      fontFamily: "cairo",
+                      color: _kHint,
+                      fontSize: 13,
+                    ),
                   ),
                 ),
               )
@@ -569,105 +605,104 @@ class _AddStudentDataState extends State<AddStudentData> {
                     .toList(),
               ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
 
             SizedBox(
               width: double.infinity,
-              height: 52,
+              height: 50,
               child: OutlinedButton.icon(
                 onPressed: _openAddExtraGroupSheet,
                 icon: const Icon(
                   Icons.add_circle_outline_rounded,
-                  color: _kNavy,
+                  color: _kPrimary,
+                  size: 20,
                 ),
                 label: const Text(
                   "إضافة لمجموعة أخرى",
                   style: TextStyle(
                     fontFamily: 'cairo',
                     fontWeight: FontWeight.bold,
-                    color: _kNavy,
+                    color: _kPrimary,
                   ),
                 ),
                 style: OutlinedButton.styleFrom(
                   backgroundColor: Colors.white,
-                  side: const BorderSide(color: _kCardBorder),
+                  side: const BorderSide(color: _kPrimary, width: 1.2),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18),
+                    borderRadius: BorderRadius.circular(16),
                   ),
                   elevation: 0,
                 ),
               ),
             ),
 
-            const SizedBox(height: 30),
+            const SizedBox(height: 24),
+
+            // ================== زر الحفظ ==================
             SizedBox(
               width: double.infinity,
-              child: // ================== زر الحفظ ==================
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: () async {
-                    if (studentNameController.text.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("ادخل اسم الطالب")),
-                      );
-                      return;
-                    }
-                    if (studentPhoneController.text.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("ادخل رقم الطالب")),
-                      );
-                      return;
-                    }
-                    if (studentParentNameController.text.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("ادخل اسم ولي الأمر")),
-                      );
-                      return;
-                    }
-                    if (parentRelationController.text.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("ادخل صلة ولي الأمر بالطالب  "),
-                        ),
-                      );
-                      return;
-                    }
-
-                    await saveStudent();
-
-                    if (!mounted) return;
-
+              height: 54,
+              child: ElevatedButton(
+                onPressed: () async {
+                  if (studentNameController.text.trim().isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("تم حفظ الطالب بنجاح")),
+                      const SnackBar(content: Text("ادخل اسم الطالب")),
                     );
-
-                    Navigator.pop(context);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _kNavy,
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(28),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        "حفظ الطالب",
-                        style: TextStyle(
-                          fontFamily: 'cairo',
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
+                    return;
+                  }
+                  if (studentPhoneController.text.trim().isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("ادخل رقم الطالب")),
+                    );
+                    return;
+                  }
+                  if (studentParentNameController.text.trim().isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("ادخل اسم ولي الأمر")),
+                    );
+                    return;
+                  }
+                  if (parentRelationController.text.trim().isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("ادخل صلة ولي الأمر بالطالب"),
                       ),
-                      const SizedBox(width: 10),
-                      const Icon(Icons.save_rounded, size: 20),
-                    ],
+                    );
+                    return;
+                  }
+
+                  await saveStudent();
+
+                  if (!mounted) return;
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("تم حفظ الطالب بنجاح")),
+                  );
+
+                  Navigator.pop(context);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _kPrimary,
+                  foregroundColor: Colors.white,
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
                   ),
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "حفظ الطالب",
+                      style: TextStyle(
+                        fontFamily: 'cairo',
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    SizedBox(width: 8),
+                    Icon(Icons.check_circle_rounded, size: 20),
+                  ],
                 ),
               ),
             ),

@@ -1,81 +1,116 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:seba/features/auth/firestore_path.dart';
 import 'package:seba/model/group_model.dart';
 import 'package:seba/model/student_model.dart';
 import 'package:seba/screens/student/select_group_tree_widget.dart';
 
-// ================== نظام الألوان الموحّد للشاشة ==================
-const _kNavy = Color(0xFF16213E);
-const _kNavyLight = Color(0xFF24365C);
-const _kIconBg = Color(0xFFEAF1FB);
-const _kPageBg = Color(0xFFF6F8FB);
-const _kHint = Color(0xFF9AA3B2);
-const _kCardBorder = Color(0xFFEBEEF3);
+// ================== نظام الألوان الحديث والموحد ==================
+const _kPrimary = Color(0xFF4F46E5); // بنفسجي نيلي عصري
+const _kPrimaryLight = Color(0xFFEEF2FF); // خلفية زاهية خفيفة
+const _kNavy = Color(0xFF0F172A); // نصوص وداكن
+const _kNavyLight = Color(0xFF334155); // نصوص فرعية
+const _kPageBg = Color(0xFFF8FAFC); // خلفية الصفحة
+const _kHint = Color(0xFF64748B); // التلميحات
+const _kCardBorder = Color(0xFFE2E8F0); // الحدود الناعمة
 
 class EditStudentScreen extends StatefulWidget {
-  const EditStudentScreen({super.key, required this.student});
+  const EditStudentScreen({
+    super.key,
+    required this.studentId, // معرّف الطالب للتعديل
+    required this.groupId, // المجموعة الحالية
+  });
 
-  final StudentModel student;
+  final String studentId;
+  final String groupId;
 
   @override
   State<EditStudentScreen> createState() => _EditStudentScreenState();
 }
 
 class _EditStudentScreenState extends State<EditStudentScreen> {
-  late TextEditingController nameController;
-  late TextEditingController parentController;
-  late TextEditingController phoneController;
-  late TextEditingController parentRelationController;
+  bool _isLoading = true; // حالة تحميل البيانات المسبقة
 
   bool conectWithPhone = false;
   bool conectWithWhatsApp = false;
 
-  late List<String> currentGroupIds;
+  final studentNameController = TextEditingController();
+  final studentParentNameController = TextEditingController();
+  final parentRelationController = TextEditingController();
+  final studentPhoneController = TextEditingController();
 
-  Future<void> updateStudent() async {
-    await FirestorePaths.students.doc(widget.student.id).update({
-      "name": nameController.text,
-      "phone": phoneController.text,
-      "parentName": parentController.text,
-      "parentRelation": parentRelationController.text,
-      "conectWithPhone": conectWithPhone,
-      "conectWithWhatsApp": conectWithWhatsApp,
-      "groupIds": currentGroupIds,
-    });
-  }
+  List<String> selectedGroupIds = [];
 
   @override
   void initState() {
     super.initState();
+    selectedGroupIds = [widget.groupId];
+    _loadStudentData(); // جلب البيانات عند الفتح
+  }
 
-    nameController = TextEditingController(text: widget.student.name);
-    phoneController = TextEditingController(text: widget.student.phone);
-    parentController = TextEditingController(text: widget.student.parentName);
-    parentRelationController = TextEditingController(
-      text: widget.student.parentRelation,
+  // ================== جلب بيانات الطالب الأصلية ==================
+  Future<void> _loadStudentData() async {
+    try {
+      final docSnapshot = await FirestorePaths.students
+          .doc(widget.studentId)
+          .get();
+
+      if (docSnapshot.exists && docSnapshot.data() != null) {
+        final data = docSnapshot.data()!;
+
+        setState(() {
+          studentNameController.text = data['name'] ?? '';
+          studentParentNameController.text = data['parentName'] ?? '';
+          parentRelationController.text = data['parentRelation'] ?? '';
+          studentPhoneController.text = data['phone'] ?? '';
+          conectWithPhone = data['conectWithPhone'] ?? false;
+          conectWithWhatsApp = data['conectWithWhatsApp'] ?? false;
+
+          if (data['groupIds'] != null) {
+            selectedGroupIds = List<String>.from(data['groupIds']);
+          }
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("حدث خطأ أثناء تحميل بيانات الطالب: $e")),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  // ================== حفظ البيانات المعدلة ==================
+  Future<void> saveStudent() async {
+    final doc = FirestorePaths.students.doc(widget.studentId);
+
+    final student = StudentModel(
+      id: doc.id,
+      groupIds: selectedGroupIds,
+      name: studentNameController.text.trim(),
+      parentName: studentParentNameController.text.trim(),
+      parentRelation: parentRelationController.text.trim(),
+      phone: studentPhoneController.text.trim(),
+      conectWithPhone: conectWithPhone,
+      conectWithWhatsApp: conectWithWhatsApp,
     );
 
-    conectWithPhone = widget.student.conectWithPhone ?? false;
-    conectWithWhatsApp = widget.student.conectWithWhatsApp ?? false;
-
-    currentGroupIds = List<String>.from(widget.student.groupIds);
+    await doc.set(student.toJson(), SetOptions(merge: true));
   }
 
-  @override
-  void dispose() {
-    parentRelationController.dispose();
-    nameController.dispose();
-    phoneController.dispose();
-    parentController.dispose();
-    super.dispose();
-  }
-
-  void _openAddGroupSheet() {
+  void _openAddExtraGroupSheet() {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
       builder: (context) {
         return Padding(
           padding: EdgeInsets.only(
@@ -86,11 +121,12 @@ class _EditStudentScreenState extends State<EditStudentScreen> {
           ),
           child: SingleChildScrollView(
             child: SelectGroupTreeWidget(
-              excludeGroupIds: currentGroupIds,
+              excludeGroupIds: selectedGroupIds,
               onGroupSelected: (GroupModel group) {
                 setState(() {
-                  if (!currentGroupIds.contains(group.id)) {
-                    currentGroupIds.add(group.id!);
+                  if (group.id != null &&
+                      !selectedGroupIds.contains(group.id)) {
+                    selectedGroupIds.add(group.id!);
                   }
                 });
                 Navigator.pop(context);
@@ -103,58 +139,59 @@ class _EditStudentScreenState extends State<EditStudentScreen> {
   }
 
   Widget _buildGroupChip(String groupId) {
+    final isPrimary = groupId == widget.groupId;
+
     return FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
       future: FirestorePaths.groups.doc(groupId).get(),
       builder: (context, snapshot) {
         String label = groupId;
 
-        if (snapshot.hasData && snapshot.data!.exists) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          label = "جاري التحميل...";
+        } else if (snapshot.hasData && snapshot.data!.exists) {
           final group = GroupModel.fromFirestore(snapshot.data!);
-          label =
-              "${group.subject ?? ''} - ${group.grade ?? ''} (${group.daysName ?? ''})";
+          label = "${group.subject ?? ''} • ${group.grade ?? ''}";
         }
 
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF3F4F6),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFFE5E7EB)),
+        return Chip(
+          backgroundColor: _kPrimaryLight,
+          side: BorderSide.none,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                label,
-                style: const TextStyle(
-                  fontFamily: "cairo",
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF374151),
-                ),
-              ),
-              const SizedBox(width: 6),
-              InkWell(
-                borderRadius: BorderRadius.circular(20),
-                onTap: () {
+          label: Text(
+            label,
+            style: const TextStyle(
+              fontFamily: "cairo",
+              fontWeight: FontWeight.w600,
+              fontSize: 12.5,
+              color: _kPrimary,
+            ),
+          ),
+          deleteIcon: isPrimary
+              ? null
+              : const Icon(Icons.close_rounded, size: 18, color: _kPrimary),
+          onDeleted: isPrimary
+              ? null
+              : () {
                   setState(() {
-                    currentGroupIds.remove(groupId);
+                    selectedGroupIds.remove(groupId);
                   });
                 },
-                child: const Icon(
-                  Icons.close,
-                  size: 16,
-                  color: Color(0xFF6B7280),
-                ),
-              ),
-            ],
-          ),
         );
       },
     );
   }
 
-  // ================== عنصر البطاقة العام لكل حقل ==================
+  @override
+  void dispose() {
+    studentNameController.dispose();
+    studentParentNameController.dispose();
+    parentRelationController.dispose();
+    studentPhoneController.dispose();
+    super.dispose();
+  }
+
   Widget _fieldCard({
     required IconData icon,
     required String label,
@@ -165,37 +202,45 @@ class _EditStudentScreenState extends State<EditStudentScreen> {
     Widget? customChild,
   }) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 14),
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: _kCardBorder),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
-            color: Color(0x0A16213E),
+            color: Colors.black.withOpacity(0.02),
             blurRadius: 10,
-            offset: Offset(0, 4),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(20),
+        clipBehavior: Clip.antiAlias,
         child: InkWell(
-          borderRadius: BorderRadius.circular(18),
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             child: Row(
               children: [
-                ?trailing,
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: const BoxDecoration(
+                    color: _kPrimaryLight,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(icon, color: _kPrimary, size: 20),
+                ),
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
                     child:
                         customChild ??
                         Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               label,
@@ -203,8 +248,8 @@ class _EditStudentScreenState extends State<EditStudentScreen> {
                               style: const TextStyle(
                                 fontFamily: 'cairo',
                                 fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                                color: Colors.black87,
+                                fontSize: 13.5,
+                                color: _kNavy,
                               ),
                             ),
                             const SizedBox(height: 2),
@@ -213,7 +258,7 @@ class _EditStudentScreenState extends State<EditStudentScreen> {
                               textAlign: TextAlign.right,
                               style: TextStyle(
                                 fontFamily: 'cairo',
-                                fontSize: 12.5,
+                                fontSize: 12,
                                 color: valueText == null ? _kHint : _kNavyLight,
                                 fontWeight: valueText == null
                                     ? FontWeight.normal
@@ -224,15 +269,7 @@ class _EditStudentScreenState extends State<EditStudentScreen> {
                         ),
                   ),
                 ),
-                Container(
-                  width: 42,
-                  height: 42,
-                  decoration: const BoxDecoration(
-                    color: _kIconBg,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(icon, color: _kNavy, size: 20),
-                ),
+                if (trailing != null) trailing,
               ],
             ),
           ),
@@ -243,436 +280,479 @@ class _EditStudentScreenState extends State<EditStudentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: _kPageBg,
-      appBar: AppBar(
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
         backgroundColor: _kPageBg,
-        elevation: 0,
-        foregroundColor: _kNavy,
-        title: Text(
-          " تعديل الطالب",
-          style: const TextStyle(
-            fontFamily: 'cairo',
-            fontWeight: FontWeight.bold,
-            color: _kNavy,
-          ),
-        ),
-        centerTitle: false,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(left: 16),
-            child: Container(
-              width: 42,
-              height: 42,
-              decoration: const BoxDecoration(
-                color: _kIconBg,
-                shape: BoxShape.circle,
-              ),
-              child: Image.asset(
-                "assets/icon/sapeel.png",
-                width: 33,
-                height: 33,
-              ),
+        appBar: AppBar(
+          backgroundColor: _kPageBg,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          foregroundColor: _kNavy,
+          title: const Text(
+            "تعديل بيانات الطالب",
+            style: TextStyle(
+              fontFamily: 'cairo',
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+              color: _kNavy,
             ),
           ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ================== اسم الطالب  وولي الأمر وصلة القرابه (حقل نصي فعلي) ==================
-            _fieldCard(
-              icon: Icons.groups_2_rounded,
-              label: "اسم الطالب بالكامل",
-              valueText: null,
-              placeholder: "",
-              customChild: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  const Text(
-                    "اسم الطالب بالكامل",
-                    textAlign: TextAlign.right,
-                    style: TextStyle(
-                      fontFamily: 'cairo',
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  TextField(
-                    controller: nameController,
-                    textAlign: TextAlign.right,
-                    style: const TextStyle(
-                      fontFamily: 'cairo',
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w600,
-                      color: _kNavyLight,
-                    ),
-                    decoration: const InputDecoration(
-                      isDense: true,
-                      contentPadding: EdgeInsets.zero,
-                      border: InputBorder.none,
-                      hintText: " اسم الطالب بالكامل",
-                      hintStyle: TextStyle(
-                        fontFamily: 'cairo',
-                        fontSize: 12.5,
-                        color: _kHint,
-                        fontWeight: FontWeight.normal,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(
-                  child:
-                      // ================== اسم الطالب  وولي الأمر وصلة القرابه (حقل نصي فعلي) ==================
-                      _fieldCard(
-                        icon: Icons.groups_2_rounded,
-                        label: "صلة ولي الأمر بالطالب",
-                        valueText: null,
-                        placeholder: "",
-                        customChild: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            const Text(
-                              "صله ولي الأمر بالطالب",
-                              textAlign: TextAlign.right,
-                              style: TextStyle(
-                                fontFamily: 'cairo',
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            TextField(
-                              controller: parentRelationController,
-                              textAlign: TextAlign.right,
-                              style: const TextStyle(
-                                fontFamily: 'cairo',
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.w600,
-                                color: _kNavyLight,
-                              ),
-                              decoration: const InputDecoration(
-                                isDense: true,
-                                contentPadding: EdgeInsets.zero,
-                                border: InputBorder.none,
-                                hintText: "صله ولي الأمر بالطالب",
-                                hintStyle: TextStyle(
-                                  fontFamily: 'cairo',
-                                  fontSize: 12.5,
-                                  color: _kHint,
-                                  fontWeight: FontWeight.normal,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+          centerTitle: false,
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(left: 16),
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: const BoxDecoration(
+                  color: _kPrimaryLight,
+                  shape: BoxShape.circle,
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child:
-                      // ================== اسم الطالب  وولي الأمر وصلة القرابه (حقل نصي فعلي) ==================
-                      _fieldCard(
-                        icon: Icons.groups_2_rounded,
-                        label: "اسم  ولي الأمر",
-                        valueText: null,
-                        placeholder: "",
-                        customChild: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            const Text(
-                              "اسم ولي الأمر ",
-                              textAlign: TextAlign.right,
-                              style: TextStyle(
-                                fontFamily: 'cairo',
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            TextField(
-                              controller: parentController,
-                              textAlign: TextAlign.right,
-                              style: const TextStyle(
-                                fontFamily: 'cairo',
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.w600,
-                                color: _kNavyLight,
-                              ),
-                              decoration: const InputDecoration(
-                                isDense: true,
-                                contentPadding: EdgeInsets.zero,
-                                border: InputBorder.none,
-                                hintText: "اسم ولي الأمر ",
-                                hintStyle: TextStyle(
-                                  fontFamily: 'cairo',
-                                  fontSize: 12.5,
-                                  color: _kHint,
-                                  fontWeight: FontWeight.normal,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              "اختر وسائل التواصل المناسبه",
-              style: TextStyle(
-                fontFamily: "cairo",
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 20),
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: [
-                FilterChip(
-                  label: const Text(
-                    "الهاتف",
-                    style: TextStyle(
-                      fontFamily: "cairo",
-                      fontWeight: FontWeight.w600,
-                    ),
+                child: Center(
+                  child: Image.asset(
+                    "assets/icon/sapeel.png",
+                    width: 28,
+                    height: 28,
                   ),
-                  avatar: const Icon(Icons.phone_rounded, size: 18),
-                  selected: conectWithPhone,
-                  onSelected: (value) {
-                    setState(() => conectWithPhone = value);
-                  },
-                  showCheckmark: false,
-                  elevation: 0,
-                  pressElevation: 0,
-                  shadowColor: Colors.transparent,
-                  backgroundColor: Colors.white,
-                  selectedColor: _kIconBg,
-                  side: BorderSide(
-                    color: conectWithPhone ? _kNavy : _kCardBorder,
-                    width: 1.2,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-
-                FilterChip(
-                  label: const Text(
-                    "واتساب",
-                    style: TextStyle(
-                      fontFamily: "cairo",
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  avatar: const Icon(Icons.chat_rounded, size: 18),
-                  selected: conectWithWhatsApp,
-                  onSelected: (value) {
-                    setState(() => conectWithWhatsApp = value);
-                  },
-                  showCheckmark: false,
-                  elevation: 0,
-                  pressElevation: 0,
-                  shadowColor: Colors.transparent,
-                  backgroundColor: Colors.white,
-                  selectedColor: _kIconBg,
-                  side: BorderSide(
-                    color: conectWithWhatsApp ? _kNavy : _kCardBorder,
-                    width: 1.2,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            // ==================  رقم ولي امر الطالب==================
-            _fieldCard(
-              icon: Icons.groups_2_rounded,
-              label: "رقم ولي امر الطالب",
-              valueText: null,
-              placeholder: "",
-              customChild: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  const Text(
-                    "رقم ولي امر الطالب",
-                    textAlign: TextAlign.right,
-                    style: TextStyle(
-                      fontFamily: 'cairo',
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  TextField(
-                    controller: phoneController,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    textAlign: TextAlign.right,
-                    style: const TextStyle(
-                      fontFamily: 'cairo',
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w600,
-                      color: _kNavyLight,
-                    ),
-                    decoration: const InputDecoration(
-                      isDense: true,
-                      contentPadding: EdgeInsets.zero,
-                      border: InputBorder.none,
-                      hintText: "رقم ولي الأمر",
-                      hintStyle: TextStyle(
-                        fontFamily: 'cairo',
-                        fontSize: 12.5,
-                        color: _kHint,
-                        fontWeight: FontWeight.normal,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 30),
-
-            const Text(
-              "مجموعات الطالب",
-              style: TextStyle(
-                fontFamily: 'cairo',
-                fontWeight: FontWeight.bold,
-                fontSize: 15,
-                color: _kNavy,
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            if (currentGroupIds.isEmpty)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 18),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: _kCardBorder),
-                ),
-                child: const Center(
-                  child: Text(
-                    "الطالب غير مسجل في أي مجموعة",
-                    style: TextStyle(
-                      fontFamily: 'cairo',
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                      color: _kHint,
-                    ),
-                  ),
-                ),
-              )
-            else
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: currentGroupIds
-                    .map((gid) => _buildGroupChip(gid))
-                    .toList(),
-              ),
-
-            const SizedBox(height: 16),
-
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: OutlinedButton.icon(
-                onPressed: _openAddGroupSheet,
-                icon: const Icon(Icons.swap_horiz_rounded, color: _kNavy),
-                label: const Text(
-                  "إضافة / نقل لمجموعة",
-                  style: TextStyle(
-                    fontFamily: "cairo",
-                    fontWeight: FontWeight.bold,
-                    color: _kNavy,
-                  ),
-                ),
-                style: OutlinedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  side: const BorderSide(color: _kCardBorder),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                  elevation: 0,
-                ),
-              ),
-            ),
-            const SizedBox(height: 30),
-            SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: ElevatedButton(
-                onPressed: () async {
-                  if (currentGroupIds.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          "يجب إضافة الطالب لمجموعة واحدة على الأقل",
-                        ),
-                      ),
-                    );
-                    return;
-                  }
-
-                  await updateStudent();
-
-                  if (!mounted) return;
-
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("تم تحديث الطالب بنجاح")),
-                  );
-
-                  Navigator.pop(context);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _kNavy,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(28),
-                  ),
-                ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "تحديث الطالب",
-                      style: TextStyle(
-                        fontFamily: 'cairo',
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                    SizedBox(width: 10),
-                    Icon(Icons.save_rounded, size: 20),
-                  ],
                 ),
               ),
             ),
           ],
         ),
+        body: _isLoading
+            ? const Center(child: CircularProgressIndicator(color: _kPrimary))
+            : SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // ================== اسم الطالب بالكامل ==================
+                    _fieldCard(
+                      icon: Icons.person_rounded,
+                      label: "اسم الطالب بالكامل",
+                      valueText: null,
+                      placeholder: "",
+                      customChild: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "اسم الطالب بالكامل",
+                            style: TextStyle(
+                              fontFamily: 'cairo',
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13.5,
+                              color: _kNavy,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          TextField(
+                            controller: studentNameController,
+                            textAlign: TextAlign.right,
+                            style: const TextStyle(
+                              fontFamily: 'cairo',
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: _kNavy,
+                            ),
+                            decoration: const InputDecoration(
+                              isDense: true,
+                              contentPadding: EdgeInsets.zero,
+                              border: InputBorder.none,
+                              hintText: "أدخل اسم الطالب بالكامل",
+                              hintStyle: TextStyle(
+                                fontFamily: 'cairo',
+                                fontSize: 12.5,
+                                color: _kHint,
+                                fontWeight: FontWeight.normal,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 4),
+
+                    // ================== صلة ولي الأمر واسمه ==================
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _fieldCard(
+                            icon: Icons.people_alt_rounded,
+                            label: "صلة القرابة",
+                            valueText: null,
+                            placeholder: "",
+                            customChild: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  "صلة القرابة",
+                                  style: TextStyle(
+                                    fontFamily: 'cairo',
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                    color: _kNavy,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                TextField(
+                                  controller: parentRelationController,
+                                  textAlign: TextAlign.right,
+                                  style: const TextStyle(
+                                    fontFamily: 'cairo',
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w600,
+                                    color: _kNavy,
+                                  ),
+                                  decoration: const InputDecoration(
+                                    isDense: true,
+                                    contentPadding: EdgeInsets.zero,
+                                    border: InputBorder.none,
+                                    hintText: "أب، أم...",
+                                    hintStyle: TextStyle(
+                                      fontFamily: 'cairo',
+                                      fontSize: 12,
+                                      color: _kHint,
+                                      fontWeight: FontWeight.normal,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _fieldCard(
+                            icon: Icons.family_restroom_rounded,
+                            label: "اسم ولي الأمر",
+                            valueText: null,
+                            placeholder: "",
+                            customChild: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  "اسم ولي الأمر",
+                                  style: TextStyle(
+                                    fontFamily: 'cairo',
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                    color: _kNavy,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                TextField(
+                                  controller: studentParentNameController,
+                                  textAlign: TextAlign.right,
+                                  style: const TextStyle(
+                                    fontFamily: 'cairo',
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w600,
+                                    color: _kNavy,
+                                  ),
+                                  decoration: const InputDecoration(
+                                    isDense: true,
+                                    contentPadding: EdgeInsets.zero,
+                                    border: InputBorder.none,
+                                    hintText: "اسم ولي الأمر",
+                                    hintStyle: TextStyle(
+                                      fontFamily: 'cairo',
+                                      fontSize: 12,
+                                      color: _kHint,
+                                      fontWeight: FontWeight.normal,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 4),
+
+                    // ================== رقم هاتف ولي الأمر ==================
+                    _fieldCard(
+                      icon: Icons.phone_iphone_rounded,
+                      label: "رقم ولي أمر الطالب",
+                      valueText: null,
+                      placeholder: "",
+                      customChild: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "رقم ولي أمر الطالب",
+                            style: TextStyle(
+                              fontFamily: 'cairo',
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13.5,
+                              color: _kNavy,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          TextField(
+                            controller: studentPhoneController,
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                            ],
+                            textAlign: TextAlign.right,
+                            style: const TextStyle(
+                              fontFamily: 'cairo',
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: _kNavy,
+                            ),
+                            decoration: const InputDecoration(
+                              isDense: true,
+                              contentPadding: EdgeInsets.zero,
+                              border: InputBorder.none,
+                              hintText: "أدخل رقم الهاتف",
+                              hintStyle: TextStyle(
+                                fontFamily: 'cairo',
+                                fontSize: 12.5,
+                                color: _kHint,
+                                fontWeight: FontWeight.normal,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    const Text(
+                      "اختر وسائل التواصل المناسبة",
+                      style: TextStyle(
+                        fontFamily: "cairo",
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                        color: _kNavy,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 12,
+                      children: [
+                        FilterChip(
+                          label: const Text(
+                            "الهاتف",
+                            style: TextStyle(
+                              fontFamily: "cairo",
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          avatar: Icon(
+                            Icons.phone_rounded,
+                            size: 18,
+                            color: conectWithPhone ? _kPrimary : _kHint,
+                          ),
+                          selected: conectWithPhone,
+                          onSelected: (value) {
+                            setState(() => conectWithPhone = value);
+                          },
+                          showCheckmark: false,
+                          backgroundColor: Colors.white,
+                          selectedColor: _kPrimaryLight,
+                          side: BorderSide(
+                            color: conectWithPhone ? _kPrimary : _kCardBorder,
+                            width: 1.2,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        FilterChip(
+                          label: const Text(
+                            "واتساب",
+                            style: TextStyle(
+                              fontFamily: "cairo",
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          avatar: Icon(
+                            Icons.chat_rounded,
+                            size: 18,
+                            color: conectWithWhatsApp ? _kPrimary : _kHint,
+                          ),
+                          selected: conectWithWhatsApp,
+                          onSelected: (value) {
+                            setState(() => conectWithWhatsApp = value);
+                          },
+                          showCheckmark: false,
+                          backgroundColor: Colors.white,
+                          selectedColor: _kPrimaryLight,
+                          side: BorderSide(
+                            color: conectWithWhatsApp
+                                ? _kPrimary
+                                : _kCardBorder,
+                            width: 1.2,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 20),
+                      child: Divider(height: 1, color: _kCardBorder),
+                    ),
+
+                    const Text(
+                      "مجموعات الطالب",
+                      style: TextStyle(
+                        fontFamily: 'cairo',
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                        color: _kNavy,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    if (selectedGroupIds.isEmpty)
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: _kCardBorder),
+                        ),
+                        child: const Center(
+                          child: Text(
+                            "لم يتم اختيار أي مجموعة حتى الآن",
+                            style: TextStyle(
+                              fontFamily: "cairo",
+                              color: _kHint,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                      )
+                    else
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: selectedGroupIds
+                            .map((gid) => _buildGroupChip(gid))
+                            .toList(),
+                      ),
+
+                    const SizedBox(height: 12),
+
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: OutlinedButton.icon(
+                        onPressed: _openAddExtraGroupSheet,
+                        icon: const Icon(
+                          Icons.add_circle_outline_rounded,
+                          color: _kPrimary,
+                          size: 20,
+                        ),
+                        label: const Text(
+                          "إضافة لمجموعة أخرى",
+                          style: TextStyle(
+                            fontFamily: 'cairo',
+                            fontWeight: FontWeight.bold,
+                            color: _kPrimary,
+                          ),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          side: const BorderSide(color: _kPrimary, width: 1.2),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          elevation: 0,
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // ================== زر الحفظ ==================
+                    SizedBox(
+                      width: double.infinity,
+                      height: 54,
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          if (studentNameController.text.trim().isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text("ادخل اسم الطالب")),
+                            );
+                            return;
+                          }
+                          if (studentPhoneController.text.trim().isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text("ادخل رقم الطالب")),
+                            );
+                            return;
+                          }
+                          if (studentParentNameController.text.trim().isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("ادخل اسم ولي الأمر"),
+                              ),
+                            );
+                            return;
+                          }
+                          if (parentRelationController.text.trim().isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("ادخل صلة ولي الأمر بالطالب"),
+                              ),
+                            );
+                            return;
+                          }
+
+                          await saveStudent();
+
+                          if (!mounted) return;
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("تم حفظ البيانات بنجاح"),
+                            ),
+                          );
+
+                          Navigator.pop(context);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _kPrimary,
+                          foregroundColor: Colors.white,
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "حفظ التعديلات",
+                              style: TextStyle(
+                                fontFamily: 'cairo',
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            SizedBox(width: 8),
+                            Icon(Icons.check_circle_rounded, size: 20),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
       ),
     );
   }

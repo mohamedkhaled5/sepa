@@ -3,17 +3,18 @@ import 'package:seba/model/activity_model_type.dart';
 import 'package:seba/model/student_model.dart';
 import 'package:seba/features/auth/firestore_path.dart';
 
-// ================== نظام الألوان الموحّد للشاشة ==================
-const _kNavy = Color(0xFF16213E);
-const _kNavyLight = Color(0xFF24365C);
-const _kIconBg = Color(0xFFEAF1FB);
-const _kPageBg = Color(0xFFF6F8FB);
-const _kHint = Color(0xFF9AA3B2);
-const _kCardBorder = Color(0xFFEBEEF3);
-const _kSuccess = Color(0xFF2E9E6B);
-const _kSuccessBg = Color(0xFFE4F5EC);
-const _kDanger = Color(0xFFD1483F);
-const _kDangerBg = Color(0xFFFBE9E7);
+// ================== نظام الألوان الحديث والموحد ==================
+const _kPrimary = Color(0xFF4F46E5); // بنفسجي نيلي عصري
+const _kPrimaryLight = Color(0xFFEEF2FF); // خلفية زاهية خفيفة للأيقونات
+const _kNavy = Color(0xFF0F172A); // نصوص وداكن
+const _kNavyLight = Color(0xFF334155); // نصوص فرعية
+const _kPageBg = Color(0xFFF8FAFC); // خلفية الصفحة
+const _kHint = Color(0xFF64748B); // التلميحات
+const _kCardBorder = Color(0xFFE2E8F0); // الحدود الناعمة
+const _kSuccess = Color(0xFF10B981); // أخضر زمردي
+const _kSuccessBg = Color(0xFFECFDF5); // خلفية الحضور الخفيفة
+const _kDanger = Color(0xFFEF4444); // أحمر مرجاني
+const _kDangerBg = Color(0xFFFEF2F2); // خلفية التنبيه الخفيفة
 
 class AddExamScreen extends StatefulWidget {
   final StudentModel student;
@@ -90,29 +91,29 @@ class _AddExamScreenState extends State<AddExamScreen> {
       margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: _kCardBorder),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
-            color: Color(0x0A16213E),
+            color: Colors.black.withOpacity(0.02),
             blurRadius: 10,
-            offset: Offset(0, 4),
+            offset: const Offset(0, 3),
           ),
         ],
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(20),
         child: InkWell(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(20),
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            padding: const EdgeInsets.all(16),
             child: Row(
               children: [
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
                     child:
                         customChild ??
                         Column(
@@ -124,8 +125,8 @@ class _AddExamScreenState extends State<AddExamScreen> {
                               style: const TextStyle(
                                 fontFamily: 'cairo',
                                 fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                                color: Colors.black87,
+                                fontSize: 14.5,
+                                color: _kNavy,
                               ),
                             ),
                             const SizedBox(height: 2),
@@ -134,7 +135,7 @@ class _AddExamScreenState extends State<AddExamScreen> {
                               textAlign: TextAlign.right,
                               style: TextStyle(
                                 fontFamily: 'cairo',
-                                fontSize: 12.5,
+                                fontSize: 13,
                                 color: valueText == null ? _kHint : _kNavyLight,
                                 fontWeight: valueText == null
                                     ? FontWeight.normal
@@ -145,14 +146,15 @@ class _AddExamScreenState extends State<AddExamScreen> {
                         ),
                   ),
                 ),
+                const SizedBox(width: 12),
                 Container(
-                  width: 42,
-                  height: 42,
+                  width: 44,
+                  height: 44,
                   decoration: const BoxDecoration(
-                    color: _kIconBg,
+                    color: _kPrimaryLight,
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(icon, color: _kNavy, size: 20),
+                  child: Icon(icon, color: _kPrimary, size: 22),
                 ),
               ],
             ),
@@ -164,24 +166,32 @@ class _AddExamScreenState extends State<AddExamScreen> {
 
   Widget _statusChip({required bool present}) {
     final selected = isPresent == present;
+    final color = present ? _kSuccess : _kDanger;
+    final bgColor = present ? _kSuccessBg : _kDangerBg;
+
     return ChoiceChip(
-      label: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            present ? Icons.check_circle_rounded : Icons.cancel_rounded,
-            size: 18,
-            color: present ? _kSuccess : _kDanger,
-          ),
-          const SizedBox(width: 6),
-          Text(
-            present ? "حاضر" : "غائب",
-            style: const TextStyle(
-              fontFamily: "cairo",
-              fontWeight: FontWeight.w600,
+      label: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              present ? Icons.check_circle_rounded : Icons.cancel_rounded,
+              size: 20,
+              color: selected ? color : _kHint,
             ),
-          ),
-        ],
+            const SizedBox(width: 8),
+            Text(
+              present ? "حاضر" : "غائب",
+              style: TextStyle(
+                fontFamily: "cairo",
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+                color: selected ? color : _kNavyLight,
+              ),
+            ),
+          ],
+        ),
       ),
       selected: selected,
       onSelected: (_) {
@@ -199,10 +209,10 @@ class _AddExamScreenState extends State<AddExamScreen> {
       pressElevation: 0,
       shadowColor: Colors.transparent,
       backgroundColor: Colors.white,
-      selectedColor: present ? _kSuccessBg : _kDangerBg,
+      selectedColor: bgColor,
       side: BorderSide(
-        color: selected ? (present ? _kSuccess : _kDanger) : _kCardBorder,
-        width: 1.2,
+        color: selected ? color : _kCardBorder,
+        width: selected ? 1.8 : 1.0,
       ),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
     );
@@ -215,6 +225,7 @@ class _AddExamScreenState extends State<AddExamScreen> {
       appBar: AppBar(
         backgroundColor: _kPageBg,
         elevation: 0,
+        scrolledUnderElevation: 0,
         foregroundColor: _kNavy,
         centerTitle: false,
         title: const Text(
@@ -222,12 +233,14 @@ class _AddExamScreenState extends State<AddExamScreen> {
           style: TextStyle(
             fontFamily: 'cairo',
             fontWeight: FontWeight.bold,
+            fontSize: 22,
             color: _kNavy,
           ),
         ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
+        physics: const BouncingScrollPhysics(),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -244,8 +257,8 @@ class _AddExamScreenState extends State<AddExamScreen> {
                     style: TextStyle(
                       fontFamily: 'cairo',
                       fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                      color: Colors.black87,
+                      fontSize: 14.5,
+                      color: _kNavy,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -254,7 +267,7 @@ class _AddExamScreenState extends State<AddExamScreen> {
                     textAlign: TextAlign.right,
                     style: const TextStyle(
                       fontFamily: 'cairo',
-                      fontSize: 12.5,
+                      fontSize: 13,
                       fontWeight: FontWeight.w600,
                       color: _kNavyLight,
                     ),
@@ -265,7 +278,7 @@ class _AddExamScreenState extends State<AddExamScreen> {
                       hintText: "اكتب اسم الاختبار",
                       hintStyle: TextStyle(
                         fontFamily: 'cairo',
-                        fontSize: 12.5,
+                        fontSize: 13,
                         color: _kHint,
                         fontWeight: FontWeight.normal,
                       ),
@@ -281,9 +294,9 @@ class _AddExamScreenState extends State<AddExamScreen> {
               label: "تاريخ الاختبار",
               customChild: Row(
                 children: [
-                  Switch(
+                  Switch.adaptive(
                     value: useCustomDate,
-                    activeThumbColor: _kNavy,
+                    activeColor: _kPrimary,
                     onChanged: (value) async {
                       setState(() => useCustomDate = value);
                       if (value) {
@@ -303,8 +316,8 @@ class _AddExamScreenState extends State<AddExamScreen> {
                           style: TextStyle(
                             fontFamily: 'cairo',
                             fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                            color: Colors.black87,
+                            fontSize: 14.5,
+                            color: _kNavy,
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -315,9 +328,9 @@ class _AddExamScreenState extends State<AddExamScreen> {
                             textAlign: TextAlign.right,
                             style: TextStyle(
                               fontFamily: 'cairo',
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.w600,
-                              color: useCustomDate ? _kNavy : _kHint,
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: useCustomDate ? _kPrimary : _kHint,
                             ),
                           ),
                         ),
@@ -345,7 +358,7 @@ class _AddExamScreenState extends State<AddExamScreen> {
                             fontFamily: 'cairo',
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
-                            color: Colors.black87,
+                            color: _kNavy,
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -356,7 +369,7 @@ class _AddExamScreenState extends State<AddExamScreen> {
                           textAlign: TextAlign.right,
                           style: const TextStyle(
                             fontFamily: 'cairo',
-                            fontSize: 12.5,
+                            fontSize: 13,
                             fontWeight: FontWeight.w600,
                             color: _kNavyLight,
                           ),
@@ -367,7 +380,7 @@ class _AddExamScreenState extends State<AddExamScreen> {
                             hintText: "الدرجة",
                             hintStyle: TextStyle(
                               fontFamily: 'cairo',
-                              fontSize: 12.5,
+                              fontSize: 13,
                               color: _kHint,
                               fontWeight: FontWeight.normal,
                             ),
@@ -392,7 +405,7 @@ class _AddExamScreenState extends State<AddExamScreen> {
                             fontFamily: 'cairo',
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
-                            color: Colors.black87,
+                            color: _kNavy,
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -402,7 +415,7 @@ class _AddExamScreenState extends State<AddExamScreen> {
                           textAlign: TextAlign.right,
                           style: const TextStyle(
                             fontFamily: 'cairo',
-                            fontSize: 12.5,
+                            fontSize: 13,
                             fontWeight: FontWeight.w600,
                             color: _kNavyLight,
                           ),
@@ -413,7 +426,7 @@ class _AddExamScreenState extends State<AddExamScreen> {
                             hintText: "النهائية",
                             hintStyle: TextStyle(
                               fontFamily: 'cairo',
-                              fontSize: 12.5,
+                              fontSize: 13,
                               color: _kHint,
                               fontWeight: FontWeight.normal,
                             ),
@@ -426,29 +439,32 @@ class _AddExamScreenState extends State<AddExamScreen> {
               ],
             ),
 
-            const SizedBox(height: 6),
-            const Text(
-              "حالة الطالب",
-              style: TextStyle(
-                fontFamily: 'cairo',
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
+            const SizedBox(height: 10),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 4),
+              child: Text(
+                "حالة الطالب",
+                style: TextStyle(
+                  fontFamily: 'cairo',
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                  color: _kNavy,
+                ),
               ),
             ),
             const SizedBox(height: 12),
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
+            Row(
               children: [
-                _statusChip(present: true),
-                _statusChip(present: false),
+                Expanded(child: _statusChip(present: true)),
+                const SizedBox(width: 12),
+                Expanded(child: _statusChip(present: false)),
               ],
             ),
 
-            const SizedBox(height: 30),
+            const SizedBox(height: 36),
             SizedBox(
               width: double.infinity,
-              height: 56,
+              height: 54,
               child: ElevatedButton(
                 onPressed: () async {
                   if (examNameController.text.trim().isEmpty) {
@@ -468,11 +484,12 @@ class _AddExamScreenState extends State<AddExamScreen> {
                   Navigator.pop(context);
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _kNavy,
+                  backgroundColor: _kPrimary,
                   foregroundColor: Colors.white,
-                  elevation: 0,
+                  elevation: 2,
+                  shadowColor: _kPrimary.withOpacity(0.3),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(28),
+                    borderRadius: BorderRadius.circular(18),
                   ),
                 ),
                 child: const Row(
@@ -487,7 +504,7 @@ class _AddExamScreenState extends State<AddExamScreen> {
                       ),
                     ),
                     SizedBox(width: 10),
-                    Icon(Icons.save_rounded, size: 20),
+                    Icon(Icons.save_rounded, size: 22),
                   ],
                 ),
               ),

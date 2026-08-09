@@ -5,13 +5,17 @@ import 'package:seba/model/group_model.dart';
 import 'package:seba/model/student_model.dart';
 import 'package:seba/screens/student/select_group_tree_widget.dart';
 
-// ================== نظام الألوان الموحّد للشاشة ==================
-const _kNavy = Color(0xFF16213E);
-const _kNavyLight = Color(0xFF24365C);
-const _kIconBg = Color(0xFFEAF1FB);
-const _kPageBg = Color(0xFFF6F8FB);
-const _kHint = Color(0xFF9AA3B2);
-const _kCardBorder = Color(0xFFEBEEF3);
+// ================== نظام الألوان الحديث والموحد ==================
+const _kPrimary = Color(0xFF4F46E5); // بنفسجي نيلي عصري
+const _kPrimaryLight = Color(0xFFEEF2FF); // خلفية زاهية خفيفة
+const _kNavy = Color(0xFF0F172A); // نصوص وداكن
+const _kNavyLight = Color(0xFF334155); // نصوص فرعية
+const _kIconBg = Color(0xFFF1F5F9); // خلفية الأيقونات
+const _kPageBg = Color(0xFFF8FAFC); // خلفية الصفحة
+const _kHint = Color(0xFF64748B); // التلميحات
+const _kCardBorder = Color(0xFFE2E8F0); // الحدود الناعمة
+const _kWarning = Color(0xFFF59E0B); // تحذير كهرماني
+const _kWarningBg = Color(0xFFFEF3C7); // خلفية التحذير الناعمة
 
 /// شاشة إضافة طالب مستقلة تُفتح من الصفحة الرئيسية.
 class AddStudentGeneralScreen extends StatefulWidget {
@@ -39,10 +43,10 @@ class _AddStudentGeneralScreenState extends State<AddStudentGeneralScreen> {
     final student = StudentModel(
       id: doc.id,
       groupIds: selectedGroups.map((g) => g.id!).toList(),
-      name: studentNameController.text,
-      parentName: studentParentNameController.text,
-      parentRelation: parentRelationController.text,
-      phone: studentPhoneController.text,
+      name: studentNameController.text.trim(),
+      parentName: studentParentNameController.text.trim(),
+      parentRelation: parentRelationController.text.trim(),
+      phone: studentPhoneController.text.trim(),
       conectWithPhone: conectWithPhone,
       conectWithWhatsApp: conectWithWhatsApp,
     );
@@ -54,6 +58,10 @@ class _AddStudentGeneralScreenState extends State<AddStudentGeneralScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
       builder: (context) {
         return Padding(
           padding: EdgeInsets.only(
@@ -98,30 +106,30 @@ class _AddStudentGeneralScreenState extends State<AddStudentGeneralScreen> {
     Widget? customChild,
   }) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 14),
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: _kCardBorder),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
-            color: Color(0x0A16213E),
+            color: Colors.black.withOpacity(0.02),
             blurRadius: 10,
-            offset: Offset(0, 4),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(20),
+        clipBehavior: Clip.antiAlias,
         child: InkWell(
-          borderRadius: BorderRadius.circular(18),
           onTap: onTap,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             child: Row(
               children: [
-                ?trailing,
+                if (trailing != null) trailing,
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -137,7 +145,7 @@ class _AddStudentGeneralScreenState extends State<AddStudentGeneralScreen> {
                                 fontFamily: 'cairo',
                                 fontWeight: FontWeight.bold,
                                 fontSize: 14,
-                                color: Colors.black87,
+                                color: _kNavy,
                               ),
                             ),
                             const SizedBox(height: 2),
@@ -161,10 +169,10 @@ class _AddStudentGeneralScreenState extends State<AddStudentGeneralScreen> {
                   width: 42,
                   height: 42,
                   decoration: const BoxDecoration(
-                    color: _kIconBg,
+                    color: _kPrimaryLight,
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(icon, color: _kNavy, size: 20),
+                  child: Icon(icon, color: _kPrimary, size: 20),
                 ),
               ],
             ),
@@ -181,12 +189,14 @@ class _AddStudentGeneralScreenState extends State<AddStudentGeneralScreen> {
       appBar: AppBar(
         backgroundColor: _kPageBg,
         elevation: 0,
+        scrolledUnderElevation: 0,
         foregroundColor: _kNavy,
-        title: Text(
+        title: const Text(
           "إنشاء طالب جديد",
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'cairo',
             fontWeight: FontWeight.bold,
+            fontSize: 20,
             color: _kNavy,
           ),
         ),
@@ -195,16 +205,18 @@ class _AddStudentGeneralScreenState extends State<AddStudentGeneralScreen> {
           Padding(
             padding: const EdgeInsets.only(left: 16),
             child: Container(
-              width: 42,
-              height: 42,
+              width: 40,
+              height: 40,
               decoration: const BoxDecoration(
-                color: _kIconBg,
+                color: _kPrimaryLight,
                 shape: BoxShape.circle,
               ),
-              child: Image.asset(
-                "assets/icon/sapeel.png",
-                width: 33,
-                height: 33,
+              child: Center(
+                child: Image.asset(
+                  "assets/icon/sapeel.png",
+                  width: 28,
+                  height: 28,
+                ),
               ),
             ),
           ),
@@ -230,16 +242,20 @@ class _AddStudentGeneralScreenState extends State<AddStudentGeneralScreen> {
             if (selectedGroups.isEmpty)
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 18),
+                padding: const EdgeInsets.symmetric(vertical: 20),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(18),
+                  borderRadius: BorderRadius.circular(20),
                   border: Border.all(color: _kCardBorder),
                 ),
                 child: const Center(
                   child: Text(
-                    "لم يتم اختيار أي مجموعة",
-                    style: TextStyle(fontFamily: "cairo", color: _kHint),
+                    "لم يتم اختيار أي مجموعة حتى الآن",
+                    style: TextStyle(
+                      fontFamily: "cairo",
+                      color: _kHint,
+                      fontSize: 13,
+                    ),
                   ),
                 ),
               )
@@ -254,18 +270,19 @@ class _AddStudentGeneralScreenState extends State<AddStudentGeneralScreen> {
                       style: const TextStyle(
                         fontFamily: 'cairo',
                         fontWeight: FontWeight.w600,
-                        color: _kNavy,
+                        fontSize: 12.5,
+                        color: _kPrimary,
                       ),
                     ),
-                    backgroundColor: _kIconBg,
+                    backgroundColor: _kPrimaryLight,
                     deleteIcon: const Icon(
                       Icons.close_rounded,
                       size: 18,
-                      color: _kNavy,
+                      color: _kPrimary,
                     ),
-                    side: const BorderSide(color: _kCardBorder),
+                    side: BorderSide.none,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     onDeleted: () {
                       setState(() => selectedGroups.remove(g));
@@ -274,41 +291,45 @@ class _AddStudentGeneralScreenState extends State<AddStudentGeneralScreen> {
                 }).toList(),
               ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
 
             SizedBox(
               width: double.infinity,
-              height: 52,
+              height: 50,
               child: OutlinedButton.icon(
                 onPressed: _openAddGroupSheet,
                 icon: const Icon(
                   Icons.add_circle_outline_rounded,
-                  color: _kNavy,
+                  color: _kPrimary,
+                  size: 20,
                 ),
                 label: const Text(
                   "إضافة مجموعة",
                   style: TextStyle(
                     fontFamily: "cairo",
                     fontWeight: FontWeight.bold,
-                    color: _kNavy,
+                    color: _kPrimary,
                   ),
                 ),
                 style: OutlinedButton.styleFrom(
                   backgroundColor: Colors.white,
-                  side: const BorderSide(color: _kCardBorder),
+                  side: const BorderSide(color: _kPrimary, width: 1.2),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18),
+                    borderRadius: BorderRadius.circular(16),
                   ),
                   elevation: 0,
                 ),
               ),
             ),
 
-            const Divider(height: 40),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 20),
+              child: Divider(height: 1, color: _kCardBorder),
+            ),
 
-            // ================== اسم الطالب  وولي الأمر وصلة القرابه (حقل نصي فعلي) ==================
+            // ================== اسم الطالب بالكامل ==================
             _fieldCard(
-              icon: Icons.groups_2_rounded,
+              icon: Icons.person_rounded,
               label: "اسم الطالب بالكامل",
               valueText: null,
               placeholder: "",
@@ -322,7 +343,7 @@ class _AddStudentGeneralScreenState extends State<AddStudentGeneralScreen> {
                       fontFamily: 'cairo',
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
-                      color: Colors.black87,
+                      color: _kNavy,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -331,15 +352,15 @@ class _AddStudentGeneralScreenState extends State<AddStudentGeneralScreen> {
                     textAlign: TextAlign.right,
                     style: const TextStyle(
                       fontFamily: 'cairo',
-                      fontSize: 12.5,
+                      fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: _kNavyLight,
+                      color: _kNavy,
                     ),
                     decoration: const InputDecoration(
                       isDense: true,
                       contentPadding: EdgeInsets.zero,
                       border: InputBorder.none,
-                      hintText: " اسم الطالب بالكامل",
+                      hintText: "اسم الطالب بالكامل",
                       hintStyle: TextStyle(
                         fontFamily: 'cairo',
                         fontSize: 12.5,
@@ -351,24 +372,24 @@ class _AddStudentGeneralScreenState extends State<AddStudentGeneralScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 20),
-            // ================== اسم الطالب  وولي الأمر وصلة القرابه (حقل نصي فعلي) ==================
+
+            // ================== اسم ولي الأمر ==================
             _fieldCard(
-              icon: Icons.groups_2_rounded,
-              label: "اسم  ولي الأمر",
+              icon: Icons.family_restroom_rounded,
+              label: "اسم ولي الأمر",
               valueText: null,
               placeholder: "",
               customChild: Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   const Text(
-                    "اسم ولي الأمر ",
+                    "اسم ولي الأمر",
                     textAlign: TextAlign.right,
                     style: TextStyle(
                       fontFamily: 'cairo',
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
-                      color: Colors.black87,
+                      color: _kNavy,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -377,15 +398,15 @@ class _AddStudentGeneralScreenState extends State<AddStudentGeneralScreen> {
                     textAlign: TextAlign.right,
                     style: const TextStyle(
                       fontFamily: 'cairo',
-                      fontSize: 12.5,
+                      fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: _kNavyLight,
+                      color: _kNavy,
                     ),
                     decoration: const InputDecoration(
                       isDense: true,
                       contentPadding: EdgeInsets.zero,
                       border: InputBorder.none,
-                      hintText: "اسم ولي الأمر ",
+                      hintText: "اسم ولي الأمر بالكامل",
                       hintStyle: TextStyle(
                         fontFamily: 'cairo',
                         fontSize: 12.5,
@@ -397,10 +418,10 @@ class _AddStudentGeneralScreenState extends State<AddStudentGeneralScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 20),
-            // ================== اسم الطالب  وولي الأمر وصلة القرابه (حقل نصي فعلي) ==================
+
+            // ================== صلة القرابة ==================
             _fieldCard(
-              icon: Icons.groups_2_rounded,
+              icon: Icons.people_alt_rounded,
               label: "صلة ولي الأمر بالطالب",
               valueText: null,
               placeholder: "",
@@ -408,13 +429,13 @@ class _AddStudentGeneralScreenState extends State<AddStudentGeneralScreen> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   const Text(
-                    "صله ولي الأمر بالطالب",
+                    "صلة ولي الأمر بالطالب",
                     textAlign: TextAlign.right,
                     style: TextStyle(
                       fontFamily: 'cairo',
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
-                      color: Colors.black87,
+                      color: _kNavy,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -423,15 +444,15 @@ class _AddStudentGeneralScreenState extends State<AddStudentGeneralScreen> {
                     textAlign: TextAlign.right,
                     style: const TextStyle(
                       fontFamily: 'cairo',
-                      fontSize: 12.5,
+                      fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: _kNavyLight,
+                      color: _kNavy,
                     ),
                     decoration: const InputDecoration(
                       isDense: true,
                       contentPadding: EdgeInsets.zero,
                       border: InputBorder.none,
-                      hintText: "صله ولي الأمر بالطالب",
+                      hintText: "مثال: ألب، أم، عم...",
                       hintStyle: TextStyle(
                         fontFamily: 'cairo',
                         fontSize: 12.5,
@@ -444,26 +465,23 @@ class _AddStudentGeneralScreenState extends State<AddStudentGeneralScreen> {
               ),
             ),
 
-            const SizedBox(width: 10),
-
-            const SizedBox(height: 20),
-            // ==================  رقم ولي امر الطالب==================
+            // ================== رقم هاتف ولي الأمر ==================
             _fieldCard(
-              icon: Icons.groups_2_rounded,
-              label: "رقم ولي امر الطالب",
+              icon: Icons.phone_iphone_rounded,
+              label: "رقم ولي أمر الطالب",
               valueText: null,
               placeholder: "",
               customChild: Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   const Text(
-                    "رقم ولي امر الطالب",
+                    "رقم ولي أمر الطالب",
                     textAlign: TextAlign.right,
                     style: TextStyle(
                       fontFamily: 'cairo',
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
-                      color: Colors.black87,
+                      color: _kNavy,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -474,15 +492,15 @@ class _AddStudentGeneralScreenState extends State<AddStudentGeneralScreen> {
                     textAlign: TextAlign.right,
                     style: const TextStyle(
                       fontFamily: 'cairo',
-                      fontSize: 12.5,
+                      fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: _kNavyLight,
+                      color: _kNavy,
                     ),
                     decoration: const InputDecoration(
                       isDense: true,
                       contentPadding: EdgeInsets.zero,
                       border: InputBorder.none,
-                      hintText: "رقم ولي الأمر",
+                      hintText: "أدخل رقم الهاتف",
                       hintStyle: TextStyle(
                         fontFamily: 'cairo',
                         fontSize: 12.5,
@@ -494,16 +512,20 @@ class _AddStudentGeneralScreenState extends State<AddStudentGeneralScreen> {
                 ],
               ),
             ),
+
+            const SizedBox(height: 8),
+
             const Text(
-              "اختر وسائل التواصل المناسبه",
+              "اختر وسائل التواصل المناسبة",
               style: TextStyle(
                 fontFamily: "cairo",
                 fontWeight: FontWeight.bold,
                 fontSize: 14,
-                color: Colors.black87,
+                color: _kNavy,
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 12),
+
             Wrap(
               spacing: 12,
               runSpacing: 12,
@@ -516,7 +538,11 @@ class _AddStudentGeneralScreenState extends State<AddStudentGeneralScreen> {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  avatar: const Icon(Icons.phone_rounded, size: 18),
+                  avatar: Icon(
+                    Icons.phone_rounded,
+                    size: 18,
+                    color: conectWithPhone ? _kPrimary : _kHint,
+                  ),
                   selected: conectWithPhone,
                   onSelected: (value) {
                     setState(() => conectWithPhone = value);
@@ -526,13 +552,13 @@ class _AddStudentGeneralScreenState extends State<AddStudentGeneralScreen> {
                   pressElevation: 0,
                   shadowColor: Colors.transparent,
                   backgroundColor: Colors.white,
-                  selectedColor: _kIconBg,
+                  selectedColor: _kPrimaryLight,
                   side: BorderSide(
-                    color: conectWithPhone ? _kNavy : _kCardBorder,
+                    color: conectWithPhone ? _kPrimary : _kCardBorder,
                     width: 1.2,
                   ),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(14),
                   ),
                 ),
 
@@ -544,7 +570,11 @@ class _AddStudentGeneralScreenState extends State<AddStudentGeneralScreen> {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  avatar: const Icon(Icons.chat_rounded, size: 18),
+                  avatar: Icon(
+                    Icons.chat_rounded,
+                    size: 18,
+                    color: conectWithWhatsApp ? _kPrimary : _kHint,
+                  ),
                   selected: conectWithWhatsApp,
                   onSelected: (value) {
                     setState(() => conectWithWhatsApp = value);
@@ -554,24 +584,24 @@ class _AddStudentGeneralScreenState extends State<AddStudentGeneralScreen> {
                   pressElevation: 0,
                   shadowColor: Colors.transparent,
                   backgroundColor: Colors.white,
-                  selectedColor: _kIconBg,
+                  selectedColor: _kPrimaryLight,
                   side: BorderSide(
-                    color: conectWithWhatsApp ? _kNavy : _kCardBorder,
+                    color: conectWithWhatsApp ? _kPrimary : _kCardBorder,
                     width: 1.2,
                   ),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(14),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 20),
 
-            const SizedBox(height: 30),
+            const SizedBox(height: 24),
+
             // ================== زر الحفظ ==================
             SizedBox(
               width: double.infinity,
-              height: 56,
+              height: 54,
               child: ElevatedButton(
                 onPressed: () async {
                   if (selectedGroups.isEmpty) {
@@ -582,28 +612,28 @@ class _AddStudentGeneralScreenState extends State<AddStudentGeneralScreen> {
                     );
                     return;
                   }
-                  if (studentNameController.text.isEmpty) {
+                  if (studentNameController.text.trim().isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text("ادخل اسم الطالب")),
                     );
                     return;
                   }
-                  if (studentPhoneController.text.isEmpty) {
+                  if (studentPhoneController.text.trim().isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text("ادخل رقم الطالب")),
                     );
                     return;
                   }
-                  if (studentParentNameController.text.isEmpty) {
+                  if (studentParentNameController.text.trim().isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text("ادخل اسم ولي الأمر")),
                     );
                     return;
                   }
-                  if (parentRelationController.text.isEmpty) {
+                  if (parentRelationController.text.trim().isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text("ادخل صلة ولي الأمر بالطالب  "),
+                        content: Text("ادخل صلة ولي الأمر بالطالب"),
                       ),
                     );
                     return;
@@ -620,17 +650,17 @@ class _AddStudentGeneralScreenState extends State<AddStudentGeneralScreen> {
                   Navigator.pop(context);
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _kNavy,
+                  backgroundColor: _kPrimary,
                   foregroundColor: Colors.white,
-                  elevation: 0,
+                  elevation: 2,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(28),
+                    borderRadius: BorderRadius.circular(16),
                   ),
                 ),
-                child: Row(
+                child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text(
+                    Text(
                       "حفظ الطالب",
                       style: TextStyle(
                         fontFamily: 'cairo',
@@ -638,19 +668,53 @@ class _AddStudentGeneralScreenState extends State<AddStudentGeneralScreen> {
                         fontSize: 16,
                       ),
                     ),
-                    const SizedBox(width: 10),
-                    const Icon(Icons.save_rounded, size: 20),
+                    SizedBox(width: 8),
+                    Icon(Icons.check_circle_rounded, size: 20),
                   ],
                 ),
               ),
             ),
-            // ================== تتنبيه ==================
-            Column(
-              children: [
-                Icon(Icons.warning_rounded, size: 60, color: Colors.red),
-                const SizedBox(height: 10),
-                Text(' لا تنسي اضافة المجموعات قبل اضافة الطلاب '),
-              ],
+
+            const SizedBox(height: 16),
+
+            // ================== تنبيه مهم ==================
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: _kWarningBg,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: _kWarning.withOpacity(0.3)),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'تنبيه: لا تنسَ إضافة المجموعات المخصصة للطالب قبل إتمام الحفظ لضمان ظهوره في قوائم الحضور والغياب بشكل صحيح.',
+                      textAlign: TextAlign.right,
+                      style: TextStyle(
+                        fontFamily: 'cairo',
+                        fontSize: 12.5,
+                        color: Colors.amber.shade900,
+                        height: 1.5,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: _kWarning.withOpacity(0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.info_rounded,
+                      color: _kWarning,
+                      size: 24,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),

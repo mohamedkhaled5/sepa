@@ -16,23 +16,18 @@ const List<String> _weekDays = [
   "الجمعة",
 ];
 const List<int> _numberOfWeekDays = [1, 2, 3, 4, 5, 6, 7];
-// ================== نظام الألوان الموحّد للشاشة ==================
-const _kNavy = Color(0xFF16213E);
-const _kNavyLight = Color(0xFF24365C);
-const _kIconBg = Color(0xFFEAF1FB);
-const _kPageBg = Color(0xFFF6F8FB);
-const _kHint = Color(0xFF9AA3B2);
-const _kCardBorder = Color(0xFFEBEEF3);
 
-const List<Color> _dayColors = [
-  Colors.red,
-  Colors.orange,
-  Colors.lightGreenAccent,
-  Colors.deepPurpleAccent,
-  Colors.black,
-  Colors.yellow,
-  Colors.blue,
-];
+// ================== نظام الألوان الحديث والموحد ==================
+const _kPrimary = Color(0xFF4F46E5); // بنفسجي نيلي عصري
+const _kPrimaryLight = Color(0xFFEEF2FF); // خلفية زاهية خفيفة
+const _kNavy = Color(0xFF0F172A); // نصوص وداكن
+const _kNavyLight = Color(0xFF334155); // نصوص فرعية
+const _kIconBg = Color(0xFFF1F5F9); // خلفية الأيقونات
+const _kPageBg = Color(0xFFF8FAFC); // خلفية الصفحة
+const _kHint = Color(0xFF64748B); // التلميحات
+const _kCardBorder = Color(0xFFE2E8F0); // الحدود الناعمة
+const _kWarning = Color(0xFFF59E0B); // تحذير كهرماني
+const _kWarningBg = Color(0xFFFEF3C7); // خلفية التحذير الناعمة
 
 class CreateGroupScreen extends StatefulWidget {
   final GroupModel? group;
@@ -47,11 +42,8 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
 
   String? selectedSubject;
   String? selectedGrade;
-  String? selectedDayone;
-  String? selectedDaytwo;
-  //اضافة ميزة اضافة أكثر من يومين للمجموعه الواحده أو يوم واحد حتي
+
   int selectedNumOfDays = 2;
-  //هذا لمتغير لتخزين الأيام
   List<String> selectedDaysName = ["السبت", "الأحد"];
 
   TimeOfDay? startTime;
@@ -60,7 +52,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
   Future<void> pickStartTime() async {
     final time = await showTimePicker(
       context: context,
-      initialTime: TimeOfDay.now(),
+      initialTime: startTime ?? TimeOfDay.now(),
     );
     if (time != null) setState(() => startTime = time);
   }
@@ -68,7 +60,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
   Future<void> pickEndTime() async {
     final time = await showTimePicker(
       context: context,
-      initialTime: TimeOfDay.now(),
+      initialTime: endTime ?? TimeOfDay.now(),
     );
     if (time != null) setState(() => endTime = time);
   }
@@ -87,7 +79,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
       return false;
     }
     if (selectedDaysName.isEmpty) {
-      _showSnack("اختر أيام المجموعه");
+      _showSnack("اختر أيام المجموعة");
       return false;
     }
     if (startTime == null || endTime == null) {
@@ -98,9 +90,11 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
   }
 
   void _showSnack(String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message, style: const TextStyle(fontFamily: 'cairo')),
+      ),
+    );
   }
 
   Future<void> saveGroup() async {
@@ -118,7 +112,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
     await doc.get();
 
     if (!mounted) return;
-    _showSnack("تم إنشاء المجموعة");
+    _showSnack("تم إنشاء المجموعة بنجاح");
     Navigator.pop(context);
   }
 
@@ -129,15 +123,13 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
       "name": groupNameController.text.trim(),
       "subject": selectedSubject,
       "grade": selectedGrade,
-      // "dayone": selectedDayone,
-      // "daytwo": selectedDaytwo,
       "daysName": selectedDaysName,
       "startTime": startTime!.format(context),
       "endTime": endTime!.format(context),
     });
 
     if (!mounted) return;
-    _showSnack("تم تعديل المجموعة");
+    _showSnack("تم تعديل المجموعة بنجاح");
     Navigator.pop(context);
   }
 
@@ -175,8 +167,12 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
       selectedDaysName = List<String>.from(widget.group!.daysName ?? []);
       selectedNumOfDays = selectedDaysName.length;
 
-      startTime = _parseTime(widget.group!.startTime!);
-      endTime = _parseTime(widget.group!.endTime!);
+      if (widget.group!.startTime != null) {
+        startTime = _parseTime(widget.group!.startTime!);
+      }
+      if (widget.group!.endTime != null) {
+        endTime = _parseTime(widget.group!.endTime!);
+      }
     } else {
       selectedNumOfDays = 2;
       selectedDaysName = List.generate(
@@ -236,10 +232,11 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                       ? Padding(
                           padding: const EdgeInsets.all(24),
                           child: Column(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              //اضافة زر في انشاء المجموعه للذهب لصفحة اضافة المواد
                               ElevatedButton.icon(
                                 onPressed: () {
+                                  Navigator.pop(context);
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
@@ -248,18 +245,31 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                                     ),
                                   );
                                 },
-                                icon: const Icon(Icons.add),
-                                label: const Text("إضافة مادة أو صفوف جديدة"),
+                                icon: const Icon(
+                                  Icons.add_rounded,
+                                  color: Colors.white,
+                                ),
+                                label: const Text(
+                                  "إضافة مادة أو صفوف جديدة",
+                                  style: TextStyle(
+                                    fontFamily: 'cairo',
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(
-                                    0xFF16213E,
-                                  ), // _kNavy
+                                  backgroundColor: _kPrimary,
                                   foregroundColor: Colors.white,
+                                  elevation: 0,
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 12,
                                   ),
                                 ),
                               ),
+                              const SizedBox(height: 12),
                               const Text(
                                 "لا توجد خيارات مضافة بعد",
                                 style: TextStyle(
@@ -286,13 +296,13 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                                   fontWeight: isSelected
                                       ? FontWeight.bold
                                       : FontWeight.normal,
-                                  color: isSelected ? _kNavy : Colors.black87,
+                                  color: isSelected ? _kPrimary : _kNavy,
                                 ),
                               ),
                               trailing: isSelected
                                   ? const Icon(
-                                      Icons.check_circle,
-                                      color: _kNavy,
+                                      Icons.check_circle_rounded,
+                                      color: _kPrimary,
                                     )
                                   : null,
                               onTap: () {
@@ -322,30 +332,30 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
     Widget? customChild,
   }) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 14),
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: _kCardBorder),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
-            color: Color(0x0A16213E),
+            color: Colors.black.withOpacity(0.02),
             blurRadius: 10,
-            offset: Offset(0, 4),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(20),
+        clipBehavior: Clip.antiAlias,
         child: InkWell(
-          borderRadius: BorderRadius.circular(18),
           onTap: onTap,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             child: Row(
               children: [
-                ?trailing,
+                if (trailing != null) trailing,
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -361,7 +371,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                                 fontFamily: 'cairo',
                                 fontWeight: FontWeight.bold,
                                 fontSize: 14,
-                                color: Colors.black87,
+                                color: _kNavy,
                               ),
                             ),
                             const SizedBox(height: 2),
@@ -385,10 +395,10 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                   width: 42,
                   height: 42,
                   decoration: const BoxDecoration(
-                    color: _kIconBg,
+                    color: _kPrimaryLight,
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(icon, color: _kNavy, size: 20),
+                  child: Icon(icon, color: _kPrimary, size: 20),
                 ),
               ],
             ),
@@ -398,95 +408,6 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
     );
   }
 
-  // ================== card for days of week change color for each one  ==================
-  Widget _fieldCardDiffirantCard({
-    required IconData icon,
-    required String label,
-    required String? valueText,
-    required String placeholder,
-    required Color color,
-    Widget? trailing,
-    VoidCallback? onTap,
-    Widget? customChild,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: color),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0A16213E),
-            blurRadius: 10,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(18),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(18),
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            child: Row(
-              children: [
-                ?trailing,
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child:
-                        customChild ??
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              label,
-                              textAlign: TextAlign.right,
-                              style: const TextStyle(
-                                fontFamily: 'cairo',
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              valueText ?? placeholder,
-                              textAlign: TextAlign.right,
-                              style: TextStyle(
-                                fontFamily: 'cairo',
-                                fontSize: 12.5,
-                                color: valueText == null ? _kHint : _kNavyLight,
-                                fontWeight: valueText == null
-                                    ? FontWeight.normal
-                                    : FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                  ),
-                ),
-                Container(
-                  width: 42,
-                  height: 42,
-                  decoration: const BoxDecoration(
-                    color: _kIconBg,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(icon, color: _kNavy, size: 20),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ================== card for days of week change color for each one  ==================
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -494,12 +415,14 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
       appBar: AppBar(
         backgroundColor: _kPageBg,
         elevation: 0,
+        scrolledUnderElevation: 0,
         foregroundColor: _kNavy,
         title: Text(
           widget.group == null ? "إنشاء مجموعة" : "تعديل المجموعة",
           style: const TextStyle(
             fontFamily: 'cairo',
             fontWeight: FontWeight.bold,
+            fontSize: 20,
             color: _kNavy,
           ),
         ),
@@ -508,16 +431,18 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
           Padding(
             padding: const EdgeInsets.only(left: 16),
             child: Container(
-              width: 42,
-              height: 42,
+              width: 40,
+              height: 40,
               decoration: const BoxDecoration(
-                color: _kIconBg,
+                color: _kPrimaryLight,
                 shape: BoxShape.circle,
               ),
-              child: Image.asset(
-                "assets/icon/sapeel.png",
-                width: 33,
-                height: 33,
+              child: Center(
+                child: Image.asset(
+                  "assets/icon/sapeel.png",
+                  width: 28,
+                  height: 28,
+                ),
               ),
             ),
           ),
@@ -526,7 +451,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
         children: [
-          // ================== اسم المجموعة (حقل نصي فعلي) ==================
+          // ================== اسم المجموعة ==================
           _fieldCard(
             icon: Icons.groups_2_rounded,
             label: "اسم المجموعة",
@@ -542,7 +467,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                     fontFamily: 'cairo',
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
-                    color: Colors.black87,
+                    color: _kNavy,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -551,9 +476,9 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                   textAlign: TextAlign.right,
                   style: const TextStyle(
                     fontFamily: 'cairo',
-                    fontSize: 12.5,
+                    fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: _kNavyLight,
+                    color: _kNavy,
                   ),
                   decoration: const InputDecoration(
                     isDense: true,
@@ -608,7 +533,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                   .toList();
 
               return _fieldCard(
-                icon: Icons.account_balance_rounded,
+                icon: Icons.school_rounded,
                 label: "الصف الدراسي",
                 valueText: selectedGrade,
                 placeholder: "اختر الصف",
@@ -625,11 +550,12 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
               );
             },
           ),
-          // ==================  Number of week days ==================
+
+          // ================== عدد أيام المجموعة ==================
           _fieldCard(
-            icon: Icons.calendar_today_rounded,
-            label: "اختر  عدد أيام المجموعة",
-            valueText: selectedDaysName.length.toString(),
+            icon: Icons.calendar_month_rounded,
+            label: "عدد أيام المجموعة",
+            valueText: "$selectedNumOfDays أيام",
             placeholder: "",
             trailing: const Icon(
               Icons.keyboard_arrow_down_rounded,
@@ -657,16 +583,15 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
               },
             ),
           ),
-          const SizedBox(height: 6),
-          // ================== أيام الدرس  ==================
+
+          // ================== أيام الدرس ==================
           ListView.builder(
             shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
             padding: EdgeInsets.zero,
-            scrollDirection: Axis.vertical,
             itemCount: selectedNumOfDays,
-            itemBuilder: (context, index) => _fieldCardDiffirantCard(
-              color: _kNavy,
-              icon: Icons.calendar_today_rounded,
+            itemBuilder: (context, index) => _fieldCard(
+              icon: Icons.event_repeat_rounded,
               label: 'اليوم ${index + 1}',
               valueText: selectedDaysName[index],
               placeholder: "اختر اليوم",
@@ -683,12 +608,10 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
             ),
           ),
 
-          const SizedBox(height: 6),
-
           // ================== وقت البداية ==================
           _fieldCard(
-            icon: Icons.access_time_rounded,
-            label: "اختر وقت البداية",
+            icon: Icons.schedule_rounded,
+            label: "وقت البداية",
             valueText: startTime?.format(context),
             placeholder: "حدد وقت بداية المجموعة",
             onTap: pickStartTime,
@@ -696,19 +619,19 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
 
           // ================== وقت النهاية ==================
           _fieldCard(
-            icon: Icons.access_time_filled_rounded,
-            label: "اختر وقت النهاية",
+            icon: Icons.timer_off_rounded,
+            label: "وقت النهاية",
             valueText: endTime?.format(context),
             placeholder: "حدد وقت نهاية المجموعة",
             onTap: pickEndTime,
           ),
 
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
 
           // ================== زر الحفظ ==================
           SizedBox(
             width: double.infinity,
-            height: 56,
+            height: 54,
             child: ElevatedButton(
               onPressed: () {
                 if (widget.group == null) {
@@ -718,11 +641,11 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: _kNavy,
+                backgroundColor: _kPrimary,
                 foregroundColor: Colors.white,
-                elevation: 0,
+                elevation: 2,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(28),
+                  borderRadius: BorderRadius.circular(16),
                 ),
               ),
               child: Row(
@@ -736,23 +659,53 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                       fontSize: 16,
                     ),
                   ),
-                  const SizedBox(width: 10),
-                  const Icon(Icons.save_rounded, size: 20),
+                  const SizedBox(width: 8),
+                  const Icon(Icons.check_circle_rounded, size: 20),
                 ],
               ),
             ),
           ),
-          const SizedBox(height: 10),
 
-          // ================== تتنبيه ==================
-          Column(
-            children: [
-              Icon(Icons.warning_rounded, size: 60, color: Colors.red),
-              const SizedBox(height: 10),
-              Text(
-                ' لإضافة المواد والصفوف قم بفتح صفحة الإعدادات من الصفحة الرئيسيه ثم قم بالدخول الي صفحة المواد والصفوف وقم بإضافة او حذف المواد والصففوف التي تريدها',
-              ),
-            ],
+          const SizedBox(height: 16),
+
+          // ================== تنبيه وتوجيه للإعدادات ==================
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: _kWarningBg,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: _kWarning.withOpacity(0.3)),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'لإضافة مواد أو صفوف دراسية جديدة، انتقل إلى صفحة الإعدادات من القائمة الرئيسية، ثم اضغط على صفحة "المواد والصفوف".',
+                    textAlign: TextAlign.right,
+                    style: TextStyle(
+                      fontFamily: 'cairo',
+                      fontSize: 12.5,
+                      color: Colors.amber.shade900,
+                      height: 1.5,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: _kWarning.withOpacity(0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.lightbulb_rounded,
+                    color: _kWarning,
+                    size: 24,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

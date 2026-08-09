@@ -15,17 +15,20 @@ import 'package:seba/screens/student/student_profile/add_exam.dart/edit_exam_scr
 import 'package:seba/screens/student/student_profile/attendance_operation/add_attendance_state.dart';
 import 'package:seba/screens/student/student_profile/attendance_operation/edit_attendance_state.dart';
 
-// ================== نظام الألوان الموحّد للشاشة ==================
-const _kNavy = Color(0xFF16213E);
-const _kNavyLight = Color(0xFF24365C);
-const _kIconBg = Color(0xFFEAF1FB);
-const _kPageBg = Color(0xFFF6F8FB);
-const _kHint = Color(0xFF9AA3B2);
-const _kCardBorder = Color(0xFFEBEEF3);
-const _kSuccess = Color(0xFF2E9E6B);
-const _kSuccessBg = Color(0xFFE4F5EC);
-const _kDanger = Color(0xFFD1483F);
-const _kDangerBg = Color(0xFFFBE9E7);
+// ================== نظام الألوان الحديث والموحد ==================
+const _kPrimary = Color(0xFF4F46E5); // بنفسجي نيلي عصري
+const _kPrimaryLight = Color(0xFFEEF2FF); // خلفية زاهية خفيفة
+const _kNavy = Color(0xFF0F172A); // نصوص وداكن
+const _kNavyLight = Color(0xFF334155); // نصوص فرعية
+const _kIconBg = Color(0xFFF1F5F9); // خلفية الأيقونات
+const _kPageBg = Color(0xFFF8FAFC); // خلفية الصفحة
+const _kHint = Color(0xFF64748B); // التلميحات
+const _kCardBorder = Color(0xFFE2E8F0); // الحدود الناعمة
+const _kSuccess = Color(0xFF10B981); // أخضر زمردي
+const _kSuccessBg = Color(0xFFECFDF5); // خلفية الحضور الخفيفة
+const _kDanger = Color(0xFFEF4444); // أحمر مرجاني
+const _kDangerBg = Color(0xFFFEF2F2); // خلفية التنبيه الخفيفة
+const _kWarning = Color(0xFFF59E0B); // تحذير كهرماني
 
 class StudentProfileScreen extends StatefulWidget {
   const StudentProfileScreen({
@@ -85,15 +88,33 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
 
             return AlertDialog(
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(24),
               ),
-              title: const Text(
-                "⚠️ تأكيد الحذف النهائي",
-                style: TextStyle(
-                  fontFamily: 'cairo',
-                  fontWeight: FontWeight.bold,
-                  color: _kDanger,
-                ),
+              title: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: const BoxDecoration(
+                      color: _kDangerBg,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.warning_amber_rounded,
+                      color: _kDanger,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  const Text(
+                    "تأكيد الحذف النهائي",
+                    style: TextStyle(
+                      fontFamily: 'cairo',
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      color: _kNavy,
+                    ),
+                  ),
+                ],
               ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -101,51 +122,55 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
                 children: [
                   Text(
                     "هل أنت متأكد من حذف (${_selectedAttendanceIds.length}) من سجلات الحضور والغياب المحددة؟\nلا يمكن التراجع عن هذا الإجراء.",
-                    style: const TextStyle(fontFamily: 'cairo', fontSize: 13.5),
+                    style: const TextStyle(
+                      fontFamily: 'cairo',
+                      fontSize: 13.5,
+                      color: _kNavyLight,
+                      height: 1.5,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 8,
-                      horizontal: 12,
-                    ),
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: _kDangerBg,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: _kDanger.withOpacity(0.2)),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    child: Column(
                       children: [
                         const Text(
-                          "أدخل رمز الحماية:",
+                          "أدخل رمز الحماية للتأكيد:",
                           style: TextStyle(
                             fontFamily: 'cairo',
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
                             color: _kDanger,
                           ),
                         ),
-                        Text(
+                        const SizedBox(height: 4),
+                        SelectableText(
                           securityCode,
                           style: const TextStyle(
                             fontFamily: 'cairo',
-                            fontSize: 18,
+                            fontSize: 22,
                             fontWeight: FontWeight.bold,
-                            letterSpacing: 2,
+                            letterSpacing: 4,
                             color: _kDanger,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
                   TextField(
                     controller: codeController,
                     keyboardType: TextInputType.number,
+                    maxLength: 5,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       fontFamily: 'cairo',
-                      fontSize: 16,
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 2,
                     ),
@@ -153,15 +178,18 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
                       hintText: "اكتب الرمز هنا",
                       hintStyle: const TextStyle(
                         fontFamily: 'cairo',
-                        fontSize: 12,
+                        fontSize: 13,
                         letterSpacing: 0,
+                        color: _kHint,
                       ),
-                      contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                      counterText: "",
+                      contentPadding: const EdgeInsets.symmetric(vertical: 12),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(color: _kCardBorder),
                       ),
                       focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(14),
                         borderSide: const BorderSide(color: _kDanger, width: 2),
                       ),
                     ),
@@ -176,20 +204,36 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
                   onPressed: () => Navigator.pop(context, false),
                   child: const Text(
                     "إلغاء",
-                    style: TextStyle(fontFamily: 'cairo'),
+                    style: TextStyle(
+                      fontFamily: 'cairo',
+                      color: _kHint,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _kDanger,
+                    elevation: 0,
                     disabledBackgroundColor: Colors.grey.shade300,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 10,
+                    ),
                   ),
                   onPressed: isCodeValid
                       ? () => Navigator.pop(context, true)
                       : null,
                   child: const Text(
                     "حذف المحدّد",
-                    style: TextStyle(fontFamily: 'cairo', color: Colors.white),
+                    style: TextStyle(
+                      fontFamily: 'cairo',
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ],
@@ -282,25 +326,53 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
       context: context,
       builder: (context) {
         return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           title: const Text(
             "تأكيد الحذف",
-            style: TextStyle(fontFamily: 'cairo'),
+            style: TextStyle(
+              fontFamily: 'cairo',
+              fontWeight: FontWeight.bold,
+              color: _kNavy,
+            ),
           ),
           content: const Text(
             "هل أنت متأكد من حذف هذا السجل؟ لا يمكن التراجع بعد الحذف.",
-            style: TextStyle(fontFamily: 'cairo'),
+            style: TextStyle(
+              fontFamily: 'cairo',
+              color: _kNavyLight,
+              fontSize: 13.5,
+            ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text("إلغاء", style: TextStyle(fontFamily: 'cairo')),
+              child: const Text(
+                "إلغاء",
+                style: TextStyle(
+                  fontFamily: 'cairo',
+                  color: _kHint,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _kDanger,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
               onPressed: () => Navigator.pop(context, true),
               child: const Text(
                 "حذف",
-                style: TextStyle(fontFamily: 'cairo', color: Colors.white),
+                style: TextStyle(
+                  fontFamily: 'cairo',
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],
@@ -335,11 +407,10 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
   }
 
   Color _examProgressColor(double percent) {
-    if (percent >= 0.999) return Colors.green;
-    if (percent >= 0.8) return Colors.lightBlue;
-    if (percent >= 0.6) return Colors.amber;
-    if (percent >= 0.5) return Colors.orange;
-    return Colors.red;
+    if (percent >= 0.9) return _kSuccess;
+    if (percent >= 0.75) return const Color(0xFF0EA5E9); // أزرق سماوي
+    if (percent >= 0.6) return _kWarning;
+    return _kDanger;
   }
 
   // ================== إنشاء التقرير الشامل ==================
@@ -391,10 +462,20 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
       stream: activitiesStream,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(
+            child: CircularProgressIndicator(
+              strokeWidth: 3,
+              valueColor: AlwaysStoppedAnimation<Color>(_kPrimary),
+            ),
+          );
         }
         if (snapshot.hasError) {
-          return Center(child: Text('خطأ: ${snapshot.error}'));
+          return Center(
+            child: Text(
+              'خطأ: ${snapshot.error}',
+              style: const TextStyle(fontFamily: 'cairo', color: _kDanger),
+            ),
+          );
         }
 
         final docs = snapshot.data?.docs ?? [];
@@ -405,16 +486,16 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  width: 64,
-                  height: 64,
+                  width: 70,
+                  height: 70,
                   decoration: const BoxDecoration(
-                    color: _kIconBg,
+                    color: _kPrimaryLight,
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
                     Icons.inbox_rounded,
-                    color: _kNavy,
-                    size: 28,
+                    color: _kPrimary,
+                    size: 32,
                   ),
                 ),
                 const SizedBox(height: 14),
@@ -423,7 +504,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
                   style: TextStyle(
                     fontFamily: 'cairo',
                     color: _kHint,
-                    fontSize: 13,
+                    fontSize: 14,
                   ),
                 ),
               ],
@@ -459,7 +540,9 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
     final isPresent = isAttendance
         ? (activity.attendancePresent == true)
         : (activity.examStatus == "حاضر");
-    final borderColor = isPresent ? _kSuccess : _kDanger;
+    final borderColor = isPresent
+        ? _kSuccess.withOpacity(0.4)
+        : _kDanger.withOpacity(0.4);
     final statusColor = isPresent ? _kSuccess : _kDanger;
     final statusBg = isPresent ? _kSuccessBg : _kDangerBg;
     final percent = _examPercent(activity);
@@ -471,30 +554,31 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
         ? DateFormat('dd-MMM-yyyy', 'ar').format(parsedDate)
         : (activity.date ?? '');
 
-    return Container(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: (isAttendance && isSelected)
-            ? const Color(0xFFE8F0FE)
-            : Colors.white,
-        borderRadius: BorderRadius.circular(18),
+        color: (isAttendance && isSelected) ? _kPrimaryLight : Colors.white,
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: (isAttendance && isSelected) ? _kNavy : borderColor,
-          width: (isAttendance && isSelected) ? 2 : 1.5,
+          color: (isAttendance && isSelected) ? _kPrimary : borderColor,
+          width: (isAttendance && isSelected) ? 2 : 1,
         ),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
-            color: Color(0x0A16213E),
-            blurRadius: 10,
-            offset: Offset(0, 4),
+            color: (isAttendance && isSelected)
+                ? _kPrimary.withOpacity(0.1)
+                : Colors.black.withOpacity(0.02),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(20),
         child: InkWell(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(20),
           onTap: () {
             if (_isSelectionMode && isAttendance) {
               _toggleAttendanceSelection(activity.id!);
@@ -510,7 +594,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
             }
           },
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            padding: const EdgeInsets.all(16),
             child: Row(
               children: [
                 if (_isSelectionMode && isAttendance)
@@ -518,7 +602,10 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
                     padding: const EdgeInsets.only(left: 8.0),
                     child: Checkbox(
                       value: isSelected,
-                      activeColor: _kNavy,
+                      activeColor: _kPrimary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6),
+                      ),
                       onChanged: (_) =>
                           _toggleAttendanceSelection(activity.id!),
                     ),
@@ -555,7 +642,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
                       const SizedBox(height: 8),
                       _circleAction(
                         icon: _isDeleting
-                            ? Icons.hourglass_top
+                            ? Icons.hourglass_top_rounded
                             : Icons.delete_rounded,
                         background: _kDangerBg,
                         foreground: _kDanger,
@@ -579,15 +666,14 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
                         children: [
                           if (!isAttendance) ...[
                             Container(
-                              width: 24,
-                              height: 24,
+                              padding: const EdgeInsets.all(6),
                               decoration: const BoxDecoration(
-                                color: _kIconBg,
+                                color: _kPrimaryLight,
                                 shape: BoxShape.circle,
                               ),
                               child: const Icon(
                                 Icons.quiz_rounded,
-                                color: _kNavy,
+                                color: _kPrimary,
                                 size: 14,
                               ),
                             ),
@@ -602,8 +688,8 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
                               style: const TextStyle(
                                 fontFamily: 'cairo',
                                 fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                                color: Colors.black87,
+                                fontSize: 15,
+                                color: _kNavy,
                               ),
                             ),
                           ),
@@ -617,8 +703,8 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
                           textAlign: TextAlign.right,
                           style: const TextStyle(
                             fontFamily: 'cairo',
-                            fontSize: 12,
-                            color: Colors.black54,
+                            fontSize: 12.5,
+                            color: _kNavyLight,
                           ),
                         ),
                       ],
@@ -632,17 +718,17 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
                           color: _kHint,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 10),
                       if (isAttendance)
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
+                            horizontal: 12,
+                            vertical: 5,
                           ),
                           decoration: BoxDecoration(
                             color: statusBg,
                             borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: statusColor, width: 1.5),
+                            border: Border.all(color: statusColor, width: 1.2),
                           ),
                           child: Text(
                             isPresent ? "حاضر" : "غائب",
@@ -659,16 +745,16 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Wrap(
-                              spacing: 6,
+                              spacing: 8,
                               alignment: WrapAlignment.end,
                               children: [
                                 Container(
                                   padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
+                                    horizontal: 12,
                                     vertical: 4,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: _kIconBg,
+                                    color: _kPrimaryLight,
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: Text(
@@ -676,14 +762,14 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
                                     style: const TextStyle(
                                       fontFamily: 'cairo',
                                       fontWeight: FontWeight.bold,
-                                      fontSize: 11.5,
-                                      color: _kNavy,
+                                      fontSize: 12,
+                                      color: _kPrimary,
                                     ),
                                   ),
                                 ),
                                 Container(
                                   padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
+                                    horizontal: 12,
                                     vertical: 4,
                                   ),
                                   decoration: BoxDecoration(
@@ -691,7 +777,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
                                     borderRadius: BorderRadius.circular(20),
                                     border: Border.all(
                                       color: statusColor,
-                                      width: 1.4,
+                                      width: 1.2,
                                     ),
                                   ),
                                   child: Text(
@@ -712,7 +798,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
                               child: LinearProgressIndicator(
                                 value: percent,
                                 minHeight: 6,
-                                backgroundColor: Colors.grey.shade200,
+                                backgroundColor: _kCardBorder,
                                 valueColor: AlwaysStoppedAnimation(
                                   progressColor,
                                 ),
@@ -734,19 +820,20 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
   Widget _circleAction({
     required IconData icon,
     required VoidCallback onPressed,
-    Color background = _kIconBg,
-    Color foreground = _kNavy,
+    Color background = _kPrimaryLight,
+    Color foreground = _kPrimary,
   }) {
     return Material(
       color: background,
       shape: const CircleBorder(),
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
         customBorder: const CircleBorder(),
         onTap: onPressed,
         child: SizedBox(
-          width: 32,
-          height: 32,
-          child: Icon(icon, color: foreground, size: 16),
+          width: 36,
+          height: 36,
+          child: Icon(icon, color: foreground, size: 18),
         ),
       ),
     );
@@ -757,37 +844,42 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
     if (_loading) {
       return const Scaffold(
         backgroundColor: _kPageBg,
-        body: Center(child: CircularProgressIndicator()),
+        body: Center(
+          child: CircularProgressIndicator(
+            strokeWidth: 3,
+            valueColor: AlwaysStoppedAnimation<Color>(_kPrimary),
+          ),
+        ),
       );
     }
 
     final groupIds = widget.student.groupIds;
     final reportButton = AppSession.hasPermission('reports')
         ? Padding(
-            padding: const EdgeInsets.only(left: 16),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(21),
-              onTap: _isGeneratingReport ? null : _generateReport,
-              child: Container(
-                width: 42,
-                height: 42,
-                decoration: const BoxDecoration(
-                  color: _kIconBg,
-                  shape: BoxShape.circle,
-                ),
-                child: _isGeneratingReport
-                    ? const Padding(
-                        padding: EdgeInsets.all(11),
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: _kNavy,
+            padding: const EdgeInsets.only(left: 12),
+            child: Material(
+              color: _kPrimaryLight,
+              shape: const CircleBorder(),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(20),
+                onTap: _isGeneratingReport ? null : _generateReport,
+                child: SizedBox(
+                  width: 40,
+                  height: 40,
+                  child: _isGeneratingReport
+                      ? const Padding(
+                          padding: EdgeInsets.all(10),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: _kPrimary,
+                          ),
+                        )
+                      : const Icon(
+                          Icons.picture_as_pdf_rounded,
+                          color: _kPrimary,
+                          size: 20,
                         ),
-                      )
-                    : const Icon(
-                        Icons.picture_as_pdf_rounded,
-                        color: _kNavy,
-                        size: 20,
-                      ),
+                ),
               ),
             ),
           )
@@ -796,8 +888,9 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
     final PreferredSizeWidget appBarWidget = _isSelectionMode
         ? AppBar(
             backgroundColor: _kNavy,
+            elevation: 0,
             leading: IconButton(
-              icon: const Icon(Icons.close, color: Colors.white),
+              icon: const Icon(Icons.close_rounded, color: Colors.white),
               onPressed: () {
                 setState(() {
                   _isSelectionMode = false;
@@ -811,12 +904,12 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
                 fontFamily: 'cairo',
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
-                fontSize: 15,
+                fontSize: 16,
               ),
             ),
             actions: [
               IconButton(
-                icon: const Icon(Icons.select_all, color: Colors.white),
+                icon: const Icon(Icons.select_all_rounded, color: Colors.white),
                 tooltip: "تحديد كل سجلات الحضور",
                 onPressed: () async {
                   final currentGid = _currentGroupId;
@@ -843,7 +936,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
                 },
               ),
               IconButton(
-                icon: const Icon(Icons.delete_forever),
+                icon: const Icon(Icons.delete_outline_rounded),
                 color: Colors.redAccent,
                 disabledColor: Colors.white38,
                 tooltip: "حذف المحددين",
@@ -854,9 +947,9 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
             ],
             bottom: groupIds.isNotEmpty
                 ? PreferredSize(
-                    preferredSize: const Size.fromHeight(52),
+                    preferredSize: const Size.fromHeight(54),
                     child: Container(
-                      margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                      margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
                         color: Colors.white,
@@ -867,7 +960,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
                         controller: _tabController,
                         isScrollable: true,
                         indicator: BoxDecoration(
-                          color: _kNavy,
+                          color: _kPrimary,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         labelColor: Colors.white,
@@ -875,11 +968,11 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
                         labelStyle: const TextStyle(
                           fontFamily: 'cairo',
                           fontWeight: FontWeight.bold,
-                          fontSize: 12.5,
+                          fontSize: 13,
                         ),
                         unselectedLabelStyle: const TextStyle(
                           fontFamily: 'cairo',
-                          fontSize: 12.5,
+                          fontSize: 13,
                         ),
                         dividerColor: Colors.transparent,
                         tabs: groupIds
@@ -893,6 +986,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
         : AppBar(
             backgroundColor: _kPageBg,
             elevation: 0,
+            scrolledUnderElevation: 0,
             foregroundColor: _kNavy,
             centerTitle: false,
             title: Text(
@@ -900,15 +994,16 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
               style: const TextStyle(
                 fontFamily: 'cairo',
                 fontWeight: FontWeight.bold,
+                fontSize: 20,
                 color: _kNavy,
               ),
             ),
             actions: [reportButton],
             bottom: groupIds.isNotEmpty
                 ? PreferredSize(
-                    preferredSize: const Size.fromHeight(52),
+                    preferredSize: const Size.fromHeight(54),
                     child: Container(
-                      margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                      margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
                         color: Colors.white,
@@ -919,7 +1014,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
                         controller: _tabController,
                         isScrollable: true,
                         indicator: BoxDecoration(
-                          color: _kNavy,
+                          color: _kPrimary,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         labelColor: Colors.white,
@@ -927,11 +1022,11 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
                         labelStyle: const TextStyle(
                           fontFamily: 'cairo',
                           fontWeight: FontWeight.bold,
-                          fontSize: 12.5,
+                          fontSize: 13,
                         ),
                         unselectedLabelStyle: const TextStyle(
                           fontFamily: 'cairo',
-                          fontSize: 12.5,
+                          fontSize: 13,
                         ),
                         dividerColor: Colors.transparent,
                         tabs: groupIds
@@ -952,25 +1047,25 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 64,
-                height: 64,
+                width: 70,
+                height: 70,
                 decoration: const BoxDecoration(
-                  color: _kIconBg,
+                  color: _kPrimaryLight,
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
                   Icons.groups_2_rounded,
-                  color: _kNavy,
-                  size: 28,
+                  color: _kPrimary,
+                  size: 36,
                 ),
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 16),
               const Text(
                 "الطالب غير مسجل في أي مجموعة حاليًا",
                 style: TextStyle(
                   fontFamily: 'cairo',
                   color: _kHint,
-                  fontSize: 13,
+                  fontSize: 14,
                 ),
               ),
             ],
@@ -996,10 +1091,10 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
               heroTag: "addAttendance",
               tooltip: "إضافة حضور",
               backgroundColor: Colors.white,
-              foregroundColor: _kNavy,
-              elevation: 1,
+              foregroundColor: _kPrimary,
+              elevation: 2,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(18),
+                borderRadius: BorderRadius.circular(16),
                 side: const BorderSide(color: _kCardBorder),
               ),
               onPressed: () {
@@ -1017,15 +1112,18 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
               },
               child: const Icon(Icons.event_available_rounded),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 10),
           ],
-          if (AppSession.hasPermission('exams'))
+          if (AppSession.hasPermission('exams')) ...[
             FloatingActionButton(
               heroTag: "addExam",
               tooltip: "إضافة امتحان",
-              backgroundColor: _kNavy,
+              backgroundColor: Colors.white,
+              foregroundColor: _kPrimary,
+              elevation: 2,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(18),
+                borderRadius: BorderRadius.circular(16),
+                side: const BorderSide(color: _kCardBorder),
               ),
               onPressed: () {
                 final gid = _currentGroupId;
@@ -1038,15 +1136,17 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
                   ),
                 );
               },
-              child: const Icon(Icons.assignment_rounded, color: Colors.white),
+              child: const Icon(Icons.assignment_add, color: _kPrimary),
             ),
-          const SizedBox(width: 12),
+            const SizedBox(width: 10),
+          ],
           FloatingActionButton(
             heroTag: "viewReport",
             tooltip: "عرض شاشة التقرير",
-            backgroundColor: _kNavy,
+            backgroundColor: _kPrimary,
+            elevation: 4,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(18),
+              borderRadius: BorderRadius.circular(16),
             ),
             onPressed: () {
               Navigator.push(

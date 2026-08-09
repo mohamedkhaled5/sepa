@@ -7,20 +7,24 @@ import 'package:seba/screens/settings/about_contact_screen.dart';
 import 'package:seba/screens/settings/manage_subjects_grades_screen.dart';
 import 'package:seba/screens/settings/user_profile_screen.dart';
 
-const _kNavy = Color(0xFF16213E);
-const _kNavyLight = Color(0xFF24365C);
-const _kIconBg = Color(0xFFEAF1FB);
-const _kPageBg = Color(0xFFF6F8FB);
-const _kHint = Color(0xFF9AA3B2);
-const _kCardBorder = Color(0xFFEBEEF3);
-const _kDanger = Color(0xFFD1483F);
+// ================== نظام الألوان الحديث والموحد ==================
+const _kPrimary = Color(0xFF4F46E5); // بنفسجي نيلي عصري
+const _kPrimaryLight = Color(0xFFEEF2FF); // خلفية زاهية خفيفة
+const _kNavy = Color(0xFF0F172A); // نصوص وداكن
+const _kNavyLight = Color(0xFF334155); // نصوص فرعية
+const _kIconBg = Color(0xFFF1F5F9); // خلفية الأيقونات
+const _kPageBg = Color(0xFFF8FAFC); // خلفية الصفحة
+const _kHint = Color(0xFF64748B); // التلميحات
+const _kCardBorder = Color(0xFFE2E8F0); // الحدود الناعمة
+const _kDanger = Color(0xFFEF4444); // أحمر مرجاني
+const _kDangerBg = Color(0xFFFEF2F2); // خلفية التنبيه الخفيفة
 
 /// الشاشة الرئيسية للإعدادات. كل قسم إعدادات جديد يُضاف هنا كـ ListTile
 /// يفتح شاشته الخاصة، عشان الشاشة دي تفضل قائمة تنقل بسيطة ومنظمة.
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
   final bool comingSoon = true;
-  //
+
   Widget _settingsTile({
     required IconData icon,
     required Color iconColor,
@@ -33,37 +37,45 @@ class SettingsScreen extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: _kCardBorder),
-        boxShadow: const [
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: danger ? _kDanger.withOpacity(0.3) : _kCardBorder,
+        ),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x0A16213E),
+            color: danger
+                ? _kDanger.withOpacity(0.04)
+                : Colors.black.withOpacity(0.02),
             blurRadius: 10,
-            offset: Offset(0, 4),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(20),
+        clipBehavior: Clip.antiAlias,
         child: ListTile(
           onTap: onTap,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 18,
-            vertical: 6,
+            vertical: 8,
           ),
           leading: Container(
             width: 46,
             height: 46,
-            decoration: const BoxDecoration(
-              color: _kIconBg,
+            decoration: BoxDecoration(
+              color: danger ? _kDangerBg : _kIconBg,
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: iconColor),
+            child: Icon(icon, color: danger ? _kDanger : iconColor, size: 22),
           ),
           title: Text(
             title,
             style: TextStyle(
               fontFamily: "cairo",
               fontWeight: FontWeight.bold,
+              fontSize: 15,
               color: danger ? _kDanger : _kNavy,
             ),
           ),
@@ -72,12 +84,12 @@ class SettingsScreen extends StatelessWidget {
             style: const TextStyle(
               fontFamily: "cairo",
               color: _kHint,
-              fontSize: 12,
+              fontSize: 12.5,
             ),
           ),
           trailing: const Icon(
             Icons.arrow_forward_ios_rounded,
-            size: 17,
+            size: 16,
             color: _kHint,
           ),
         ),
@@ -93,19 +105,27 @@ class SettingsScreen extends StatelessWidget {
       backgroundColor: _kPageBg,
       appBar: AppBar(
         elevation: 0,
+        scrolledUnderElevation: 0,
         backgroundColor: _kPageBg,
         foregroundColor: _kNavy,
+        centerTitle: false,
         title: const Text(
           "الإعدادات",
-          style: TextStyle(fontFamily: "cairo", fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontFamily: "cairo",
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: _kNavy,
+          ),
         ),
       ),
       body: ListView(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         children: [
           if (AppSession.hasPermission('manageSubjectsGrades')) ...[
             _settingsTile(
               icon: Icons.menu_book_rounded,
-              iconColor: Colors.green,
+              iconColor: const Color(0xFF10B981), // أخضر زمردي
               title: "المواد والصفوف",
               subtitle: "إضافة أو حذف المواد الدراسية والصفوف",
               onTap: () {
@@ -117,16 +137,13 @@ class SettingsScreen extends StatelessWidget {
                 );
               },
             ),
-            const Divider(height: 1),
           ],
 
-          // ============تم تعطيل ميزة المساعجين مؤقتا لحين الانتهاء الكامل منها كي لا يحدث اي خطأ في التطبيق ========
-          // إدارة المساعدين تظهر للمدرس فقط - المساعد مالوش صلاحية
-          // يدير مساعدين تانيين أو يشوف كود الدعوة.
+          // إدارة المساعدين تظهر للمدرس والـ Admin فقط
           if (AppSession.isTeacher || AppSession.isAdmin) ...[
             _settingsTile(
               icon: Icons.groups_2_rounded,
-              iconColor: Colors.deepPurple,
+              iconColor: const Color(0xFF8B5CF6), // بنفسجي ناعم
               title: "إدارة المساعدين",
               subtitle: "قريبًا",
               onTap: () {
@@ -142,34 +159,13 @@ class SettingsScreen extends StatelessWidget {
                 ).show();
               },
             ),
-            // _settingsTile(
-            //   icon: Icons.groups_2_rounded,
-            //   iconColor: Colors.deepPurple,
-            //   title: "إدارة المساعدين",
-            //   // subtitle: "كود الدعوة، طلبات الانضمام، والصلاحيات",
-            //   subtitle: "قريبا ان شاء الله",
-            //   onTap: null,
-
-            // () {
-
-            //  //========فتح صفحة صلاحيات المساعدين ========
-            //   // Navigator.push(
-            //   //   context,
-            //   //   MaterialPageRoute(
-            //   //     builder: (_) => ManageAssistantsScreen(
-            //   //       teacherId: AppSession.effectiveTeacherId,
-            //   //     ),
-            //   //   ),
-            //   // );
-            // },
-            // ),
-            const Divider(height: 1),
           ],
+
           _settingsTile(
-            icon: Icons.info_rounded,
-            iconColor: Colors.teal,
-            title: "ملف الشخصي",
-            subtitle: "معلوماتك الشخصيه ",
+            icon: Icons.person_rounded,
+            iconColor: _kPrimary,
+            title: "الملف الشخصي",
+            subtitle: "معلوماتك الشخصية وعرض البيانات",
             onTap: () {
               Navigator.push(
                 context,
@@ -177,13 +173,12 @@ class SettingsScreen extends StatelessWidget {
               );
             },
           ),
-          const Divider(height: 1),
 
           _settingsTile(
-            icon: Icons.info_outline,
-            iconColor: Colors.blue,
+            icon: Icons.info_rounded,
+            iconColor: const Color(0xFF0EA5E9), // أزرق سماوي
             title: "التواصل",
-            subtitle: "معلومات التواصل",
+            subtitle: "معلومات التواصل والدعم",
             onTap: () {
               Navigator.push(
                 context,
@@ -191,12 +186,13 @@ class SettingsScreen extends StatelessWidget {
               );
             },
           ),
-          const Divider(height: 1),
+
+          const SizedBox(height: 12),
 
           _settingsTile(
             danger: true,
             icon: Icons.logout_rounded,
-            iconColor: Colors.red,
+            iconColor: _kDanger,
             title: "تسجيل الخروج",
             subtitle: "الخروج من الحساب الحالي",
             onTap: () async {
@@ -204,7 +200,7 @@ class SettingsScreen extends StatelessWidget {
                 context: context,
                 builder: (_) => AlertDialog(
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(24),
                   ),
                   titlePadding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
                   contentPadding: const EdgeInsets.fromLTRB(24, 8, 24, 20),
@@ -214,12 +210,13 @@ class SettingsScreen extends StatelessWidget {
                         width: 42,
                         height: 42,
                         decoration: const BoxDecoration(
-                          color: _kDanger,
+                          color: _kDangerBg,
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
                           Icons.logout_rounded,
                           color: _kDanger,
+                          size: 22,
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -229,6 +226,7 @@ class SettingsScreen extends StatelessWidget {
                           style: TextStyle(
                             fontFamily: "cairo",
                             fontWeight: FontWeight.bold,
+                            fontSize: 18,
                             color: _kNavy,
                           ),
                         ),
@@ -239,37 +237,46 @@ class SettingsScreen extends StatelessWidget {
                     "هل أنت متأكد من تسجيل الخروج؟\n\n"
                     "سيتوجب عليك تسجيل الدخول مرة أخرى لاستخدام التطبيق.",
                     textAlign: TextAlign.right,
-                    style: TextStyle(fontFamily: "cairo", height: 1.6),
+                    style: TextStyle(
+                      fontFamily: "cairo",
+                      fontSize: 13.5,
+                      color: _kNavyLight,
+                      height: 1.6,
+                    ),
                   ),
-                  actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  actionsPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
                   actions: [
-                    SizedBox(
-                      width: 100,
-                      child: OutlinedButton(
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: _kNavy,
-                          side: const BorderSide(color: _kCardBorder),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text(
+                        "إلغاء",
+                        style: TextStyle(
+                          fontFamily: "cairo",
+                          color: _kHint,
+                          fontWeight: FontWeight.bold,
                         ),
-                        onPressed: () => Navigator.pop(context, false),
-                        child: const Text("إلغاء"),
                       ),
                     ),
-                    SizedBox(
-                      width: 120,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _kDanger,
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _kDanger,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        onPressed: () => Navigator.pop(context, true),
-                        child: const Text("تسجيل الخروج"),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 10,
+                        ),
+                      ),
+                      onPressed: () => Navigator.pop(context, true),
+                      child: const Text(
+                        "تسجيل الخروج",
+                        style: TextStyle(
+                          fontFamily: "cairo",
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ],
@@ -281,7 +288,6 @@ class SettingsScreen extends StatelessWidget {
                   await authService.logout();
 
                   // نفرّغ الـ Navigator بالكامل عشان AuthWrapper يظهر فورًا
-                  // بدل ما يفضل مخبي تحت الشاشات المفتوحة قبل الخروج.
                   if (context.mounted) {
                     Navigator.of(
                       context,

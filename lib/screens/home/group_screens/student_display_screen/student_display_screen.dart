@@ -10,18 +10,19 @@ import 'package:seba/screens/student/add_student_data.dart';
 import 'package:seba/screens/student/edit_student/edit_student_screen.dart';
 import 'package:seba/screens/student/student_profile/student_profile_screen.dart';
 
-// ================== نظام الألوان الموحّد للشاشة ==================
-const _kNavy = Color(0xFF16213E);
-const _kNavyLight = Color(0xFF24365C);
-const _kIconBg = Color(0xFFEAF1FB);
-const _kPageBg = Color(0xFFF6F8FB);
-const _kHint = Color(0xFF9AA3B2);
-const _kCardBorder = Color(0xFFEBEEF3);
-const _kDanger = Color(0xFFD1483F);
-const _kDangerBg = Color(0xFFFBE9E7);
-const _kSuccess = Color(0xFF2E9E6B);
-const _kSuccessBg = Color(0xFFE4F5EC);
-const _kWarning = Color(0xFFC98A2C);
+// ================== نظام الألوان الحديث والموحد ==================
+const _kPrimary = Color(0xFF4F46E5); // بنفسجي نيلي عصري ومريح للعين
+const _kPrimaryLight = Color(0xFFEEF2FF); // خلفية زاهية خفيفة للأيقونات
+const _kNavy = Color(0xFF0F172A); // نصوص وداكن
+const _kNavyLight = Color(0xFF334155); // نصوص فرعية
+const _kPageBg = Color(0xFFF8FAFC); // خلفية الصفحة
+const _kHint = Color(0xFF64748B); // التلميحات
+const _kCardBorder = Color(0xFFE2E8F0); // الحدود الناعمة
+const _kDanger = Color(0xFFEF4444); // أحمر مرجاني
+const _kDangerBg = Color(0xFFFEF2F2); // خلفية التنبيه الخفيفة
+const _kSuccess = Color(0xFF10B981); // أخضر زمردي
+const _kSuccessBg = Color(0xFFECFDF5); // خلفية الحضور الخفيفة
+const _kWarning = Color(0xFFF59E0B); // تحذير كهرماني
 
 class StudentDisplayScreen extends StatefulWidget {
   final String groupId;
@@ -83,15 +84,33 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
           builder: (context, setDialogState) {
             return AlertDialog(
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(24),
               ),
-              title: const Text(
-                "⚠️ تأكيد الحذف النهائي",
-                style: TextStyle(
-                  fontFamily: 'cairo',
-                  fontWeight: FontWeight.bold,
-                  color: _kDanger,
-                ),
+              title: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: const BoxDecoration(
+                      color: _kDangerBg,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.warning_amber_rounded,
+                      color: _kDanger,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  const Text(
+                    "تأكيد الحذف النهائي",
+                    style: TextStyle(
+                      fontFamily: 'cairo',
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      color: _kNavy,
+                    ),
+                  ),
+                ],
               ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -99,16 +118,21 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
                 children: [
                   Text(
                     "هل أنت متأكد من حذف (${_selectedStudentIds.length}) من الطلاب المحددين؟\nسيتم حذف كافة البيانات والأنشطة المرتبطة بهم نهائياً.",
-                    style: const TextStyle(fontFamily: 'cairo', fontSize: 13.5),
+                    style: const TextStyle(
+                      fontFamily: 'cairo',
+                      fontSize: 13.5,
+                      color: _kNavyLight,
+                      height: 1.5,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.grey.shade300),
+                      color: _kPrimaryLight,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: _kPrimary.withOpacity(0.15)),
                     ),
                     child: Column(
                       children: [
@@ -117,10 +141,10 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
                           style: TextStyle(
                             fontFamily: 'cairo',
                             fontSize: 12,
-                            color: Colors.black87,
+                            color: _kHint,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 6),
                         SelectableText(
                           confirmationCode,
                           style: const TextStyle(
@@ -128,7 +152,7 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 4,
-                            color: _kNavy,
+                            color: _kPrimary,
                           ),
                         ),
                       ],
@@ -152,18 +176,23 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
                         fontFamily: 'cairo',
                         fontSize: 13,
                         letterSpacing: 0,
+                        color: _kHint,
                       ),
                       counterText: "",
                       contentPadding: const EdgeInsets.symmetric(
-                        vertical: 10,
+                        vertical: 12,
                         horizontal: 12,
                       ),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(color: _kCardBorder),
                       ),
                       focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: _kNavy, width: 2),
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(
+                          color: _kPrimary,
+                          width: 2,
+                        ),
                       ),
                     ),
                     onChanged: (val) {
@@ -179,20 +208,36 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
                   onPressed: () => Navigator.pop(ctx, false),
                   child: const Text(
                     "إلغاء",
-                    style: TextStyle(fontFamily: 'cairo'),
+                    style: TextStyle(
+                      fontFamily: 'cairo',
+                      color: _kHint,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _kDanger,
+                    elevation: 0,
                     disabledBackgroundColor: Colors.grey.shade300,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 10,
+                    ),
                   ),
                   onPressed: isButtonEnabled
                       ? () => Navigator.pop(ctx, true)
                       : null,
                   child: const Text(
                     "حذف الكل",
-                    style: TextStyle(fontFamily: 'cairo', color: Colors.white),
+                    style: TextStyle(
+                      fontFamily: 'cairo',
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ],
@@ -208,7 +253,8 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => const Center(child: CircularProgressIndicator()),
+      builder: (_) =>
+          const Center(child: CircularProgressIndicator(color: _kPrimary)),
     );
 
     try {
@@ -289,11 +335,33 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
       builder: (context) {
         return AlertDialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(24),
           ),
-          title: const Text(
-            "⚠️ تحذير",
-            style: TextStyle(fontFamily: 'cairo', fontWeight: FontWeight.bold),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: const BoxDecoration(
+                  color: _kDangerBg,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.warning_amber_rounded,
+                  color: _kDanger,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 10),
+              const Text(
+                "تحذير الحذف",
+                style: TextStyle(
+                  fontFamily: 'cairo',
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: _kNavy,
+                ),
+              ),
+            ],
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -301,15 +369,20 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
               const Text(
                 "سيتم حذف الطالب وجميع سجلاته وبياناته نهائياً.\n"
                 "اكتب الرقم التالي للتأكيد:",
-                style: TextStyle(fontFamily: 'cairo'),
+                style: TextStyle(
+                  fontFamily: 'cairo',
+                  color: _kNavyLight,
+                  fontSize: 13.5,
+                ),
               ),
               const SizedBox(height: 15),
-              Text(
+              SelectableText(
                 randomNumber,
                 style: const TextStyle(
                   fontFamily: 'cairo',
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
+                  letterSpacing: 3,
                   color: _kDanger,
                 ),
               ),
@@ -318,11 +391,26 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
                 controller: controller,
                 keyboardType: TextInputType.number,
                 textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontFamily: 'cairo',
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
                 decoration: InputDecoration(
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: const BorderSide(color: _kCardBorder),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: const BorderSide(color: _kDanger, width: 2),
                   ),
                   hintText: "اكتب الرقم هنا",
+                  hintStyle: const TextStyle(
+                    fontFamily: 'cairo',
+                    fontSize: 13,
+                    color: _kHint,
+                  ),
                 ),
               ),
             ],
@@ -330,10 +418,23 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text("إلغاء", style: TextStyle(fontFamily: 'cairo')),
+              child: const Text(
+                "إلغاء",
+                style: TextStyle(
+                  fontFamily: 'cairo',
+                  color: _kHint,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: _kDanger),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _kDanger,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
               onPressed: () {
                 if (controller.text == randomNumber) {
                   Navigator.pop(context, true);
@@ -345,7 +446,11 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
               },
               child: const Text(
                 "حذف",
-                style: TextStyle(fontFamily: 'cairo', color: Colors.white),
+                style: TextStyle(
+                  fontFamily: 'cairo',
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],
@@ -356,7 +461,7 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
     if (confirm == true) await deleteStudent(student.id!);
   }
 
-  // 🟢 عرض القائمة المنسدلة للطلاب مع إمكانية الانقال لشاشة الطالب عند النقر
+  // 🟢 عرض القائمة المنسدلة للطلاب مع إمكانية الانتقال لشاشة الطالب عند النقر
   void _showStudentsListBottomSheet({
     required String title,
     required List<StudentModel> studentsList,
@@ -365,7 +470,7 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       builder: (ctx) {
         return Container(
@@ -387,11 +492,11 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
                 children: [
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 4,
+                      horizontal: 14,
+                      vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: headerColor.withOpacity(0.15),
+                      color: headerColor.withOpacity(0.12),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
@@ -415,7 +520,7 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
                   ),
                 ],
               ),
-              const Divider(height: 24),
+              const Divider(height: 24, color: _kCardBorder),
               if (studentsList.isEmpty)
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 30),
@@ -434,11 +539,11 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
                       final student = studentsList[idx];
                       return Material(
                         color: _kPageBg,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(16),
                         child: InkWell(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(16),
                           onTap: () {
-                            Navigator.pop(ctx); // إغلاق القائمة السفلية
+                            Navigator.pop(ctx);
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -451,8 +556,8 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
                           },
                           child: Padding(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 10,
+                              horizontal: 14,
+                              vertical: 12,
                             ),
                             child: Row(
                               children: [
@@ -460,8 +565,9 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
                                   student.phone ?? "",
                                   style: const TextStyle(
                                     fontFamily: 'cairo',
-                                    fontSize: 12,
+                                    fontSize: 12.5,
                                     color: _kNavyLight,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
                                 const Spacer(),
@@ -470,18 +576,20 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
                                   style: const TextStyle(
                                     fontFamily: 'cairo',
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 14,
+                                    fontSize: 14.5,
                                     color: _kNavy,
                                   ),
                                 ),
                                 const SizedBox(width: 10),
                                 CircleAvatar(
                                   radius: 14,
-                                  backgroundColor: headerColor.withOpacity(0.2),
+                                  backgroundColor: headerColor.withOpacity(
+                                    0.15,
+                                  ),
                                   child: Icon(
                                     headerColor == _kSuccess
-                                        ? Icons.check
-                                        : Icons.close,
+                                        ? Icons.check_rounded
+                                        : Icons.close_rounded,
                                     size: 16,
                                     color: headerColor,
                                   ),
@@ -504,20 +612,21 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
   Widget _circleAction({
     required IconData icon,
     required VoidCallback? onPressed,
-    Color background = _kIconBg,
-    Color foreground = _kNavy,
+    Color background = _kPrimaryLight,
+    Color foreground = _kPrimary,
     String? tooltip,
   }) {
     final button = Material(
       color: background,
       shape: const CircleBorder(),
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
         customBorder: const CircleBorder(),
         onTap: onPressed,
         child: SizedBox(
-          width: 38,
-          height: 38,
-          child: Icon(icon, color: foreground, size: 19),
+          width: 40,
+          height: 40,
+          child: Icon(icon, color: foreground, size: 20),
         ),
       ),
     );
@@ -527,14 +636,19 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
 
   Widget _tinyTag(String text) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
       decoration: BoxDecoration(
-        color: _kIconBg,
-        borderRadius: BorderRadius.circular(20),
+        color: _kPrimaryLight,
+        borderRadius: BorderRadius.circular(10),
       ),
       child: Text(
         text,
-        style: const TextStyle(fontFamily: 'cairo', fontSize: 10.5),
+        style: const TextStyle(
+          fontFamily: 'cairo',
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: _kPrimary,
+        ),
       ),
     );
   }
@@ -577,20 +691,20 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
         final absentStudents = snapshot.data?['absent'] ?? [];
 
         return Container(
-          margin: const EdgeInsets.only(bottom: 16),
-          padding: const EdgeInsets.all(16),
+          margin: const EdgeInsets.only(bottom: 20),
+          padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [_kNavy, _kNavyLight],
+              colors: [Color(0xFF3B82F6), _kPrimary],
               begin: Alignment.topRight,
               end: Alignment.bottomLeft,
             ),
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: _kNavy.withOpacity(0.12),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
+                color: _kPrimary.withOpacity(0.25),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
               ),
             ],
           ),
@@ -607,22 +721,22 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
                       color: Colors.white70,
                     ),
                   ),
-                  Row(
-                    children: const [
+                  const Row(
+                    children: [
                       Text(
                         "إحصائيات الطلاب",
                         style: TextStyle(
                           fontFamily: 'cairo',
-                          fontSize: 15,
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
                       ),
-                      SizedBox(width: 6),
+                      SizedBox(width: 8),
                       Icon(
                         Icons.analytics_rounded,
                         color: Colors.white,
-                        size: 20,
+                        size: 22,
                       ),
                     ],
                   ),
@@ -637,7 +751,7 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
                       value: "${students.length}",
                       icon: Icons.people_alt_rounded,
                       color: Colors.white,
-                      bgColor: Colors.white.withOpacity(0.15),
+                      bgColor: Colors.white.withOpacity(0.18),
                       onTap: null,
                     ),
                   ),
@@ -650,7 +764,7 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
                           : "${presentStudents.length}",
                       icon: Icons.check_circle_rounded,
                       color: _kSuccess,
-                      bgColor: _kSuccessBg,
+                      bgColor: Colors.white,
                       onTap: () => _showStudentsListBottomSheet(
                         title: "قائمة الحضور اليوم",
                         studentsList: presentStudents,
@@ -667,7 +781,7 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
                           : "${absentStudents.length}",
                       icon: Icons.cancel_rounded,
                       color: _kDanger,
-                      bgColor: _kDangerBg,
+                      bgColor: Colors.white,
                       onTap: () => _showStudentsListBottomSheet(
                         title: "قائمة الغياب اليوم",
                         studentsList: absentStudents,
@@ -692,17 +806,17 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
     required Color bgColor,
     VoidCallback? onTap,
   }) {
-    final isWhite = color == Colors.white;
+    final isWhiteBg = bgColor == Colors.white;
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
           decoration: BoxDecoration(
             color: bgColor,
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(16),
           ),
           child: Column(
             children: [
@@ -717,7 +831,7 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
                       fontFamily: 'cairo',
                       fontSize: 11.5,
                       fontWeight: FontWeight.w600,
-                      color: isWhite ? Colors.white70 : color,
+                      color: isWhiteBg ? color : Colors.white70,
                     ),
                   ),
                 ],
@@ -729,7 +843,7 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
                   fontFamily: 'cairo',
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: isWhite ? Colors.white : color,
+                  color: isWhiteBg ? color : Colors.white,
                 ),
               ),
             ],
@@ -739,7 +853,7 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
     );
   }
 
-  Widget _buildStudentCard(StudentModel student) {
+  Widget _buildStudentCard(StudentModel student, int index) {
     final isSelected = _selectedStudentIds.contains(student.id);
 
     return FutureBuilder<bool>(
@@ -747,185 +861,202 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
       builder: (context, dupSnapshot) {
         final isDuplicate = dupSnapshot.data ?? false;
 
-        return Container(
-          margin: const EdgeInsets.only(bottom: 14),
-          decoration: BoxDecoration(
-            color: isSelected ? const Color(0xFFE8F0FE) : Colors.white,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: isSelected ? _kNavy : _kCardBorder,
-              width: isSelected ? 2 : 1,
-            ),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x0A16213E),
-                blurRadius: 10,
-                offset: Offset(0, 4),
+        return TweenAnimationBuilder<double>(
+          duration: Duration(milliseconds: 250 + (index * 50).clamp(0, 500)),
+          curve: Curves.easeOutCubic,
+          tween: Tween<double>(begin: 0.0, end: 1.0),
+          builder: (context, value, child) {
+            return Transform.translate(
+              offset: Offset(0, (1 - value) * 20),
+              child: Opacity(opacity: value, child: child),
+            );
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            margin: const EdgeInsets.only(bottom: 14),
+            decoration: BoxDecoration(
+              color: isSelected ? _kPrimaryLight : Colors.white,
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(
+                color: isSelected ? _kPrimary : _kCardBorder,
+                width: isSelected ? 2 : 1,
               ),
-            ],
-          ),
-          child: Material(
-            color: Colors.transparent,
-            borderRadius: BorderRadius.circular(18),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(18),
-              onTap: () {
-                if (_isSelectionMode) {
-                  _toggleSelection(student.id!);
-                } else {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => StudentProfileScreen(
-                        student: student,
-                        initialGroupId: widget.groupId,
-                      ),
-                    ),
-                  );
-                }
-              },
-              onLongPress: () {
-                if (!AppSession.hasPermission('deleteStudent')) return;
-                if (!_isSelectionMode) {
-                  setState(() {
-                    _isSelectionMode = true;
-                    _selectedStudentIds.add(student.id!);
-                  });
-                }
-              },
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
+              boxShadow: [
+                BoxShadow(
+                  color: isSelected
+                      ? _kPrimary.withOpacity(0.12)
+                      : Colors.black.withOpacity(0.02),
+                  blurRadius: 14,
+                  offset: const Offset(0, 4),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(
-                      children: [
-                        if (_isSelectionMode)
-                          Checkbox(
-                            value: isSelected,
-                            activeColor: _kNavy,
-                            onChanged: (_) => _toggleSelection(student.id!),
-                          ),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  if (isDuplicate) ...[
-                                    const Tooltip(
-                                      message:
-                                          "الطالب مسجل في أكثر من مجموعة لنفس المادة",
-                                      child: Icon(
-                                        Icons.warning_amber_rounded,
-                                        color: _kWarning,
-                                        size: 16,
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(22),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(22),
+                onTap: () {
+                  if (_isSelectionMode) {
+                    _toggleSelection(student.id!);
+                  } else {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => StudentProfileScreen(
+                          student: student,
+                          initialGroupId: widget.groupId,
+                        ),
+                      ),
+                    );
+                  }
+                },
+                onLongPress: () {
+                  if (!AppSession.hasPermission('deleteStudent')) return;
+                  if (!_isSelectionMode) {
+                    setState(() {
+                      _isSelectionMode = true;
+                      _selectedStudentIds.add(student.id!);
+                    });
+                  }
+                },
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        children: [
+                          if (_isSelectionMode)
+                            Checkbox(
+                              value: isSelected,
+                              activeColor: _kPrimary,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              onChanged: (_) => _toggleSelection(student.id!),
+                            ),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    if (isDuplicate) ...[
+                                      const Tooltip(
+                                        message:
+                                            "الطالب مسجل في أكثر من مجموعة لنفس المادة",
+                                        child: Icon(
+                                          Icons.warning_amber_rounded,
+                                          color: _kWarning,
+                                          size: 18,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+                                    ],
+                                    Flexible(
+                                      child: Text(
+                                        student.name ?? "",
+                                        textAlign: TextAlign.right,
+                                        style: const TextStyle(
+                                          fontFamily: 'cairo',
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                          color: _kNavy,
+                                        ),
                                       ),
                                     ),
-                                    const SizedBox(width: 6),
                                   ],
-                                  Flexible(
-                                    child: Text(
-                                      student.name ?? "",
-                                      textAlign: TextAlign.right,
-                                      style: const TextStyle(
-                                        fontFamily: 'cairo',
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 15,
-                                        color: Colors.black87,
-                                      ),
-                                    ),
+                                ),
+                                const SizedBox(height: 3),
+                                Text(
+                                  student.phone ?? "",
+                                  textAlign: TextAlign.right,
+                                  style: const TextStyle(
+                                    fontFamily: 'cairo',
+                                    fontSize: 13,
+                                    color: _kNavyLight,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                if (student.conectWithPhone == true ||
+                                    student.conectWithWhatsApp == true) ...[
+                                  const SizedBox(height: 8),
+                                  Wrap(
+                                    spacing: 6,
+                                    alignment: WrapAlignment.end,
+                                    children: [
+                                      if (student.conectWithPhone == true)
+                                        _tinyTag("📞 اتصال"),
+                                      if (student.conectWithWhatsApp == true)
+                                        _tinyTag("🟢 واتساب"),
+                                    ],
                                   ),
                                 ],
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                student.phone ?? "",
-                                textAlign: TextAlign.right,
-                                style: const TextStyle(
-                                  fontFamily: 'cairo',
-                                  fontSize: 12.5,
-                                  color: _kNavyLight,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              if (student.conectWithPhone == true ||
-                                  student.conectWithWhatsApp == true) ...[
-                                const SizedBox(height: 6),
-                                Wrap(
-                                  spacing: 6,
-                                  alignment: WrapAlignment.end,
-                                  children: [
-                                    if (student.conectWithPhone == true)
-                                      _tinyTag("📞 اتصال"),
-                                    if (student.conectWithWhatsApp == true)
-                                      _tinyTag("🟢 واتساب"),
-                                  ],
-                                ),
                               ],
-                            ],
+                            ),
                           ),
-                        ),
-                        Container(
-                          width: 42,
-                          height: 42,
-                          decoration: const BoxDecoration(
-                            color: _kIconBg,
-                            shape: BoxShape.circle,
+                          const SizedBox(width: 12),
+                          Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: isSelected ? _kPrimary : _kPrimaryLight,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.person_rounded,
+                              color: isSelected ? Colors.white : _kPrimary,
+                              size: 24,
+                            ),
                           ),
-                          child: const Icon(
-                            Icons.person_rounded,
-                            color: _kNavy,
-                            size: 20,
-                          ),
-                        ),
-                      ],
-                    ),
-                    if (!_isSelectionMode) ...[
-                      const SizedBox(height: 12),
-                      const Divider(height: 1, color: _kCardBorder),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          if (AppSession.hasPermission('editStudent'))
-                            _circleAction(
-                              icon: Icons.edit_rounded,
-                              tooltip: "تعديل",
-                              onPressed: () async {
-                                await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) =>
-                                        EditStudentScreen(student: student),
-                                  ),
-                                );
-                              },
-                            )
-                          else
-                            const SizedBox(width: 38),
-                          if (AppSession.hasPermission('deleteStudent'))
-                            _circleAction(
-                              icon: Icons.delete_rounded,
-                              tooltip: "حذف",
-                              background: _kDangerBg,
-                              foreground: _kDanger,
-                              onPressed: () => _confirmDeleteStudent(student),
-                            )
-                          else
-                            const SizedBox(width: 38),
-                          if (AppSession.hasPermission('attendance'))
-                            _buildTodayAttendanceAction(student)
-                          else
-                            const SizedBox(width: 38),
                         ],
                       ),
+                      if (!_isSelectionMode) ...[
+                        const SizedBox(height: 12),
+                        const Divider(height: 1, color: _kCardBorder),
+                        const SizedBox(height: 10),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            if (AppSession.hasPermission('editStudent'))
+                              _circleAction(
+                                icon: Icons.edit_rounded,
+                                tooltip: "تعديل",
+                                onPressed: () async {
+                                  await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => EditStudentScreen(
+                                        groupId: widget.groupId,
+                                        studentId: student.id!,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              )
+                            else
+                              const SizedBox(width: 40),
+                            if (AppSession.hasPermission('deleteStudent'))
+                              _circleAction(
+                                icon: Icons.delete_rounded,
+                                tooltip: "حذف",
+                                background: _kDangerBg,
+                                foreground: _kDanger,
+                                onPressed: () => _confirmDeleteStudent(student),
+                              )
+                            else
+                              const SizedBox(width: 40),
+                            if (AppSession.hasPermission('attendance'))
+                              _buildTodayAttendanceAction(student)
+                            else
+                              const SizedBox(width: 40),
+                          ],
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
             ),
@@ -942,7 +1073,7 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
       ).where('groupId', isEqualTo: widget.groupId).snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return const SizedBox(width: 38, height: 38);
+          return const SizedBox(width: 40, height: 40);
         }
 
         final todayDocs = snapshot.data!.docs.where((doc) {
@@ -961,7 +1092,7 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
                 foreground: _kDanger,
                 onPressed: () => addAttendance(student, false),
               ),
-              const SizedBox(width: 20),
+              const SizedBox(width: 12),
               _circleAction(
                 icon: Icons.check_circle_rounded,
                 tooltip: "حاضر",
@@ -992,8 +1123,8 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
           return Tooltip(
             message: "تم تسجيل الحضور اليوم",
             child: Container(
-              width: 38,
-              height: 38,
+              width: 40,
+              height: 40,
               decoration: const BoxDecoration(
                 color: _kSuccessBg,
                 shape: BoxShape.circle,
@@ -1009,8 +1140,8 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
           return Tooltip(
             message: "تم تسجيل الغياب اليوم",
             child: Container(
-              width: 38,
-              height: 38,
+              width: 40,
+              height: 40,
               decoration: const BoxDecoration(
                 color: _kDangerBg,
                 shape: BoxShape.circle,
@@ -1031,79 +1162,104 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _kPageBg,
-      appBar: _isSelectionMode
-          ? AppBar(
-              backgroundColor: _kNavy,
-              leading: IconButton(
-                icon: const Icon(Icons.close, color: Colors.white),
-                onPressed: () {
-                  setState(() {
-                    _isSelectionMode = false;
-                    _selectedStudentIds.clear();
-                  });
-                },
-              ),
-              title: Text(
-                "تم تحديد ${_selectedStudentIds.length}",
-                style: const TextStyle(
-                  fontFamily: 'cairo',
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              actions: [
-                IconButton(
-                  icon: const Icon(Icons.select_all, color: Colors.white),
-                  tooltip: "تحديد الكل",
-                  onPressed: () async {
-                    final snapshot = await FirestorePaths.students
-                        .where("groupIds", arrayContains: widget.groupId)
-                        .get();
-                    final allIds = snapshot.docs.map((d) => d.id).toList();
-
-                    setState(() {
-                      if (_selectedStudentIds.length == allIds.length) {
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 250),
+          child: _isSelectionMode
+              ? AppBar(
+                  key: const ValueKey('selection_appbar'),
+                  backgroundColor: _kNavy,
+                  elevation: 0,
+                  leading: IconButton(
+                    icon: const Icon(Icons.close_rounded, color: Colors.white),
+                    onPressed: () {
+                      setState(() {
+                        _isSelectionMode = false;
                         _selectedStudentIds.clear();
-                      } else {
-                        _selectedStudentIds.addAll(allIds);
-                      }
-                    });
-                  },
-                ),
-                IconButton(
-                  icon: const Icon(
-                    Icons.delete_forever,
-                    color: Colors.redAccent,
+                      });
+                    },
                   ),
-                  tooltip: "حذف المحددين",
-                  onPressed: _selectedStudentIds.isEmpty
-                      ? null
-                      : () => _deleteSelectedStudents(),
+                  title: Text(
+                    "تم تحديد ${_selectedStudentIds.length}",
+                    style: const TextStyle(
+                      fontFamily: 'cairo',
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 17,
+                    ),
+                  ),
+                  actions: [
+                    IconButton(
+                      icon: const Icon(
+                        Icons.select_all_rounded,
+                        color: Colors.white,
+                      ),
+                      tooltip: "تحديد الكل",
+                      onPressed: () async {
+                        final snapshot = await FirestorePaths.students
+                            .where("groupIds", arrayContains: widget.groupId)
+                            .get();
+                        final allIds = snapshot.docs.map((d) => d.id).toList();
+
+                        setState(() {
+                          if (_selectedStudentIds.length == allIds.length) {
+                            _selectedStudentIds.clear();
+                          } else {
+                            _selectedStudentIds.addAll(allIds);
+                          }
+                        });
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.delete_outline_rounded,
+                        color: Colors.redAccent,
+                      ),
+                      tooltip: "حذف المحددين",
+                      onPressed: _selectedStudentIds.isEmpty
+                          ? null
+                          : () => _deleteSelectedStudents(),
+                    ),
+                  ],
+                )
+              : AppBar(
+                  key: const ValueKey('normal_appbar'),
+                  backgroundColor: _kPageBg,
+                  elevation: 0,
+                  scrolledUnderElevation: 0,
+                  foregroundColor: _kNavy,
+                  centerTitle: false,
+                  title: const Text(
+                    "الطلاب",
+                    style: TextStyle(
+                      fontFamily: 'cairo',
+                      fontWeight: FontWeight.bold,
+                      fontSize: 24,
+                      color: _kNavy,
+                    ),
+                  ),
                 ),
-              ],
-            )
-          : AppBar(
-              backgroundColor: _kPageBg,
-              elevation: 0,
-              foregroundColor: _kNavy,
-              centerTitle: false,
-              title: const Text(
-                "الطلاب",
-                style: TextStyle(
-                  fontFamily: 'cairo',
-                  fontWeight: FontWeight.bold,
-                  color: _kNavy,
-                ),
-              ),
-            ),
+        ),
+      ),
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
         stream: studentsStream,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+              child: CircularProgressIndicator(
+                strokeWidth: 3,
+                valueColor: AlwaysStoppedAnimation<Color>(_kPrimary),
+              ),
+            );
           }
           if (snapshot.hasError) {
-            return const Center(child: Text("حدث خطأ في جلب الطلاب"));
+            return const Center(
+              child: Text(
+                "حدث خطأ في جلب الطلاب",
+                style: TextStyle(fontFamily: 'cairo', color: _kDanger),
+              ),
+            );
           }
 
           final studentDocs = snapshot.data!.docs;
@@ -1114,25 +1270,27 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    width: 64,
-                    height: 64,
+                    width: 80,
+                    height: 80,
                     decoration: const BoxDecoration(
-                      color: _kIconBg,
+                      color: _kPrimaryLight,
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
                       Icons.person_off_rounded,
-                      color: _kNavy,
-                      size: 30,
+                      color: _kPrimary,
+                      size: 40,
                     ),
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 16),
                   const Text(
-                    "لا يوجد طلاب في هذه المجموعة بعد",
+                    "لا يوجد طلاب في هذه المجموعة بعد\nاضغط على الزر لإضافة طالب جديد",
+                    textAlign: TextAlign.center,
                     style: TextStyle(
                       fontFamily: 'cairo',
                       color: _kHint,
-                      fontSize: 13,
+                      fontSize: 14.5,
+                      height: 1.5,
                     ),
                   ),
                 ],
@@ -1154,16 +1312,17 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
               }
 
               final student = students[index - 1];
-              return _buildStudentCard(student);
+              return _buildStudentCard(student, index - 1);
             },
           );
         },
       ),
       floatingActionButton: AppSession.hasPermission('createStudent')
           ? FloatingActionButton.extended(
-              backgroundColor: _kNavy,
+              backgroundColor: _kPrimary,
+              elevation: 4,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(18),
               ),
               onPressed: () {
                 Navigator.push(
@@ -1176,10 +1335,16 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
               icon: const Icon(
                 Icons.person_add_alt_1_rounded,
                 color: Colors.white,
+                size: 22,
               ),
               label: const Text(
                 "طالب جديد",
-                style: TextStyle(fontFamily: 'cairo', color: Colors.white),
+                style: TextStyle(
+                  fontFamily: 'cairo',
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
               ),
             )
           : null,

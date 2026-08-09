@@ -3,16 +3,18 @@ import 'package:seba/model/activity_model_type.dart';
 import 'package:seba/model/student_model.dart';
 import 'package:seba/features/auth/firestore_path.dart';
 
-// ================== نظام الألوان الموحّد للشاشة ==================
-const _kNavy = Color(0xFF16213E);
-const _kIconBg = Color(0xFFEAF1FB);
-const _kPageBg = Color(0xFFF6F8FB);
-const _kHint = Color(0xFF9AA3B2);
-const _kCardBorder = Color(0xFFEBEEF3);
-const _kSuccess = Color(0xFF2E9E6B);
-const _kSuccessBg = Color(0xFFE4F5EC);
-const _kDanger = Color(0xFFD1483F);
-const _kDangerBg = Color(0xFFFBE9E7);
+// ================== نظام الألوان الحديث والموحد ==================
+const _kPrimary = Color(0xFF4F46E5); // بنفسجي نيلي عصري ومريح للعين
+const _kPrimaryLight = Color(0xFFEEF2FF); // خلفية زاهية خفيفة للأيقونات
+const _kNavy = Color(0xFF0F172A); // نصوص وداكن
+const _kNavyLight = Color(0xFF334155); // نصوص فرعية
+const _kPageBg = Color(0xFFF8FAFC); // خلفية الصفحة
+const _kHint = Color(0xFF64748B); // التلميحات
+const _kCardBorder = Color(0xFFE2E8F0); // الحدود الناعمة
+const _kSuccess = Color(0xFF10B981); // أخضر زمردي
+const _kSuccessBg = Color(0xFFECFDF5); // خلفية الحضور الخفيفة
+const _kDanger = Color(0xFFEF4444); // أحمر مرجاني
+const _kDangerBg = Color(0xFFFEF2F2); // خلفية التنبيه الخفيفة
 
 class EditAttendanceState extends StatefulWidget {
   final StudentModel student;
@@ -32,7 +34,7 @@ class _EditAttendanceStateState extends State<EditAttendanceState> {
   bool? isPresent;
   late DateTime date;
   bool editDate = false;
-  bool isLoading = false; // 💡 حالة التحميل لمنع التكرار
+  bool isLoading = false;
   late TextEditingController noteController;
 
   @override
@@ -40,9 +42,7 @@ class _EditAttendanceStateState extends State<EditAttendanceState> {
     super.initState();
     noteController = TextEditingController(text: widget.activity.note ?? '');
     date = DateTime.parse(widget.activity.date ?? DateTime.now().toString());
-    isPresent =
-        widget.activity.attendancePresent ??
-        true; // 💡 قيمة افتراضية لتفادي الـ Null
+    isPresent = widget.activity.attendancePresent ?? true;
   }
 
   @override
@@ -55,7 +55,6 @@ class _EditAttendanceStateState extends State<EditAttendanceState> {
     final activityId = widget.activity.id;
     final studentId = widget.student.id;
 
-    // 💡 التحقق من وجود المعرفات قبل الاتصال بالفايربيس
     if (activityId == null ||
         activityId.isEmpty ||
         studentId == null ||
@@ -86,7 +85,7 @@ class _EditAttendanceStateState extends State<EditAttendanceState> {
         ),
       );
 
-      Navigator.pop(context, true); // 💡 إرجاع true لتأكيد التحديث
+      Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -114,16 +113,16 @@ class _EditAttendanceStateState extends State<EditAttendanceState> {
   Widget _cardShell({required Widget child}) {
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: _kCardBorder),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
-            color: Color(0x0A16213E),
+            color: Colors.black.withOpacity(0.02),
             blurRadius: 10,
-            offset: Offset(0, 4),
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -133,24 +132,32 @@ class _EditAttendanceStateState extends State<EditAttendanceState> {
 
   Widget _statusChip({required bool present}) {
     final selected = isPresent == present;
+    final color = present ? _kSuccess : _kDanger;
+    final bgColor = present ? _kSuccessBg : _kDangerBg;
+
     return ChoiceChip(
-      label: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            present ? Icons.check_circle_rounded : Icons.cancel_rounded,
-            size: 18,
-            color: present ? _kSuccess : _kDanger,
-          ),
-          const SizedBox(width: 6),
-          Text(
-            present ? "حاضر" : "غائب",
-            style: const TextStyle(
-              fontFamily: "cairo",
-              fontWeight: FontWeight.w600,
+      label: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              present ? Icons.check_circle_rounded : Icons.cancel_rounded,
+              size: 20,
+              color: selected ? color : _kHint,
             ),
-          ),
-        ],
+            const SizedBox(width: 8),
+            Text(
+              present ? "حاضر" : "غائب",
+              style: TextStyle(
+                fontFamily: "cairo",
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+                color: selected ? color : _kNavyLight,
+              ),
+            ),
+          ],
+        ),
       ),
       selected: selected,
       onSelected: (_) => setState(() => isPresent = present),
@@ -159,10 +166,10 @@ class _EditAttendanceStateState extends State<EditAttendanceState> {
       pressElevation: 0,
       shadowColor: Colors.transparent,
       backgroundColor: Colors.white,
-      selectedColor: present ? _kSuccessBg : _kDangerBg,
+      selectedColor: bgColor,
       side: BorderSide(
-        color: selected ? (present ? _kSuccess : _kDanger) : _kCardBorder,
-        width: 1.2,
+        color: selected ? color : _kCardBorder,
+        width: selected ? 1.8 : 1.0,
       ),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
     );
@@ -175,6 +182,7 @@ class _EditAttendanceStateState extends State<EditAttendanceState> {
       appBar: AppBar(
         backgroundColor: _kPageBg,
         elevation: 0,
+        scrolledUnderElevation: 0,
         foregroundColor: _kNavy,
         centerTitle: false,
         title: const Text(
@@ -182,12 +190,14 @@ class _EditAttendanceStateState extends State<EditAttendanceState> {
           style: TextStyle(
             fontFamily: 'cairo',
             fontWeight: FontWeight.bold,
+            fontSize: 22,
             color: _kNavy,
           ),
         ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
+        physics: const BouncingScrollPhysics(),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -195,12 +205,29 @@ class _EditAttendanceStateState extends State<EditAttendanceState> {
             _cardShell(
               child: TextField(
                 controller: noteController,
+                textAlign: TextAlign.right,
+                style: const TextStyle(
+                  fontFamily: 'cairo',
+                  fontSize: 14,
+                  color: _kNavy,
+                ),
                 decoration: InputDecoration(
-                  hintText: "إضافة ملاحظات",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(18),
+                  hintText: "إضافة ملاحظات حول الحضور...",
+                  hintStyle: const TextStyle(
+                    fontFamily: 'cairo',
+                    fontSize: 13.5,
+                    color: _kHint,
+                  ),
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  prefixIcon: const Icon(
+                    Icons.edit_note_rounded,
+                    color: _kPrimary,
+                    size: 24,
                   ),
                 ),
+                maxLines: 2,
               ),
             ),
 
@@ -208,24 +235,23 @@ class _EditAttendanceStateState extends State<EditAttendanceState> {
             _cardShell(
               child: Row(
                 children: [
-                  Switch(
+                  Switch.adaptive(
                     value: editDate,
-                    activeThumbColor: _kNavy,
+                    activeColor: _kPrimary,
                     onChanged: (value) => setState(() => editDate = value),
                   ),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        const SizedBox(height: 14),
                         const Text(
                           "تعديل التاريخ",
                           textAlign: TextAlign.right,
                           style: TextStyle(
                             fontFamily: 'cairo',
                             fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                            color: Colors.black87,
+                            fontSize: 14.5,
+                            color: _kNavy,
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -236,9 +262,9 @@ class _EditAttendanceStateState extends State<EditAttendanceState> {
                             textAlign: TextAlign.right,
                             style: TextStyle(
                               fontFamily: 'cairo',
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.w600,
-                              color: editDate ? _kNavy : _kHint,
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: editDate ? _kPrimary : _kHint,
                             ),
                           ),
                         ),
@@ -247,15 +273,15 @@ class _EditAttendanceStateState extends State<EditAttendanceState> {
                   ),
                   const SizedBox(width: 12),
                   Container(
-                    width: 42,
-                    height: 42,
+                    width: 44,
+                    height: 44,
                     decoration: const BoxDecoration(
-                      color: _kIconBg,
+                      color: _kPrimaryLight,
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
                       Icons.calendar_today_rounded,
-                      color: _kNavy,
+                      color: _kPrimary,
                       size: 20,
                     ),
                   ),
@@ -263,43 +289,54 @@ class _EditAttendanceStateState extends State<EditAttendanceState> {
               ),
             ),
 
-            const SizedBox(height: 6),
-            const Text(
-              "حالة الطالب",
-              style: TextStyle(
-                fontFamily: 'cairo',
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
+            const SizedBox(height: 10),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 4),
+              child: Text(
+                "حالة الطالب",
+                style: TextStyle(
+                  fontFamily: 'cairo',
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                  color: _kNavy,
+                ),
               ),
             ),
             const SizedBox(height: 12),
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
+            Row(
               children: [
-                _statusChip(present: true),
-                _statusChip(present: false),
+                Expanded(child: _statusChip(present: true)),
+                const SizedBox(width: 12),
+                Expanded(child: _statusChip(present: false)),
               ],
             ),
 
-            const SizedBox(height: 30),
+            const SizedBox(height: 36),
 
             // ================== زر التحديث ==================
             SizedBox(
               width: double.infinity,
-              height: 56,
+              height: 54,
               child: ElevatedButton(
                 onPressed: isLoading ? null : updateAttendance,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _kNavy,
+                  backgroundColor: _kPrimary,
                   foregroundColor: Colors.white,
-                  elevation: 0,
+                  elevation: 2,
+                  shadowColor: _kPrimary.withOpacity(0.3),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(28),
+                    borderRadius: BorderRadius.circular(18),
                   ),
                 ),
                 child: isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
+                    ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2.5,
+                        ),
+                      )
                     : const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -312,7 +349,7 @@ class _EditAttendanceStateState extends State<EditAttendanceState> {
                             ),
                           ),
                           SizedBox(width: 10),
-                          Icon(Icons.save_rounded, size: 20),
+                          Icon(Icons.save_rounded, size: 22),
                         ],
                       ),
               ),
