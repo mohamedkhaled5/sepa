@@ -1,3 +1,4 @@
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:seba/features/auth/auth_service.dart';
@@ -52,6 +53,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
         backgroundColor: isError ? Colors.red : Colors.green,
       ),
     );
+  }
+
+  /// إظهار مسحه "التسجيل كمساعد غير متاح حاليًا، سوف تفعيله قريباً" في حالة التسجيل كمساعد
+  void _showComingSoonDialog() {
+    AwesomeDialog(
+      context: context,
+      dialogType: DialogType.info,
+      animType: AnimType.rightSlide,
+      title: 'قريبًا',
+      desc: 'التسجيل كمساعد غير متاح حاليًا، وسيتم تفعيله قريبًا.',
+      btnOkText: 'حسنًا',
+      btnOkOnPress: () {},
+    ).show();
   }
 
   /// دالة التنفيذ الرئيسية للتسجيل
@@ -239,7 +253,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const SizedBox(height: 6),
 
               const Text(
-                "أنشئ حسابًا كمدرس أو كمساعد للبدء في استخدام التطبيق",
+                "أنشئ حسابًا كمدرس أو كمساعد (قريبًا) للبدء في استخدام التطبيق",
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.black54, fontFamily: "cairo"),
               ),
@@ -294,7 +308,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ],
                   selected: {selectedRole},
                   onSelectionChanged: (selection) {
-                    setState(() => selectedRole = selection.first);
+                    if (selection.first == _AccountRole.assistant) {
+                      _showComingSoonDialog();
+                      return;
+                    }
+
+                    setState(() {
+                      selectedRole = selection.first;
+                    });
                   },
                 ),
               ),

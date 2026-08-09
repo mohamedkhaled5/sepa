@@ -1,3 +1,4 @@
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:seba/features/auth/auth_service.dart';
 import 'package:seba/features/assistant/app_session.dart';
@@ -18,14 +19,14 @@ const _kDanger = Color(0xFFD1483F);
 /// يفتح شاشته الخاصة، عشان الشاشة دي تفضل قائمة تنقل بسيطة ومنظمة.
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
-
+  final bool comingSoon = true;
   //
   Widget _settingsTile({
     required IconData icon,
     required Color iconColor,
     required String title,
     required String subtitle,
-    required VoidCallback onTap,
+    required VoidCallback? onTap,
     bool danger = false,
   }) {
     return Container(
@@ -119,6 +120,7 @@ class SettingsScreen extends StatelessWidget {
             const Divider(height: 1),
           ],
 
+          // ============تم تعطيل ميزة المساعجين مؤقتا لحين الانتهاء الكامل منها كي لا يحدث اي خطأ في التطبيق ========
           // إدارة المساعدين تظهر للمدرس فقط - المساعد مالوش صلاحية
           // يدير مساعدين تانيين أو يشوف كود الدعوة.
           if (AppSession.isTeacher || AppSession.isAdmin) ...[
@@ -126,21 +128,43 @@ class SettingsScreen extends StatelessWidget {
               icon: Icons.groups_2_rounded,
               iconColor: Colors.deepPurple,
               title: "إدارة المساعدين",
-              subtitle: "كود الدعوة، طلبات الانضمام، والصلاحيات",
+              subtitle: "قريبًا",
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => ManageAssistantsScreen(
-                      teacherId: AppSession.effectiveTeacherId,
-                    ),
-                  ),
-                );
+                AwesomeDialog(
+                  context: context,
+                  dialogType: DialogType.info,
+                  animType: AnimType.scale,
+                  title: 'الميزة قادمة قريبًا 🚀',
+                  desc:
+                      'نعمل حاليًا على تطوير هذه الميزة، وستكون متاحة في تحديث قادم.',
+                  btnOkText: 'حسنًا',
+                  btnOkOnPress: () {},
+                ).show();
               },
             ),
+            // _settingsTile(
+            //   icon: Icons.groups_2_rounded,
+            //   iconColor: Colors.deepPurple,
+            //   title: "إدارة المساعدين",
+            //   // subtitle: "كود الدعوة، طلبات الانضمام، والصلاحيات",
+            //   subtitle: "قريبا ان شاء الله",
+            //   onTap: null,
+
+            // () {
+
+            //  //========فتح صفحة صلاحيات المساعدين ========
+            //   // Navigator.push(
+            //   //   context,
+            //   //   MaterialPageRoute(
+            //   //     builder: (_) => ManageAssistantsScreen(
+            //   //       teacherId: AppSession.effectiveTeacherId,
+            //   //     ),
+            //   //   ),
+            //   // );
+            // },
+            // ),
             const Divider(height: 1),
           ],
-
           _settingsTile(
             icon: Icons.info_rounded,
             iconColor: Colors.teal,
