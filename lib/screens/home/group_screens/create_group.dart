@@ -339,7 +339,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
         border: Border.all(color: _kCardBorder),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -355,7 +355,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             child: Row(
               children: [
-                if (trailing != null) trailing,
+                ?trailing,
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -674,7 +674,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
             decoration: BoxDecoration(
               color: _kWarningBg,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: _kWarning.withOpacity(0.3)),
+              border: Border.all(color: _kWarning.withValues(alpha: 0.3)),
             ),
             child: Row(
               children: [
@@ -695,7 +695,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: _kWarning.withOpacity(0.15),
+                    color: _kWarning.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(

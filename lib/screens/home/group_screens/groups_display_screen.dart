@@ -118,7 +118,9 @@ class _GroupsDisplayScreenState extends State<GroupsDisplayScreen> {
                     decoration: BoxDecoration(
                       color: _kPrimaryLight,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: _kPrimary.withOpacity(0.15)),
+                      border: Border.all(
+                        color: _kPrimary.withValues(alpha: 0.15),
+                      ),
                     ),
                     child: Column(
                       children: [
@@ -329,7 +331,7 @@ class _GroupsDisplayScreenState extends State<GroupsDisplayScreen> {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: _kPrimary.withOpacity(0.25),
+            color: _kPrimary.withValues(alpha: 0.25),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -342,9 +344,9 @@ class _GroupsDisplayScreenState extends State<GroupsDisplayScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.white.withOpacity(0.3)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
             ),
             child: Text(
               "$count",
@@ -386,7 +388,7 @@ class _GroupsDisplayScreenState extends State<GroupsDisplayScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.18),
+                  color: Colors.white.withValues(alpha: 0.18),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -429,8 +431,8 @@ class _GroupsDisplayScreenState extends State<GroupsDisplayScreen> {
           boxShadow: [
             BoxShadow(
               color: isSelected
-                  ? _kPrimary.withOpacity(0.12)
-                  : Colors.black.withOpacity(0.02),
+                  ? _kPrimary.withValues(alpha: 0.12)
+                  : Colors.black.withValues(alpha: 0.02),
               blurRadius: 14,
               offset: const Offset(0, 4),
             ),
@@ -618,7 +620,7 @@ class _GroupsDisplayScreenState extends State<GroupsDisplayScreen> {
         child: Material(
           color: Colors.white,
           shape: CircleBorder(
-            side: BorderSide(color: _kCardBorder.withOpacity(0.8)),
+            side: BorderSide(color: _kCardBorder.withValues(alpha: 0.8)),
           ),
           clipBehavior: Clip.antiAlias,
           child: InkWell(

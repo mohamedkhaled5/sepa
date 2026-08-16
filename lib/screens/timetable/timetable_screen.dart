@@ -253,14 +253,14 @@ class _TimetableScreenState extends State<TimetableScreen> {
           boxShadow: selected
               ? [
                   BoxShadow(
-                    color: _kPrimary.withOpacity(0.25),
+                    color: _kPrimary.withValues(alpha: 0.25),
                     blurRadius: 8,
                     offset: const Offset(0, 3),
                   ),
                 ]
               : [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.02),
+                    color: Colors.black.withValues(alpha: 0.02),
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
@@ -370,7 +370,7 @@ class _TimetableScreenState extends State<TimetableScreen> {
         color: isToday ? _kPrimaryLight : Colors.transparent,
         borderRadius: BorderRadius.circular(16),
         border: isToday
-            ? Border.all(color: _kPrimary.withOpacity(0.3), width: 1.2)
+            ? Border.all(color: _kPrimary.withValues(alpha: 0.3), width: 1.2)
             : null,
       ),
       alignment: Alignment.center,
@@ -468,7 +468,7 @@ class _TimetableScreenState extends State<TimetableScreen> {
       height: gridHeight,
       decoration: BoxDecoration(
         color: isToday
-            ? const Color(0xFFF1F5F9).withOpacity(0.5)
+            ? const Color(0xFFF1F5F9).withValues(alpha: 0.5)
             : Colors.white,
         border: const Border(left: BorderSide(color: _kCardBorder)),
       ),
@@ -537,12 +537,12 @@ class _TimetableScreenState extends State<TimetableScreen> {
               border: Border.all(
                 color: occ.hasConflict
                     ? _kWarning
-                    : Colors.black.withOpacity(0.06),
+                    : Colors.black.withValues(alpha: 0.06),
                 width: occ.hasConflict ? 1.5 : 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.02),
+                  color: Colors.black.withValues(alpha: 0.02),
                   blurRadius: 4,
                   offset: const Offset(0, 2),
                 ),

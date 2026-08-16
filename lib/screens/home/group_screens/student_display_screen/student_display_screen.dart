@@ -132,7 +132,9 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
                     decoration: BoxDecoration(
                       color: _kPrimaryLight,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: _kPrimary.withOpacity(0.15)),
+                      border: Border.all(
+                        color: _kPrimary.withValues(alpha: 0.15),
+                      ),
                     ),
                     child: Column(
                       children: [
@@ -496,7 +498,7 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: headerColor.withOpacity(0.12),
+                      color: headerColor.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
@@ -534,7 +536,7 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
                   child: ListView.separated(
                     shrinkWrap: true,
                     itemCount: studentsList.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 8),
+                    separatorBuilder: (_, _) => const SizedBox(height: 8),
                     itemBuilder: (context, idx) {
                       final student = studentsList[idx];
                       return Material(
@@ -583,8 +585,8 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
                                 const SizedBox(width: 10),
                                 CircleAvatar(
                                   radius: 14,
-                                  backgroundColor: headerColor.withOpacity(
-                                    0.15,
+                                  backgroundColor: headerColor.withValues(
+                                    alpha: 0.15,
                                   ),
                                   child: Icon(
                                     headerColor == _kSuccess
@@ -702,7 +704,7 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: _kPrimary.withOpacity(0.25),
+                color: _kPrimary.withValues(alpha: 0.25),
                 blurRadius: 16,
                 offset: const Offset(0, 6),
               ),
@@ -751,7 +753,7 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
                       value: "${students.length}",
                       icon: Icons.people_alt_rounded,
                       color: Colors.white,
-                      bgColor: Colors.white.withOpacity(0.18),
+                      bgColor: Colors.white.withValues(alpha: 0.18),
                       onTap: null,
                     ),
                   ),
@@ -884,8 +886,8 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
               boxShadow: [
                 BoxShadow(
                   color: isSelected
-                      ? _kPrimary.withOpacity(0.12)
-                      : Colors.black.withOpacity(0.02),
+                      ? _kPrimary.withValues(alpha: 0.12)
+                      : Colors.black.withValues(alpha: 0.02),
                   blurRadius: 14,
                   offset: const Offset(0, 4),
                 ),

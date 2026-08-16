@@ -39,13 +39,13 @@ class SettingsScreen extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: danger ? _kDanger.withOpacity(0.3) : _kCardBorder,
+          color: danger ? _kDanger.withValues(alpha: 0.3) : _kCardBorder,
         ),
         boxShadow: [
           BoxShadow(
             color: danger
-                ? _kDanger.withOpacity(0.04)
-                : Colors.black.withOpacity(0.02),
+                ? _kDanger.withValues(alpha: 0.04)
+                : Colors.black.withValues(alpha: 0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),

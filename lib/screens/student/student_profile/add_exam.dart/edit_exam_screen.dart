@@ -91,7 +91,7 @@ class _EditExamScreenState extends State<EditExamScreen> {
         border: Border.all(color: _kCardBorder),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
@@ -393,7 +393,7 @@ class _EditExamScreenState extends State<EditExamScreen> {
                   backgroundColor: _kPrimary,
                   foregroundColor: Colors.white,
                   elevation: 2,
-                  shadowColor: _kPrimary.withOpacity(0.3),
+                  shadowColor: _kPrimary.withValues(alpha: 0.3),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(18),
                   ),

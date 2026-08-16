@@ -136,7 +136,9 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
                     decoration: BoxDecoration(
                       color: _kDangerBg,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: _kDanger.withOpacity(0.2)),
+                      border: Border.all(
+                        color: _kDanger.withValues(alpha: 0.2),
+                      ),
                     ),
                     child: Column(
                       children: [
@@ -541,8 +543,8 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
         ? (activity.attendancePresent == true)
         : (activity.examStatus == "حاضر");
     final borderColor = isPresent
-        ? _kSuccess.withOpacity(0.4)
-        : _kDanger.withOpacity(0.4);
+        ? _kSuccess.withValues(alpha: 0.4)
+        : _kDanger.withValues(alpha: 0.4);
     final statusColor = isPresent ? _kSuccess : _kDanger;
     final statusBg = isPresent ? _kSuccessBg : _kDangerBg;
     final percent = _examPercent(activity);
@@ -567,8 +569,8 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
         boxShadow: [
           BoxShadow(
             color: (isAttendance && isSelected)
-                ? _kPrimary.withOpacity(0.1)
-                : Colors.black.withOpacity(0.02),
+                ? _kPrimary.withValues(alpha: 0.1)
+                : Colors.black.withValues(alpha: 0.02),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),

@@ -270,7 +270,7 @@ class _GeneralStudentDisplayScreenState
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: _kPrimary.withOpacity(0.22),
+            color: _kPrimary.withValues(alpha: 0.22),
             blurRadius: 14,
             offset: const Offset(0, 5),
           ),
@@ -282,7 +282,7 @@ class _GeneralStudentDisplayScreenState
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
@@ -335,7 +335,7 @@ class _GeneralStudentDisplayScreenState
           border: Border.all(color: _kCardBorder),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.02),
+              color: Colors.black.withValues(alpha: 0.02),
               blurRadius: 10,
               offset: const Offset(0, 3),
             ),
