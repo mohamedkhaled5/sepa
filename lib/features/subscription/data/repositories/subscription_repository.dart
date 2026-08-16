@@ -27,7 +27,6 @@ class SubscriptionRepository {
     required int durationDays,
     required String plan,
     required int maxAssistants,
-    // 👈 أضف هذه المعلمة
   }) async {
     final cleanCode = code.trim().toUpperCase();
 
@@ -35,8 +34,7 @@ class SubscriptionRepository {
       'code': cleanCode,
       'durationDays': durationDays,
       'plan': plan,
-      'maxAssistants': maxAssistants, // 👈 حد المساعدين المسموح به
-      // 👈 حفظها في الفايربيس
+      'maxAssistants': maxAssistants,
       'used': false,
       'usedAt': null,
       'usedBy': null,
@@ -44,96 +42,81 @@ class SubscriptionRepository {
     });
   }
 
-  Future<void> redeemSubscriptionCode({
-    required String code,
-    required String teacherUid,
-  }) async {
-    final codeDoc = await _firestore
-        .collection('subscription_codes')
-        .doc(code)
-        .get();
-
-    if (!codeDoc.exists) {
-      throw Exception('كود الاشتراك غير صحيح');
-    }
-
-    final data = codeDoc.data()!;
-
-    // 👈 قراءة سقف الصلاحيات المحددة من الأدمن لهذا الكود
-
-    final int durationDays = data['durationDays'] ?? 30;
-    final DateTime newExpiryDate = DateTime.now().add(
-      Duration(days: durationDays),
-    );
-
-    // 👈 تحديث بيانات المدرس بالـ Firestore مع حفظ سقف الصلاحيات
-    await _firestore.collection('users').doc(teacherUid).update({
-      'subscriptionCode': code,
-      'subscriptionExpiry': Timestamp.fromDate(newExpiryDate),
-      'plan': data['plan'] ?? 'Pro',
-      'maxAssistants': data['maxAssistants'] ?? 2,
-      // 🔥 هذا هو السطر المهم الذي يقوم بنقل الصلاحيات لحساب المدرس
-    });
-
-    // تعليم الكود كـ مستخدم
-    await _firestore.collection('subscription_codes').doc(code).update({
-      'isUsed': true,
-      'usedBy': teacherUid,
-      'usedAt': FieldValue.serverTimestamp(),
-    });
-  }
-
-  /// تفعيل الكود وحفظ بيانات الاشتراك والمساعدين المسموح بهم على حساب المدرس عند التسجيل لأول مرة
-  /// تفعيل الكود وحفظ بيانات الاشتراك والمساعدين المسموح بهم على حساب المدرس عند التسجيل لأول مرة
+  /// تفعيل الكود وحفظ بيانات الاشتراك والمساعدين المسموح بهم على حساب
+  /// المدرس عند التسجيل لأول مرة.
+  ///
+  /// ⚠️ لازم تبقى Transaction وليس batch: الـ batch بيكتب من غير أي
+  /// فحص شرطي وقت الكتابة، فلو اتنين مستخدمين حاولوا يسجّلوا بنفس
+  /// الكود في نفس اللحظة، الاتنين كانوا هينجحوا ويتفعّلهم اشتراك كامل
+  /// رغم إن الكود المفروض يتستخدم مرة واحدة بس. الـ Transaction بتقرا
+  /// حالة الكود *جوه* نفس العملية اللي بتكتب بيها، وFirestore بيرفض/
+  /// يعيد أي Transaction بيتعارض مع واحدة تانية خلصت قبله (Optimistic
+  /// Concurrency)، فمستخدم واحد بس هو اللي ينجح مهما كان التوقيت متقارب.
   Future<void> registerWithSubscriptionCode({
     required String uid,
     required String name,
     required String email,
-    required SubscriptionCodeModel
-    codeModel, // 👈 تغيير نوع المعامل هنا ليقبل Model مباشرة
+    required SubscriptionCodeModel codeModel,
   }) async {
-    final int durationDays = codeModel.durationDays;
-    final int maxAssistants = codeModel.maxAssistants;
-    final String code = codeModel.code;
-
-    final now = DateTime.now();
-    final endDate = now.add(Duration(days: durationDays));
-
-    final batch = _firestore.batch();
-
-    // 1. تحديث مستند المدرس بالبيانات وميزة عدد المساعدين
-    final userRef = _firestore.collection('users').doc(uid);
-    batch.set(userRef, {
-      'uid': uid,
-      'name': name,
-      'email': email,
-      'role': 'teacher',
-      'maxAssistants': maxAssistants, // 👈 حفظ الحد الأقصى المباشر في المدرس
-      'subscription': {
-        'active': true,
-        'plan': codeModel.plan,
-        'startDate': Timestamp.fromDate(now),
-        'endDate': Timestamp.fromDate(endDate),
-        'maxAssistants': maxAssistants,
-      },
-      'createdAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
-
-    // 2. تعليم الكود كـ مستخدم (used = true)
-    // نستخدم id الخاص بالـ model أو الكود مباشرة
     final codeRef = _firestore
         .collection('subscription_codes')
-        .doc(codeModel.id.isNotEmpty ? codeModel.id : code);
-    batch.update(codeRef, {
-      'used': true,
-      'usedAt': FieldValue.serverTimestamp(),
-      'usedBy': uid,
-    });
+        .doc(codeModel.id.isNotEmpty ? codeModel.id : codeModel.code);
+    final userRef = _firestore.collection('users').doc(uid);
 
-    await batch.commit();
+    await _firestore.runTransaction((transaction) async {
+      // نعيد قراءة الكود من جوه الـ Transaction نفسها - ده أساس الحماية
+      // من التكرار، مش مجرد فحص قبلي منفصل زي ما كان في النسخة القديمة.
+      final codeSnap = await transaction.get(codeRef);
+
+      if (!codeSnap.exists) {
+        throw Exception('كود الاشتراك غير موجود');
+      }
+
+      final codeData = codeSnap.data()!;
+
+      if (codeData['used'] == true) {
+        throw Exception(
+          'عذراً، هذا الكود تم استخدامه بالفعل من قِبل مستخدم آخر',
+        );
+      }
+
+      final int durationDays = (codeData['durationDays'] as num?)?.toInt() ?? 0;
+      if (durationDays <= 0) {
+        throw Exception('مدة الاشتراك الخاصة بهذا الكود غير صالحة');
+      }
+
+      final now = DateTime.now();
+      final endDate = now.add(Duration(days: durationDays));
+      final plan = codeData['plan'] as String? ?? codeModel.plan;
+      final maxAssistants =
+          (codeData['maxAssistants'] as num?)?.toInt() ??
+          codeModel.maxAssistants;
+
+      transaction.set(userRef, {
+        'uid': uid,
+        'name': name,
+        'email': email,
+        'role': 'teacher',
+        'maxAssistants': maxAssistants,
+        'subscription': {
+          'active': true,
+          'plan': plan,
+          'startDate': Timestamp.fromDate(now),
+          'endDate': Timestamp.fromDate(endDate),
+          'maxAssistants': maxAssistants,
+        },
+        'createdAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+
+      transaction.update(codeRef, {
+        'used': true,
+        'usedAt': FieldValue.serverTimestamp(),
+        'usedBy': uid,
+      });
+    });
   }
 
-  /// 1. جلب كود الاشتراك والتحقق منه
+  /// جلب كود الاشتراك والتحقق منه
   Future<SubscriptionCodeModel?> getSubscriptionCode(String code) async {
     final query = await _firestore
         .collection('subscription_codes')
@@ -145,7 +128,7 @@ class SubscriptionRepository {
     return SubscriptionCodeModel.fromFirestore(query.docs.first);
   }
 
-  /// 3. تفعيل كود جديد لمستخدم مسجل بالفعل (Renewal / Upgrade Flow)
+  /// تفعيل كود جديد لمستخدم مسجل بالفعل (Renewal / Upgrade Flow)
   Future<void> redeemCodeForExistingUser({
     required String uid,
     required SubscriptionCodeModel codeModel,
@@ -166,8 +149,6 @@ class SubscriptionRepository {
       if (!userSnap.exists) throw Exception("المستخدم غير موجود.");
 
       final now = DateTime.now();
-
-      // 🟢 تعديل: الحساب بالأيام مباشرة
       final int daysToAdd = codeModel.durationDays;
 
       DateTime startDate = now;
@@ -178,7 +159,6 @@ class SubscriptionRepository {
         final currentSub = SubscriptionModel.fromMap(userData['subscription']);
 
         if (currentSub.endDate.isAfter(now)) {
-          // إضافة الأيام فوق الاشتراك الحالي المتوفر
           endDate = currentSub.endDate.add(Duration(days: daysToAdd));
           startDate = currentSub.startDate;
         }
@@ -189,13 +169,11 @@ class SubscriptionRepository {
         plan: codeModel.plan,
         startDate: startDate,
         endDate: endDate,
-        maxAssistants: codeModel.maxAssistants, // 👈 تحديث عدد المساعدين الجديد
+        maxAssistants: codeModel.maxAssistants,
       );
 
-      // تحديث بيانات المدرس بالكامل بالـ maxAssistants الجديد
       transaction.update(userRef, {
-        'maxAssistants':
-            codeModel.maxAssistants, // 👈 تحديث الحقليْن بالخطة الجديدة
+        'maxAssistants': codeModel.maxAssistants,
         'subscription': updatedSubscription.toMap(),
       });
 
@@ -207,7 +185,7 @@ class SubscriptionRepository {
     });
   }
 
-  /// 4. قراءة بيانات اشتراك المستخدم الحالي بشكل حي (Stream)
+  /// قراءة بيانات اشتراك المستخدم الحالي بشكل حي (Stream)
   Stream<SubscriptionModel?> streamUserSubscription(String uid) {
     return _firestore.collection('users').doc(uid).snapshots().map((snapshot) {
       if (!snapshot.exists) return null;

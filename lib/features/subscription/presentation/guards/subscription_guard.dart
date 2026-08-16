@@ -1,9 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:seba/features/assistant/app_session.dart';
 import 'package:seba/features/subscription/domain/models/subscription_model.dart';
 import 'package:seba/features/subscription/domain/services/subscription_service.dart';
 import 'package:seba/features/subscription/presentation/screens/redeem_code_screen.dart';
 
+/// يحرس الوصول لكل شاشات التطبيق، بالاعتماد دايمًا على اشتراك
+/// *المدرس* - مش المستخدم الحالي بذاته. للمدرس ده نفس حسابه هو،
+/// وللمساعد ده حساب المدرس التابع له (AppSession.effectiveTeacherId)،
+/// لأن المساعد مالوش اشتراك مستقل خالص - هو بيرث حالة اشتراك مدرسه
+/// زي ما بيرث كل بياناته بالظبط.
+///
+/// ⚠️ لازم يتحط في شجرة الودجات *بعد* ما AuthWrapper يحدد الدور
+/// وينادي AppSession.setSession(...) - قبل كده effectiveTeacherId
+/// هيرمي StateError، فبنتحقق من isSessionLoaded الأول احتياطيًا.
 class SubscriptionGuard extends StatelessWidget {
   final Widget child;
 
@@ -11,15 +20,19 @@ class SubscriptionGuard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
+    // الأدمن مالوش اشتراك من الأساس (هو المسؤول عن إدارة الأكواد
+    // نفسها)، فمايتقفلش أبدًا بفحص الاشتراك.
+    if (AppSession.isAdmin) return child;
 
-    // إذا لم يكن هناك مستخدم مسجل، ارجع الشاشة كما هي (سيتعامل معها AuthGuard)
-    if (user == null) return child;
+    if (!AppSession.isSessionLoaded) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
 
     final subscriptionService = SubscriptionService();
+    final teacherId = AppSession.effectiveTeacherId;
 
     return StreamBuilder<SubscriptionModel?>(
-      stream: subscriptionService.watchSubscription(user.uid),
+      stream: subscriptionService.watchSubscription(teacherId),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
@@ -30,21 +43,22 @@ class SubscriptionGuard extends StatelessWidget {
         final subscription = snapshot.data;
         final isValid = subscriptionService.isSubscriptionValid(subscription);
 
-        // إذا كان الاشتراك فعالاً، عرض الشاشة المطلوبة
-        if (isValid) {
-          return child;
-        }
+        if (isValid) return child;
 
-        // إذا كان الاشتراك منتهياً أو غير موجود، عرض شاشة التنبيه والتجديد
-        return const ExpiredSubscriptionScreen();
+        return ExpiredSubscriptionScreen(canRenew: AppSession.isTeacher);
       },
     );
   }
 }
 
-/// شاشة تظهر للمعلم عند انتهاء اشتراكه
+/// شاشة تظهر عند انتهاء اشتراك المدرس (أو المدرس المرتبط بالمساعد).
+/// المدرس بس هو اللي يقدر يجدد بكود من هنا - لو المساعد أدخل كود من
+/// حسابه هو، الكود هيتفعّل على حساب المساعد نفسه مش حساب مدرسه، وده
+/// غلط تمامًا، فبنمنع ظهور حقل الكود له خالص ونوريه رسالة توضيحية بس.
 class ExpiredSubscriptionScreen extends StatelessWidget {
-  const ExpiredSubscriptionScreen({super.key});
+  final bool canRenew;
+
+  const ExpiredSubscriptionScreen({super.key, this.canRenew = true});
 
   @override
   Widget build(BuildContext context) {
@@ -69,29 +83,34 @@ class ExpiredSubscriptionScreen extends StatelessWidget {
                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
-              const Text(
-                'عذراً، انتهت صلاحية اشتراكك الحالية. يرجى إدخال كود تجديد للاستمرار في استخدام ميزات التطبيق.',
+              Text(
+                canRenew
+                    ? 'عذراً، انتهت صلاحية اشتراكك الحالية. يرجى إدخال '
+                          'كود تجديد للاستمرار في استخدام ميزات التطبيق.'
+                    : 'عذراً، انتهت صلاحية اشتراك المدرس المرتبط بحسابك. '
+                          'يرجى التواصل معه لتجديد الاشتراك.',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 15, color: Colors.grey),
+                style: const TextStyle(fontSize: 15, color: Colors.grey),
               ),
               const SizedBox(height: 32),
-              ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => const RedeemCodeScreen(),
+              if (canRenew)
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const RedeemCodeScreen(),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.vpn_key_rounded),
+                  label: const Text('إدخال كود التجديد'),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                  );
-                },
-                icon: const Icon(Icons.vpn_key_rounded),
-                label: const Text('إدخال كود التجديد'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-              ),
             ],
           ),
         ),

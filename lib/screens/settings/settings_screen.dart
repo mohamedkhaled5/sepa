@@ -145,18 +145,26 @@ class SettingsScreen extends StatelessWidget {
               icon: Icons.groups_2_rounded,
               iconColor: const Color(0xFF8B5CF6), // بنفسجي ناعم
               title: "إدارة المساعدين",
-              subtitle: "قريبًا",
+              subtitle: "نسخه تجريبيه",
               onTap: () {
-                AwesomeDialog(
-                  context: context,
-                  dialogType: DialogType.info,
-                  animType: AnimType.scale,
-                  title: 'الميزة قادمة قريبًا 🚀',
-                  desc:
-                      'نعمل حاليًا على تطوير هذه الميزة، وستكون متاحة في تحديث قادم.',
-                  btnOkText: 'حسنًا',
-                  btnOkOnPress: () {},
-                ).show();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ManageAssistantsScreen(
+                      teacherId: AppSession.effectiveTeacherId,
+                    ),
+                  ),
+                );
+                // AwesomeDialog(
+                //   context: context,
+                //   dialogType: DialogType.info,
+                //   animType: AnimType.scale,
+                //   title: 'الميزة قادمة قريبًا 🚀',
+                //   desc:
+                //       'نعمل حاليًا على تطوير هذه الميزة، وستكون متاحة في تحديث قادم.',
+                //   btnOkText: 'حسنًا',
+                //   btnOkOnPress: () {},
+                // ).show();
               },
             ),
           ],

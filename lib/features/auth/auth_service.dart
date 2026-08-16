@@ -78,10 +78,10 @@ class AuthService {
   /// مستند موجود، والـ update ممنوع تمامًا لمجموعة inviteCodes) فبنجرب
   /// كود تاني. الفرادة هنا مضمونة من Firestore نفسه، مش من فحص قبل
   /// الإنشاء زي الطريقة القديمة (اللي كانت فيها احتمال تضارب نادر).
-  Future<String> _generateUniqueInviteCode() async {
+  Future<String> _generateUniqueInviteCode({String? targetTeacherUid}) async {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // بدون أحرف ملتبسة
     final random = Random();
-    final uid = _auth.currentUser!.uid;
+    final uid = targetTeacherUid ?? _auth.currentUser!.uid;
 
     while (true) {
       final code = List.generate(
@@ -264,7 +264,10 @@ class AuthService {
       return existingCode;
     }
 
-    final newCode = await _generateUniqueInviteCode();
+    // تمرير teacherUid لضمان توليد الكود للمدرس الصحيح
+    final newCode = await _generateUniqueInviteCode(
+      targetTeacherUid: teacherUid,
+    );
     await _usersCollection.doc(teacherUid).update({'inviteCode': newCode});
     return newCode;
   }

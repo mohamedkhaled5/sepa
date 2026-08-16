@@ -308,10 +308,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ],
                   selected: {selectedRole},
                   onSelectionChanged: (selection) {
-                    if (selection.first == _AccountRole.assistant) {
-                      _showComingSoonDialog();
-                      return;
-                    }
+                    // if (selection.first == _AccountRole.assistant) {
+                    //   _showComingSoonDialog();
+                    //   return;
+                    // }
 
                     setState(() {
                       selectedRole = selection.first;
