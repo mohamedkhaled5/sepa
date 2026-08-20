@@ -241,7 +241,29 @@ class AuthService {
   Future<UserModel?> fetchUserData(String uid) async {
     final doc = await _usersCollection.doc(uid).get();
     if (!doc.exists) return null;
-    return UserModel.fromFirestore(doc);
+
+    final user = UserModel.fromFirestore(doc);
+
+    // 🔹 إذا كان المستخدم مساعداً، نتحقق من اشتراك المدرس المرتبط به
+    if (user.role == 'assistant' && user.teacherId != null) {
+      final teacherDoc = await _usersCollection.doc(user.teacherId).get();
+
+      if (teacherDoc.exists) {
+        final teacherData = teacherDoc.data();
+        final subscriptionEnd = (teacherData?['subscriptionEnd'] as Timestamp?)
+            ?.toDate();
+
+        // إذا كان اشتراك المدرس منتهياً
+        if (subscriptionEnd != null &&
+            subscriptionEnd.isBefore(DateTime.now())) {
+          throw Exception(
+            'اشتراك المدرس المرتبط بك قد انتهى. يُرجى التواصل مع المدرس لتجديد الاشتراك.',
+          );
+        }
+      }
+    }
+
+    return user;
   }
 
   /// بترجع كود الدعوة الخاص بمدرس معين. بتغطي 3 حالات:
@@ -355,6 +377,18 @@ class AuthService {
   ) async {
     await _usersCollection.doc(assistantUid).update({
       'permissions': permissions,
+    });
+  }
+
+  /// إلغاء ارتباط المساعد بالمدرس الحالي وتحويل حالته إلى removed ليتمكن من إدخال كود جديد
+  Future<void> unlinkFromTeacher() async {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) return;
+
+    await _usersCollection.doc(uid).update({
+      'status': 'removed',
+      'teacherId': FieldValue.delete(),
+      'permissions': {},
     });
   }
 }

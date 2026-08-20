@@ -6,6 +6,7 @@ import 'package:seba/features/assistant/app_session.dart';
 import 'package:seba/features/auth/firestore_path.dart';
 import 'package:seba/model/activity_model_type.dart';
 import 'package:seba/model/student_model.dart';
+import 'package:seba/screens/statistics/statistics_screen.dart';
 import 'package:seba/screens/student/add_student_data.dart';
 import 'package:seba/screens/student/edit_student/edit_student_screen.dart';
 import 'package:seba/screens/student/student_profile/student_profile_screen.dart';
@@ -37,7 +38,7 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
 
   bool _isSelectionMode = false;
   final Set<String> _selectedStudentIds = {};
-
+  double studentRating = 0.0;
   @override
   void initState() {
     super.initState();
@@ -303,6 +304,7 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
   Future<void> addAttendance(StudentModel student, bool isPresent) async {
     await FirestorePaths.studentActivities(student.id!).add(
       ActivityModel(
+        studentRating: studentRating,
         type: ActivityType.attendance.name,
         date: DateTime.now().toIso8601String(),
         groupId: widget.groupId,
@@ -761,9 +763,13 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
                   Expanded(
                     child: _buildHeaderStatItem(
                       title: "الحضور",
+                      //  تم التحديث هنا
                       value: snapshot.connectionState == ConnectionState.waiting
-                          ? "..."
-                          : "${presentStudents.length}",
+                          ? const CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: _kSuccess,
+                            )
+                          : presentStudents.length,
                       icon: Icons.check_circle_rounded,
                       color: _kSuccess,
                       bgColor: Colors.white,
@@ -778,9 +784,13 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
                   Expanded(
                     child: _buildHeaderStatItem(
                       title: "الغياب",
+                      // 👈 تم التحديث هنا
                       value: snapshot.connectionState == ConnectionState.waiting
-                          ? "..."
-                          : "${absentStudents.length}",
+                          ? const CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: _kDanger,
+                            )
+                          : absentStudents.length,
                       icon: Icons.cancel_rounded,
                       color: _kDanger,
                       bgColor: Colors.white,
@@ -802,7 +812,7 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
 
   Widget _buildHeaderStatItem({
     required String title,
-    required String value,
+    required dynamic value,
     required IconData icon,
     required Color color,
     required Color bgColor,
@@ -838,16 +848,20 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 4),
-              Text(
-                value,
-                style: TextStyle(
-                  fontFamily: 'cairo',
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: isWhiteBg ? color : Colors.white,
+              const SizedBox(height: 6),
+              // 👈 التحقق إذا كان قيمة value عبارة عن Widget أو نص/رقم
+              if (value is Widget)
+                SizedBox(width: 18, height: 18, child: value)
+              else
+                Text(
+                  "$value",
+                  style: TextStyle(
+                    fontFamily: 'cairo',
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: isWhiteBg ? color : Colors.white,
+                  ),
                 ),
-              ),
             ],
           ),
         ),
@@ -1225,7 +1239,8 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
                     ),
                   ],
                 )
-              : AppBar(
+              : // في AppBar العادي داخل StudentDisplayScreen:
+                AppBar(
                   key: const ValueKey('normal_appbar'),
                   backgroundColor: _kPageBg,
                   elevation: 0,
@@ -1241,6 +1256,37 @@ class _StudentDisplayScreenState extends State<StudentDisplayScreen> {
                       color: _kNavy,
                     ),
                   ),
+                  actions: [
+                    Padding(
+                      padding: const EdgeInsets.only(left: 8.0),
+                      child: Material(
+                        color: Colors.white,
+                        shape: const CircleBorder(),
+                        child: InkWell(
+                          customBorder: const CircleBorder(),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => StatisticsScreen(
+                                  groupId: widget.groupId,
+                                ), // مع تمرير groupId
+                              ),
+                            );
+                          },
+                          child: const SizedBox(
+                            width: 42,
+                            height: 42,
+                            child: Icon(
+                              Icons.leaderboard_rounded,
+                              color: _kPrimary,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
         ),
       ),

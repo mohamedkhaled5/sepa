@@ -24,6 +24,9 @@ class ActivityModel {
 
   String? note;
 
+  /// تقييم الطالب
+  double? studentRating;
+
   ActivityModel({
     this.id,
     this.type,
@@ -35,6 +38,7 @@ class ActivityModel {
     this.currentDegree,
     this.maxDegree,
     this.note,
+    required this.studentRating,
   });
 
   Map<String, dynamic> toMap() {
@@ -48,6 +52,7 @@ class ActivityModel {
       "currentDegree": currentDegree,
       "maxDegree": maxDegree,
       "note": note,
+      "studentRating": studentRating,
     };
   }
 
@@ -65,6 +70,7 @@ class ActivityModel {
       currentDegree: json["currentDegree"],
       maxDegree: json["maxDegree"],
       note: json["note"],
+      studentRating: json["studentRating"],
     );
   }
 }

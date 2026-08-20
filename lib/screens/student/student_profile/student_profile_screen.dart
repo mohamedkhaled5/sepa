@@ -711,6 +711,43 @@ class _StudentProfileScreenState extends State<StudentProfileScreen>
                         ),
                       ],
                       const SizedBox(height: 4),
+                      //==================== student rating  ==================
+                      if (activity.studentRating != null &&
+                          activity.studentRating! > 0) ...[
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.amber.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: Colors.amber, width: 1),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.star_rounded,
+                                color: Colors.amber,
+                                size: 16,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                "${activity.studentRating!.toStringAsFixed(1)} / 10",
+                                style: const TextStyle(
+                                  fontFamily: 'cairo',
+                                  color: _kNavy,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                      ],
+                      const SizedBox(height: 4),
                       Text(
                         formattedDate,
                         textAlign: TextAlign.right,

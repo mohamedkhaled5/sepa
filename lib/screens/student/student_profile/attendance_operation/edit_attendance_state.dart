@@ -36,13 +36,14 @@ class _EditAttendanceStateState extends State<EditAttendanceState> {
   bool editDate = false;
   bool isLoading = false;
   late TextEditingController noteController;
-
+  double studentRating = 0.0;
   @override
   void initState() {
     super.initState();
     noteController = TextEditingController(text: widget.activity.note ?? '');
     date = DateTime.parse(widget.activity.date ?? DateTime.now().toString());
     isPresent = widget.activity.attendancePresent ?? true;
+    studentRating = (widget.activity.studentRating ?? 0.0).toDouble();
   }
 
   @override
@@ -74,6 +75,7 @@ class _EditAttendanceStateState extends State<EditAttendanceState> {
         "date": date.toIso8601String(),
         "attendancePresent": isPresent ?? true,
         "note": noteController.text.trim(),
+        "studentRating": studentRating, // ✅ حفظ التقييم المعدل في Firestore
       });
 
       if (!mounted) return;
@@ -230,7 +232,83 @@ class _EditAttendanceStateState extends State<EditAttendanceState> {
                 maxLines: 2,
               ),
             ),
+            // ================== تقييم الطالب ==================
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "تقييم الطالب",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: "cairo",
+                  ),
+                ),
 
+                const SizedBox(height: 10),
+
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.star_rounded,
+                      color: Colors.amber,
+                      size: 30,
+                    ),
+
+                    const SizedBox(width: 8),
+
+                    Text(
+                      "${studentRating.toStringAsFixed(1)} / 10",
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: "cairo",
+                      ),
+                    ),
+                  ],
+                ),
+
+                Slider(
+                  value: studentRating,
+                  min: 0,
+                  max: 10,
+                  divisions: 20,
+                  label: studentRating.toStringAsFixed(1),
+                  activeColor: Colors.amber,
+                  inactiveColor: Colors.grey.shade300,
+
+                  onChanged: (value) {
+                    setState(() {
+                      studentRating = value;
+                    });
+                  },
+                ),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: const [
+                    Text(
+                      "ضعيف",
+                      style: TextStyle(color: Colors.red, fontFamily: "cairo"),
+                    ),
+                    Text(
+                      "متوسط",
+                      style: TextStyle(
+                        color: Colors.orange,
+                        fontFamily: "cairo",
+                      ),
+                    ),
+                    Text(
+                      "ممتاز",
+                      style: TextStyle(
+                        color: Colors.green,
+                        fontFamily: "cairo",
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
             // ================== التاريخ ==================
             _cardShell(
               child: Row(

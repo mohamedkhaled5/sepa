@@ -5,7 +5,16 @@ import 'package:seba/model/student_model.dart';
 class AttendanceRecord {
   final DateTime date;
   final bool isPresent;
-  AttendanceRecord({required this.date, required this.isPresent});
+  final String? note;
+  final double? studentRating;
+  AttendanceRecord({
+    required this.date,
+    required this.isPresent,
+    this.note,
+    this.studentRating,
+  });
+  double get percentagerate =>
+      studentRating != null ? (studentRating! / 10) * 100 : 0;
 }
 
 /// سجل امتحان واحد داخل التقرير.
@@ -58,6 +67,17 @@ class GroupReportSection {
     final sum = validExams.fold<double>(0, (s, e) => s + e.percentage);
     return sum / validExams.length;
   }
+
+  /// معدل الحضور لطالب
+  double get averageStudentRateingPercentagerate {
+    //معدل درجات الحضور
+    final validAttendance = attendanceRecords
+        .where((a) => a.isPresent)
+        .toList();
+    if (validAttendance.isEmpty) return 0;
+    final sum = validAttendance.fold<double>(0, (s, a) => s + a.percentagerate);
+    return sum / validAttendance.length;
+  }
 }
 
 /// نتيجة التقرير الكاملة لطالب واحد - بتُبنى مرة واحدة وتُستخدم في أي
@@ -92,5 +112,16 @@ class StudentReportData {
     if (allExams.isEmpty) return 0;
     final sum = allExams.fold<double>(0, (s, e) => s + e.percentage);
     return sum / allExams.length;
+  }
+
+  /// معدل الحضور المتوسط لطالب
+  double get overallAverageAttendancePercentagerate {
+    final allAttendance = groupSections
+        .expand((s) => s.attendanceRecords)
+        .where((a) => a.isPresent)
+        .toList();
+    if (allAttendance.isEmpty) return 0;
+    final sum = allAttendance.fold<double>(0, (s, a) => s + a.percentagerate);
+    return sum / allAttendance.length;
   }
 }

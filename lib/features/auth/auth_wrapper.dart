@@ -1,4 +1,3 @@
-// lib/features/auth/auth_wrapper.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -10,10 +9,6 @@ import 'package:seba/features/subscription/presentation/guards/subscription_guar
 import 'package:seba/model/user_model.dart';
 import 'package:seba/screens/home/home_page_screen.dart';
 
-/// يراقب حالة تسجيل الدخول، وبعدها بيراقب مستند users/{uid} في Firestore
-/// بشكل حي (Stream مش Future مرة واحدة). ده يخلي أي تغيير يحصل من المدرس
-/// (تعديل صلاحية، قبول، رفض، إزالة مساعد) يوصل للمساعد فورًا من غير ما
-/// يحتاج يعمل تسجيل خروج/دخول من جديد.
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});
 
@@ -58,7 +53,6 @@ class AuthWrapper extends StatelessWidget {
               );
             }
 
-            // المستند لسه ما اتكتبش (سباق مؤقت وقت التسجيل مباشرة)
             if (!docSnapshot.hasData || !docSnapshot.data!.exists) {
               return const Scaffold(
                 body: Center(child: CircularProgressIndicator()),
@@ -109,26 +103,23 @@ class AuthWrapper extends StatelessWidget {
                       );
                     }
 
-                    // 🔴 التحقق من وجود المدرس وصلاحية اشتراكه
+                    // إذا كان حساب المدرس غير موجود أصلاً
                     if (!teacherDocSnapshot.hasData ||
-                        !teacherDocSnapshot.data!.exists ||
-                        !AppSession.isTeacherSubscriptionValid(
-                          teacherDocSnapshot.data!.data(),
-                        )) {
-                      // إذا كان اشتراك المدرس منتهياً أو حسابه غير موجود يتم تحويله لشاشة الحالة
+                        !teacherDocSnapshot.data!.exists) {
                       return const AssistantStatusScreen(
                         kind: AssistantStatusKind.removed,
                       );
                     }
 
-                    // 🟢 المدرس اشتراكه ساري -> ضبط الجلسة وتوجيه المساعد
+                    // 🟢 ضبط الجلسة للمساعد
                     AppSession.setSession(
                       effectiveTeacherId: userModel.teacherId!,
                       role: 'assistant',
                       permissions: userModel.permissions,
                     );
 
-                    return const HomePageScreen();
+                    // تغليف HomePageScreen بـ SubscriptionGuard ليتولى فحص اشتراك المدرس تلقائياً
+                    return const SubscriptionGuard(child: HomePageScreen());
                   },
                 );
 
@@ -143,7 +134,6 @@ class AuthWrapper extends StatelessWidget {
                 );
 
               default:
-                // status == null أو 'removed'
                 return const AssistantStatusScreen(
                   kind: AssistantStatusKind.removed,
                 );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:seba/features/subscription/data/repositories/subscription_repository.dart';
+import 'admin_manage_codes_screen.dart';
 
 class AdminCreateCodeScreen extends StatefulWidget {
   const AdminCreateCodeScreen({super.key});
@@ -137,6 +138,20 @@ class _AdminCreateCodeScreenState extends State<AdminCreateCodeScreen> {
         ),
         backgroundColor: const Color(0xFF16213E),
         foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            tooltip: 'عرض وإدارة الأكواد',
+            icon: const Icon(Icons.list_alt_rounded),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AdminManageCodesScreen(),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),

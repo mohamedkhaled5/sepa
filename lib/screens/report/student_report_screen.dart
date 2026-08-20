@@ -455,12 +455,15 @@ class _StudentReportScreenState extends State<StudentReportScreen> {
   }
 
   // ================== بطاقة الحضور والغياب (مجمّعة لكل المجموعات) ==================
+  // إدراج عرض التقييم داخل بطاقة الحضور والغياب
   Widget _buildAttendanceCard(StudentReportData data) {
+    final avgRating = data.overallAverageAttendancePercentagerate;
+
     return _card(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _cardTitle("الحضور والغياب", Icons.event_available_rounded),
+          _cardTitle("الحضور والتقييم", Icons.event_available_rounded),
           const SizedBox(height: 14),
           Row(
             children: [
@@ -496,7 +499,7 @@ class _StudentReportScreenState extends State<StudentReportScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  "${(data.overallAttendanceRate * 100).toStringAsFixed(0)}%",
+                  "${avgRating.toStringAsFixed(0)}%",
                   style: const TextStyle(
                     fontFamily: 'cairo',
                     fontWeight: FontWeight.bold,
@@ -505,7 +508,7 @@ class _StudentReportScreenState extends State<StudentReportScreen> {
                   ),
                 ),
                 const Text(
-                  "نسبة الحضور الكلية",
+                  "متوسط تقييم الأداء والحضور",
                   style: TextStyle(
                     fontFamily: 'cairo',
                     fontWeight: FontWeight.w600,

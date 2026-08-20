@@ -29,6 +29,9 @@ class ReportDataService {
                 (a) => AttendanceRecord(
                   date: DateTime.tryParse(a.date ?? '') ?? DateTime.now(),
                   isPresent: a.attendancePresent ?? false,
+                  note: a.note, // 👈 تم إضافة ربط الملاحظة
+                  studentRating: a.studentRating
+                      ?.toDouble(), // 👈 تم إضافة ربط التقييم
                 ),
               )
               .toList()

@@ -41,6 +41,7 @@ class _AddAttendanceStateState extends State<AddAttendanceState> {
   bool useCustomDate = false;
   late DateTime date;
   bool? isPresent = false;
+  double studentRating = 0.0;
 
   Future<void> pickDate() async {
     final picked = await showDatePicker(
@@ -61,6 +62,7 @@ class _AddAttendanceStateState extends State<AddAttendanceState> {
         groupId: widget.groupId,
         attendancePresent: isPresent == true,
         note: noteController.text,
+        studentRating: studentRating,
       ).toMap(),
     );
   }
@@ -186,7 +188,83 @@ class _AddAttendanceStateState extends State<AddAttendanceState> {
                 maxLines: 2,
               ),
             ),
+            // ================== تقييم الطالب ==================
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "تقييم الطالب",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: "cairo",
+                  ),
+                ),
 
+                const SizedBox(height: 10),
+
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.star_rounded,
+                      color: Colors.amber,
+                      size: 30,
+                    ),
+
+                    const SizedBox(width: 8),
+
+                    Text(
+                      "${studentRating.toStringAsFixed(1)} / 10",
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: "cairo",
+                      ),
+                    ),
+                  ],
+                ),
+
+                Slider(
+                  value: studentRating,
+                  min: 0,
+                  max: 10,
+                  divisions: 20,
+                  label: studentRating.toStringAsFixed(1),
+                  activeColor: Colors.amber,
+                  inactiveColor: Colors.grey.shade300,
+
+                  onChanged: (value) {
+                    setState(() {
+                      studentRating = value;
+                    });
+                  },
+                ),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: const [
+                    Text(
+                      "ضعيف",
+                      style: TextStyle(color: Colors.red, fontFamily: "cairo"),
+                    ),
+                    Text(
+                      "متوسط",
+                      style: TextStyle(
+                        color: Colors.orange,
+                        fontFamily: "cairo",
+                      ),
+                    ),
+                    Text(
+                      "ممتاز",
+                      style: TextStyle(
+                        color: Colors.green,
+                        fontFamily: "cairo",
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
             // ================== اختيار تاريخ آخر ==================
             _cardShell(
               child: Row(

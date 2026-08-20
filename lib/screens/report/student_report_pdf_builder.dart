@@ -143,19 +143,27 @@ class StudentReportPdfBuilder {
         _summaryBox(
           font,
           boldFont,
-          'نسبة الحضور الكلية',
+          'نسبة الحضور',
           '${(data.overallAttendanceRate * 100).toStringAsFixed(0)}%',
         ),
-        pw.SizedBox(width: 8),
+        pw.SizedBox(width: 6),
         _summaryBox(font, boldFont, 'أيام الحضور', '${data.totalPresent}'),
-        pw.SizedBox(width: 8),
+        pw.SizedBox(width: 6),
         _summaryBox(font, boldFont, 'أيام الغياب', '${data.totalAbsent}'),
-        pw.SizedBox(width: 8),
+        pw.SizedBox(width: 6),
         _summaryBox(
           font,
           boldFont,
           'متوسط الدرجات',
           '${data.overallAverageExamPercentage.toStringAsFixed(0)}%',
+        ),
+        pw.SizedBox(width: 6),
+        // 👈 كارت متوسط التقييم الجديد
+        _summaryBox(
+          font,
+          boldFont,
+          'متوسط التقييم',
+          '${data.overallAverageAttendancePercentagerate.toStringAsFixed(0)}%',
         ),
       ],
     );
@@ -259,12 +267,16 @@ class StudentReportPdfBuilder {
       cellStyle: pw.TextStyle(font: font, fontSize: 10),
       headerDecoration: const pw.BoxDecoration(color: PdfColors.grey200),
       cellAlignment: pw.Alignment.center,
-      headers: ['التاريخ', 'الحالة'],
+      headers: ['التاريخ', 'الحالة', 'التقييم', 'الملاحظات'],
       data: records
           .map(
             (r) => [
               DateFormat(_dateFormat).format(r.date),
               r.isPresent ? 'حاضر' : 'غائب',
+              r.studentRating != null
+                  ? '${r.studentRating}/10'
+                  : '—', // 👈 عرض التقييم
+              r.note ?? '—', // 👈 عرض الملاحظة
             ],
           )
           .toList(),

@@ -180,7 +180,53 @@ class _AssistantStatusScreenState extends State<AssistantStatusScreen> {
                     ),
                   ),
                 ],
+                OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.red,
+                    side: const BorderSide(color: Colors.red),
+                  ),
+                  onPressed: () async {
+                    final confirm = await showDialog<bool>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text("إلغاء الارتباط"),
+                        content: const Text(
+                          "هل أنت تأكد من إلغاء الارتباط بالمدرس الحالي وإدخال كود جديد؟",
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, false),
+                            child: const Text("إلغاء"),
+                          ),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                            ),
+                            onPressed: () => Navigator.pop(context, true),
+                            child: const Text(
+                              "تأكيد",
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
 
+                    if (confirm == true) {
+                      try {
+                        await AuthService().unlinkFromTeacher();
+                      } catch (e) {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text("حدث خطأ: $e")),
+                          );
+                        }
+                      }
+                    }
+                  },
+                  icon: const Icon(Icons.link_off),
+                  label: const Text("إلغاء كود المدرس الحالي"),
+                ),
                 const SizedBox(height: 24),
                 TextButton.icon(
                   onPressed: () async {

@@ -5,12 +5,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:seba/features/assistant/app_session.dart';
 import 'package:seba/features/auth/firestore_path.dart';
-import 'package:seba/features/subscription/presentation/screens/admin_create_code_screen.dart';
+import 'package:seba/features/subscription/presentation/screens/admin/admin_create_code_screen.dart';
 import 'package:seba/model/group_model.dart';
 import 'package:seba/screens/home/group_screens/create_group.dart';
 import 'package:seba/screens/home/group_screens/student_display_screen/general_student_display_screen.dart';
 import 'package:seba/screens/home/group_screens/student_display_screen/student_display_screen.dart';
 import 'package:seba/screens/settings/settings_screen.dart';
+import 'package:seba/screens/statistics/statistics_screen.dart';
 import 'package:seba/screens/student/add_student_general_screen.dart';
 import 'package:seba/screens/timetable/timetable_screen.dart';
 
@@ -790,6 +791,21 @@ class _GroupsDisplayScreenState extends State<GroupsDisplayScreen> {
                       },
                     ),
                     const SizedBox(width: 8),
+                    // أضف الزر داخل actions في AppBar العادي:
+                    _buildActionButton(
+                      icon: Icons.bar_chart_rounded,
+                      tooltip: "إحصائيات وترتيب الطلاب",
+                      iconColor: _kPrimary,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                const StatisticsScreen(), // بدون groupId لإظهار كافة الطلاب
+                          ),
+                        );
+                      },
+                    ),
                   ],
                 ),
         ),

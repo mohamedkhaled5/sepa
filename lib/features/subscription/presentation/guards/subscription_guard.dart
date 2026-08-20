@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:seba/features/assistant/app_session.dart';
+import 'package:seba/features/auth/auth_service.dart';
+import 'package:seba/features/auth/login_screen.dart';
 import 'package:seba/features/subscription/domain/models/subscription_model.dart';
 import 'package:seba/features/subscription/domain/services/subscription_service.dart';
 import 'package:seba/features/subscription/presentation/screens/redeem_code_screen.dart';
@@ -111,6 +113,29 @@ class ExpiredSubscriptionScreen extends StatelessWidget {
                     ),
                   ),
                 ),
+              const SizedBox(height: 12),
+              ElevatedButton.icon(
+                onPressed: () async {
+                  await AuthService().logout();
+                  // Navigator.of(context).push(
+                  //   MaterialPageRoute(
+                  //     builder: (context) => const LoginScreen(),
+                  //   ),
+                  // );
+                },
+                icon: const Icon(Icons.logout_rounded, color: Colors.red),
+                label: const Text(
+                  ' تسجيل الخروج من الحساب ',
+                  style: TextStyle(color: Colors.red),
+                ),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: BorderSide(color: Colors.red),
+                  ),
+                ),
+              ),
             ],
           ),
         ),

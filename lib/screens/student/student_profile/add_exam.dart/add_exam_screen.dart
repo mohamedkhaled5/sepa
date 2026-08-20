@@ -31,6 +31,7 @@ class AddExamScreen extends StatefulWidget {
 }
 
 class _AddExamScreenState extends State<AddExamScreen> {
+  double studentRating = 0.0;
   @override
   void initState() {
     super.initState();
@@ -66,6 +67,7 @@ class _AddExamScreenState extends State<AddExamScreen> {
         examStatus: isPresent == true ? "حاضر" : "غائب",
         currentDegree: currentDegreeController.text,
         maxDegree: maxDegreeController.text,
+        studentRating: studentRating,
       ).toMap(),
     );
   }
